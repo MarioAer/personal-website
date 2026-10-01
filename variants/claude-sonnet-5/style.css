@@ -1,0 +1,367 @@
+/* Mario Erazo — personal consulting site, claude-sonnet-5 variant.
+   System fonts only. Both themes styled via [data-theme] on <html>,
+   falling back to prefers-color-scheme when the attribute is absent. */
+
+:root {
+  --bg: #f5f3ee;
+  --bg-raised: #ffffff;
+  --ink: #15171a;
+  --ink-muted: #4a4f57;
+  --accent: #9a3b26;
+  --rule: #ddd8cc;
+  --rule-strong: #c7c0b0;
+  --focus: #1b5e6b;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121314;
+    --bg-raised: #1a1c1e;
+    --ink: #ece9e2;
+    --ink-muted: #b9b4aa;
+    --accent: #e4875a;
+    --rule: #30322f;
+    --rule-strong: #46483f;
+    --focus: #7fd2cf;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #121314;
+  --bg-raised: #1a1c1e;
+  --ink: #ece9e2;
+  --ink-muted: #b9b4aa;
+  --accent: #e4875a;
+  --rule: #30322f;
+  --rule-strong: #46483f;
+  --focus: #7fd2cf;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding-top: var(--shell-height, 56px);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.55;
+  min-width: 360px;
+}
+
+.wrap {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .wrap {
+    padding: 0 2.5rem;
+  }
+}
+
+a {
+  color: inherit;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+  padding: clamp(2.25rem, 6vw, 4rem) 0 clamp(1.75rem, 4vw, 2.5rem);
+  border-bottom: 1px solid var(--rule);
+}
+
+.kicker {
+  margin: 0 0 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+}
+
+.hero h1 {
+  font-size: clamp(2.25rem, 6vw, 3.5rem);
+}
+
+.tagline {
+  margin: 0.9rem 0 0;
+  max-width: 42rem;
+  font-size: clamp(1.05rem, 2.2vw, 1.3rem);
+  color: var(--ink-muted);
+}
+
+.index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin-top: 1.75rem;
+  font-size: 0.9rem;
+}
+
+.index a {
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule-strong);
+  padding-bottom: 0.15rem;
+}
+
+.index a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ---------- Sections, generally ---------- */
+
+main section {
+  padding: clamp(2rem, 5vw, 3.25rem) 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+main h2 {
+  font-size: clamp(1.4rem, 3vw, 1.75rem);
+  margin-bottom: clamp(1.25rem, 3vw, 2rem);
+}
+
+/* ---------- Services ---------- */
+
+.services-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 880px) {
+  .services-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+.service {
+  background: var(--bg-raised);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.service h3 {
+  font-size: 1.1rem;
+}
+
+.service .promise {
+  margin: 0;
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 0.98rem;
+}
+
+.service .work {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.93rem;
+}
+
+.evidence-mini {
+  margin: 0.25rem 0 0;
+  padding: 0.75rem 0 0;
+  border-top: 1px dashed var(--rule-strong);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  font-size: 0.88rem;
+}
+
+.evidence-mini li {
+  padding-left: 1rem;
+  position: relative;
+}
+
+.evidence-mini li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+/* ---------- Evidence ledger ---------- */
+
+.ledger {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.ledger li {
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--rule);
+  font-size: 0.97rem;
+}
+
+.ledger li:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+
+/* ---------- Principles ---------- */
+
+.principles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .principles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.principles li {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  background: var(--bg-raised);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 1.1rem 1.25rem;
+}
+
+.pnum {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--rule-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.principles p {
+  margin: 0;
+}
+
+/* ---------- Background timeline ---------- */
+
+.timeline {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  border-left: 2px solid var(--rule-strong);
+}
+
+.timeline li {
+  position: relative;
+  padding: 0 0 1.1rem 1.5rem;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.timeline li::before {
+  content: "";
+  position: absolute;
+  left: -6.5px;
+  top: 0.35rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.timeline .period {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.02em;
+}
+
+.timeline .role {
+  font-weight: 600;
+}
+
+.timeline .org {
+  color: var(--ink-muted);
+  font-size: 0.93rem;
+}
+
+.line {
+  margin: 0.4rem 0;
+  font-size: 0.93rem;
+  color: var(--ink-muted);
+  max-width: 48rem;
+}
+
+.line strong {
+  color: var(--ink);
+}
+
+/* ---------- Footer ---------- */
+
+footer {
+  padding: 1.75rem 0 2.5rem;
+}
+
+footer .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+  color: var(--ink-muted);
+}
+
+footer p {
+  margin: 0;
+}
+
+footer a {
+  color: var(--ink-muted);
+  text-decoration: underline;
+}
+
+footer a:hover {
+  color: var(--accent);
+}
