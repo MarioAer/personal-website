@@ -20,9 +20,8 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
       options: --ipc=host
-    # Firefox refuses to start when $HOME is not owned by the running user.
     env:
-      HOME: /root
+      HOME: /root # firefox will not start otherwise
     steps:
       - uses: actions/checkout@v4
       # The image ships an older Node; this project needs 24 to run TypeScript directly.
