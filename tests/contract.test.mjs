@@ -114,3 +114,13 @@ test('a script src that merely contains the shell path does not satisfy the rule
 test('references inside html comments are ignored', () => {
   assert.deepEqual(run({ 'index.html': page('<!-- <img src="https://example.com/a.png"> -->') }).errors, [])
 })
+
+test('a comment marker inside a script body does not swallow later markup', () => {
+  const html = page('<script>const s = "<!--"</script><img src="https://evil.example/x.png" alt="x"><!-- trailing -->')
+  assert.ok(run({ 'index.html': html }).errors.some((e) => /evil\.example/.test(e)))
+})
+
+test('a comment marker inside a script body does not hide the shell tag', () => {
+  const head = '<script>const s = "<!--"</script>' + SHELL + '<!-- unrelated -->'
+  assert.deepEqual(run({ 'index.html': page('', head) }).errors, [])
+})

@@ -1,9 +1,9 @@
 import { RESERVED_VARIANT_ENTRIES } from './registry.mjs'
 
 const SHELL_SRC = '/shell/shell.js'
-const TAG = /<([a-z0-9-]+)((?:"[^"]*"|'[^']*'|[^>"'])*)>/gi
-const SCRIPT_BLOCK = /<script\b[^>]*>([\s\S]*?)<\/script>/gi
-const HTML_COMMENT = /<!--[\s\S]*?-->/g
+const NODE = /<!--[\s\S]*?-->|<([a-z0-9-]+)((?:"[^"]*"|'[^']*'|[^>"'])*)>/g
+const SCRIPT_BLOCK = /(<script\b[^>]*>)([\s\S]*?)(<\/script>)/gi
+const STYLE_BLOCK_FULL = /(<style\b[^>]*>)([\s\S]*?)(<\/style>)/gi
 const ATTR = /\b(src|href|srcset|poster|data|xlink:href)\s*=\s*("([^"]*)"|'([^']*)')/gi
 const CSS_URL = /url\(\s*(?:"([^"]*)"|'([^']*)'|([^)'"]+))\s*\)/gi
 const CSS_IMPORT = /@import\s+(?:url\(\s*)?(?:"([^"]*)"|'([^']*)')/gi
@@ -76,15 +76,16 @@ export function checkVariant({ id, files }) {
   if (!declared) errors.push(`variants/${id}/index.html: <meta name="variant" content="${id}"> is missing`)
   else if (declared !== id) errors.push(`variants/${id}/index.html: the variant meta tag declares "${declared}" but the folder is "${id}"`)
 
-  const withoutCommentsHtml = html.replace(HTML_COMMENT, '')
-  const withoutScriptBodiesHtml = withoutCommentsHtml.replace(SCRIPT_BLOCK, (full, body) => (body ? full.replace(body, '') : full))
+  const blankedHtml = html
+    .replace(SCRIPT_BLOCK, (_full, open, _body, close) => `${open}${close}`)
+    .replace(STYLE_BLOCK_FULL, (_full, open, _body, close) => `${open}${close}`)
 
-  const scriptTags = [...withoutScriptBodiesHtml.matchAll(TAG)].filter((m) => m[1].toLowerCase() === 'script')
+  const scriptTags = [...blankedHtml.matchAll(NODE)].filter((m) => m[1] && m[1].toLowerCase() === 'script')
   const shellTags = scriptTags.filter((m) => srcOf(m[2]) === SHELL_SRC)
   if (shellTags.length !== 1) {
     errors.push(`variants/${id}/index.html: expected exactly one script tag loading ${SHELL_SRC}, found ${shellTags.length}`)
   } else {
-    const headEnd = withoutScriptBodiesHtml.toLowerCase().indexOf('</head>')
+    const headEnd = blankedHtml.toLowerCase().indexOf('</head>')
     if (headEnd === -1 || shellTags[0].index > headEnd) {
       errors.push(`variants/${id}/index.html: the shell script tag must be inside <head>`)
     }
@@ -97,24 +98,26 @@ export function checkVariant({ id, files }) {
     if (typeof text !== 'string') continue
     const where = `variants/${id}/${path}`
     if (path.endsWith('.html') || path.endsWith('.svg')) {
-      const scrubbed = text.replace(HTML_COMMENT, '')
-      const withoutScriptBodies = scrubbed.replace(SCRIPT_BLOCK, (full, body) => (body ? full.replace(body, '') : full))
+      const blanked = text
+        .replace(SCRIPT_BLOCK, (_full, open, _body, close) => `${open}${close}`)
+        .replace(STYLE_BLOCK_FULL, (_full, open, _body, close) => `${open}${close}`)
 
-      for (const block of scrubbed.matchAll(SCRIPT_BLOCK)) {
-        for (const match of block[1].matchAll(JS_ABSOLUTE)) {
+      for (const block of text.matchAll(SCRIPT_BLOCK)) {
+        for (const match of block[2].matchAll(JS_ABSOLUTE)) {
           warnings.push(`${where}: the string "${match[1]}" looks like an absolute path; variant scripts must resolve assets relative to document.baseURI`)
         }
       }
 
-      for (const tagMatch of withoutScriptBodies.matchAll(TAG)) {
-        const attrs = tagMatch[2]
-        const isAnchor = tagMatch[1].toLowerCase() === 'a'
+      for (const node of blanked.matchAll(NODE)) {
+        if (!node[1]) continue
+        const attrs = node[2]
+        const isAnchor = node[1].toLowerCase() === 'a'
         for (const match of attrs.matchAll(ATTR)) {
           checkReference(attrValue(match), { where, isAnchor, errors })
         }
         for (const attr of attrs.matchAll(STYLE_ATTR)) checkCss(attr[1] ?? attr[2] ?? '', where, errors)
       }
-      for (const block of scrubbed.matchAll(STYLE_BLOCK)) checkCss(block[1], where, errors)
+      for (const block of text.matchAll(STYLE_BLOCK)) checkCss(block[1], where, errors)
     }
     if (path.endsWith('.css')) checkCss(text, where, errors)
     if (path.endsWith('.js')) {
