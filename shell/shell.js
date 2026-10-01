@@ -2,6 +2,14 @@ const BASE = new URL('..', import.meta.url)
 const VARIANT_ID = document.querySelector('meta[name="variant"]')?.content ?? ''
 const STORAGE_KEY = 'theme'
 
+// The registry (variants.json) is the single place a contact URL is changed. These are used only
+// when the registry cannot be loaded, and must always match registry.contact exactly; see
+// tests/fallback-contact.test.mjs.
+const FALLBACK_CONTACT = {
+  linkedin: 'https://www.linkedin.com/in/marioerazo/',
+  github: 'https://github.com/MarioAer',
+}
+
 const storage = {
   read() {
     try { return window.localStorage.getItem(STORAGE_KEY) } catch { return null }
@@ -83,6 +91,18 @@ function mount() {
   return { host, root }
 }
 
+function appendContactLink(contact, key, title, href) {
+  if (!href) return
+  const anchor = document.createElement('a')
+  anchor.className = 'link'
+  anchor.dataset.testid = `shell-${key}`
+  anchor.href = href
+  anchor.rel = 'me noopener'
+  anchor.setAttribute('aria-label', title)
+  anchor.innerHTML = icon(key, title)
+  contact.append(anchor)
+}
+
 async function loadRegistry(root) {
   const response = await fetch(new URL('variants.json', BASE), { cache: 'no-cache' })
   if (!response.ok) throw new Error(`variants.json responded with ${response.status}`)
@@ -93,17 +113,7 @@ async function loadRegistry(root) {
     ['linkedin', 'LinkedIn', registry.contact?.linkedin],
     ['github', 'GitHub', registry.contact?.github],
   ]
-  for (const [key, title, href] of links) {
-    if (!href) continue
-    const anchor = document.createElement('a')
-    anchor.className = 'link'
-    anchor.dataset.testid = `shell-${key}`
-    anchor.href = href
-    anchor.rel = 'me noopener'
-    anchor.setAttribute('aria-label', title)
-    anchor.innerHTML = icon(key, title)
-    contact.append(anchor)
-  }
+  for (const [key, title, href] of links) appendContactLink(contact, key, title, href)
 
   const entry = registry.variants.find((variant) => variant.id === VARIANT_ID)
   if (entry) {
@@ -133,12 +143,7 @@ loadRegistry(root).catch(() => {
   root.querySelector('.registry')?.remove()
   const contact = root.querySelector('.contact')
   if (contact.children.length === 0) {
-    const anchor = document.createElement('a')
-    anchor.className = 'link'
-    anchor.dataset.testid = 'shell-github'
-    anchor.href = 'https://github.com/MarioAer'
-    anchor.setAttribute('aria-label', 'GitHub')
-    anchor.innerHTML = icon('github', 'GitHub')
-    contact.append(anchor)
+    appendContactLink(contact, 'linkedin', 'LinkedIn', FALLBACK_CONTACT.linkedin)
+    appendContactLink(contact, 'github', 'GitHub', FALLBACK_CONTACT.github)
   }
 })
