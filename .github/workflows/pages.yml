@@ -16,8 +16,15 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    # Tag must match @playwright/test in package.json, which is pinned for that reason.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
+    env:
+      HOME: /root # firefox will not start otherwise
     steps:
       - uses: actions/checkout@v4
+      # The image ships an older Node; this project needs 24 to run TypeScript directly.
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -25,7 +32,6 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
-      - run: npx playwright install --with-deps
       - run: npm run test:e2e
       - name: Build the site
         env:

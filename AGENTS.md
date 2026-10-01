@@ -38,6 +38,9 @@ The `firefox-desktop` Playwright project cannot launch on the maintainer's macOS
 Its failures there are environmental; CI on Linux exercises it. Do not try to fix it locally
 and do not remove it from the configuration.
 
+CI runs the browser suite in the Playwright container image. Its tag and the pinned
+`@playwright/test` version must be upgraded together.
+
 ## Language and runtime
 
 Node 24 or newer, which runs `.ts` files directly by stripping types. There is no compiler
