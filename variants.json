@@ -1,0 +1,19 @@
+{
+  "default": "claude-opus-5",
+  "variants": [
+    {
+      "id": "claude-opus-5",
+      "label": "Claude Opus 5",
+      "tool": "Claude Code",
+      "toolVersion": "2.1.277",
+      "modelId": "claude-opus-5",
+      "generatedAt": "2026-10-01",
+      "specVersion": "2026-10-01",
+      "attempts": 1
+    }
+  ],
+  "contact": {
+    "linkedin": "https://www.linkedin.com/in/marioaer",
+    "github": "https://github.com/MarioAer"
+  }
+}
