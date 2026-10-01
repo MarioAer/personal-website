@@ -30,10 +30,14 @@ function applyTheme(theme) {
   storage.write(theme)
 }
 
+// Single source of truth for the bar's height: both the stylesheet below and the --shell-height
+// custom property (used by pages to offset their content) are derived from this constant.
+const BAR_HEIGHT_PX = 56
+
 const STYLE = `
 :host { all: initial; }
 .bar { position: fixed; inset: 0 0 auto 0; z-index: 2147483000; display: flex; align-items: center; gap: 0.75rem;
-  height: 56px; padding: 0 1rem; box-sizing: border-box; background: var(--bar-bg); color: var(--bar-fg);
+  height: ${BAR_HEIGHT_PX}px; padding: 0 1rem; box-sizing: border-box; background: var(--bar-bg); color: var(--bar-fg);
   border-bottom: 1px solid var(--bar-rule); font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, sans-serif; }
 :host { --bar-bg: #fbfaf8; --bar-fg: #1b1b1a; --bar-rule: #e2e0da; --bar-muted: #5d5d58; }
 :host([data-theme="dark"]) { --bar-bg: #14140f; --bar-fg: #eceadf; --bar-rule: #2d2d26; --bar-muted: #a3a099; }
@@ -65,7 +69,7 @@ function mount() {
   host.dataset.theme = currentTheme()
   const root = host.attachShadow({ mode: 'open' })
   root.innerHTML = `<style>${STYLE}</style>
-<div class="bar">
+<nav class="bar" aria-label="Site">
   <a class="name" href="${BASE.pathname}">Mario Erazo</a>
   <span class="colophon" data-testid="shell-colophon"></span>
   <span class="spacer"></span>
@@ -76,10 +80,10 @@ function mount() {
   <button type="button" data-testid="shell-theme" aria-label="Switch colour theme">Theme</button>
   <a class="link" data-testid="shell-spec" href="${BASE.pathname}spec/">View spec</a>
   <span class="group contact"></span>
-</div>`
+</nav>`
 
   document.body.prepend(host)
-  document.documentElement.style.setProperty('--shell-height', '56px')
+  document.documentElement.style.setProperty('--shell-height', `${BAR_HEIGHT_PX}px`)
   applyTheme(currentTheme())
 
   root.querySelector('[data-testid="shell-theme"]').addEventListener('click', () => {
