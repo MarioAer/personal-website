@@ -1,8 +1,16 @@
 {
-  "default": "fixture-a",
+  "default": "claude-opus-5",
   "variants": [
-    { "id": "fixture-a", "label": "Fixture A", "tool": "Claude Code", "toolVersion": "0.0.0", "modelId": "fixture-a", "generatedAt": "2026-10-01", "specVersion": "2026-10-01", "attempts": 1 },
-    { "id": "fixture-b", "label": "Fixture B", "tool": "Claude Code", "toolVersion": "0.0.0", "modelId": "fixture-b", "generatedAt": "2026-09-01", "specVersion": "2026-09-01", "attempts": 1 }
+    {
+      "id": "claude-opus-5",
+      "label": "Claude Opus 5",
+      "tool": "Claude Code",
+      "toolVersion": "2.1.277",
+      "modelId": "claude-opus-5",
+      "generatedAt": "2026-10-01",
+      "specVersion": "2026-10-01",
+      "attempts": 1
+    }
   ],
   "contact": {
     "linkedin": "https://www.linkedin.com/in/marioerazo/",
