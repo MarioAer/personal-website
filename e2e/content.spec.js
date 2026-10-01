@@ -91,3 +91,16 @@ for (const path of paths) {
     })
   })
 }
+
+// The specification requires LinkedIn and GitHub to be visible from every page, including the
+// specification page and the 404 page, which are not variants and so are outside the `paths` loop above.
+for (const [name, path] of [['the specification page', 'spec/'], ['the 404 page', 'no-such-page']]) {
+  test.describe(name, () => {
+    test('reaches LinkedIn and GitHub in one click', async ({ page }) => {
+      await page.goto(path)
+      const shell = page.locator('site-shell')
+      await expect(shell.locator('[data-testid="shell-linkedin"]')).toBeVisible()
+      await expect(shell.locator('[data-testid="shell-github"]')).toBeVisible()
+    })
+  })
+}

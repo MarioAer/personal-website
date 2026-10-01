@@ -179,5 +179,6 @@ test('the 404 page carries the bar', async ({ page }) => {
   const response = await page.goto('no-such-page')
   expect(response.status()).toBe(404)
   await expect(page.locator('h1')).toHaveText('Page not found')
+  await expect(control(page, 'shell-linkedin')).toBeVisible()
   await expect(control(page, 'shell-github')).toBeVisible()
 })
