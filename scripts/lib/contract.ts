@@ -1,4 +1,33 @@
-import { RESERVED_VARIANT_ENTRIES } from './registry.mjs'
+import { RESERVED_VARIANT_ENTRIES } from './registry.ts'
+
+/**
+ * Every file in a variant folder, keyed by its path relative to that folder. The value is the file's
+ * text, or `null` for a binary file whose contents the contract does not inspect.
+ */
+export type VariantFiles = Map<string, string | null>
+
+export interface VariantToCheck {
+  id: string
+  files: VariantFiles
+}
+
+/** Errors fail the build; warnings are printed and left to the reviewer (section 6.4 rule 4). */
+export interface ContractResult {
+  errors: string[]
+  warnings: string[]
+}
+
+/** How a reference is classified before it is judged against the rule for its position. */
+type ReferenceKind = 'ok' | 'external' | 'https' | 'scheme' | 'absolute' | 'parent'
+
+interface ReferenceContext {
+  where: string
+  isAnchor: boolean
+  errors: string[]
+}
+
+/** A regular expression match: capture groups that did not participate are `undefined`. */
+type Captures = readonly (string | undefined)[]
 
 const SHELL_SRC = '/shell/shell.js'
 const NODE = /<!--[\s\S]*?-->|<([a-z0-9-]+)((?:"[^"]*"|'[^']*'|[^>"'])*)>/g
@@ -12,14 +41,14 @@ const STYLE_ATTR = /\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/gi
 const JS_ABSOLUTE = /(?:"|'|`)(\/(?!\/)[^"'`\s]*)(?:"|'|`)/g
 const ALLOWED_PREFIXES = ['data:', 'blob:', '#']
 
-const attrValue = (match) => match[3] ?? match[4] ?? ''
+const attrValue = (match: Captures): string => match[3] ?? match[4] ?? ''
 
-const srcOf = (attrs) => {
-  const match = attrs.match(/\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)')/i)
-  return match ? (match[1] ?? match[2]).trim() : null
+const srcOf = (attrs: string): string | null => {
+  const match: Captures | null = attrs.match(/\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)')/i)
+  return match ? (match[1] ?? match[2] ?? '').trim() : null
 }
 
-function classify(value) {
+function classify(value: string): ReferenceKind {
   const v = value.trim()
   if (v === '') return 'ok'
   if (ALLOWED_PREFIXES.some((p) => v.startsWith(p))) return 'ok'
@@ -30,8 +59,8 @@ function classify(value) {
   return 'ok'
 }
 
-function checkReference(value, { where, isAnchor, errors }) {
-  for (const candidate of String(value).split(',').map((part) => part.trim().split(/\s+/)[0]).filter(Boolean)) {
+function checkReference(value: string, { where, isAnchor, errors }: ReferenceContext): void {
+  for (const candidate of String(value).split(',').map((part) => part.trim().split(/\s+/)[0] ?? '').filter(Boolean)) {
     const kind = classify(candidate)
     if (kind === 'ok') continue
     if (kind === 'absolute' && candidate === SHELL_SRC) continue
@@ -43,7 +72,7 @@ function checkReference(value, { where, isAnchor, errors }) {
   }
 }
 
-function checkCss(text, where, errors) {
+function checkCss(text: string, where: string, errors: string[]): void {
   for (const pattern of [CSS_URL, CSS_IMPORT]) {
     pattern.lastIndex = 0
     for (const match of text.matchAll(pattern)) {
@@ -53,13 +82,14 @@ function checkCss(text, where, errors) {
   }
 }
 
-export function checkVariant({ id, files }) {
-  const errors = []
-  const warnings = []
+/** Checks a variant folder against the contract in section 6.4. */
+export function checkVariant({ id, files }: VariantToCheck): ContractResult {
+  const errors: string[] = []
+  const warnings: string[] = []
   const html = files.get('index.html')
 
   for (const path of files.keys()) {
-    const top = path.split('/')[0]
+    const top = path.split('/')[0] ?? ''
     if (RESERVED_VARIANT_ENTRIES.includes(top.toLowerCase())) {
       errors.push(`variants/${id}/${top}: "${top}" is a reserved name and must not appear in a variant`)
     }
@@ -71,25 +101,26 @@ export function checkVariant({ id, files }) {
   }
 
   const metaMatch = html.match(/<meta\b[^>]*name\s*=\s*["']variant["'][^>]*>/i)
-  const metaContent = metaMatch?.[0].match(/content\s*=\s*(?:"([^"]*)"|'([^']*)')/i)
+  const metaContent: Captures | null | undefined = metaMatch?.[0].match(/content\s*=\s*(?:"([^"]*)"|'([^']*)')/i)
   const declared = metaContent?.[1] ?? metaContent?.[2]
   if (!declared) errors.push(`variants/${id}/index.html: <meta name="variant" content="${id}"> is missing`)
   else if (declared !== id) errors.push(`variants/${id}/index.html: the variant meta tag declares "${declared}" but the folder is "${id}"`)
 
   const blankedHtml = html
-    .replace(SCRIPT_BLOCK, (_full, open, _body, close) => `${open}${close}`)
-    .replace(STYLE_BLOCK_FULL, (_full, open, _body, close) => `${open}${close}`)
+    .replace(SCRIPT_BLOCK, (_full, open: string, _body: string, close: string) => `${open}${close}`)
+    .replace(STYLE_BLOCK_FULL, (_full, open: string, _body: string, close: string) => `${open}${close}`)
 
   const scriptTags = [...blankedHtml.matchAll(NODE)].filter((m) => m[1] && m[1].toLowerCase() === 'script')
-  const shellTags = scriptTags.filter((m) => srcOf(m[2]) === SHELL_SRC)
-  if (shellTags.length !== 1) {
+  const shellTags = scriptTags.filter((m) => srcOf(m[2] ?? '') === SHELL_SRC)
+  const shellTag = shellTags[0]
+  if (shellTags.length !== 1 || shellTag === undefined) {
     errors.push(`variants/${id}/index.html: expected exactly one script tag loading ${SHELL_SRC}, found ${shellTags.length}`)
   } else {
     const headEnd = blankedHtml.toLowerCase().indexOf('</head>')
-    if (headEnd === -1 || shellTags[0].index > headEnd) {
+    if (headEnd === -1 || (shellTag.index ?? 0) > headEnd) {
       errors.push(`variants/${id}/index.html: the shell script tag must be inside <head>`)
     }
-    if (!/type\s*=\s*(?:"module"|'module')/i.test(shellTags[0][2])) {
+    if (!/type\s*=\s*(?:"module"|'module')/i.test(shellTag[2] ?? '')) {
       errors.push(`variants/${id}/index.html: the shell script tag must have type="module"`)
     }
   }
@@ -99,25 +130,25 @@ export function checkVariant({ id, files }) {
     const where = `variants/${id}/${path}`
     if (path.endsWith('.html') || path.endsWith('.svg')) {
       const blanked = text
-        .replace(SCRIPT_BLOCK, (_full, open, _body, close) => `${open}${close}`)
-        .replace(STYLE_BLOCK_FULL, (_full, open, _body, close) => `${open}${close}`)
+        .replace(SCRIPT_BLOCK, (_full, open: string, _body: string, close: string) => `${open}${close}`)
+        .replace(STYLE_BLOCK_FULL, (_full, open: string, _body: string, close: string) => `${open}${close}`)
 
       for (const block of text.matchAll(SCRIPT_BLOCK)) {
-        for (const match of block[2].matchAll(JS_ABSOLUTE)) {
+        for (const match of (block[2] ?? '').matchAll(JS_ABSOLUTE)) {
           warnings.push(`${where}: the string "${match[1]}" looks like an absolute path; variant scripts must resolve assets relative to document.baseURI`)
         }
       }
 
       for (const node of blanked.matchAll(NODE)) {
         if (!node[1]) continue
-        const attrs = node[2]
+        const attrs = node[2] ?? ''
         const isAnchor = node[1].toLowerCase() === 'a'
         for (const match of attrs.matchAll(ATTR)) {
           checkReference(attrValue(match), { where, isAnchor, errors })
         }
         for (const attr of attrs.matchAll(STYLE_ATTR)) checkCss(attr[1] ?? attr[2] ?? '', where, errors)
       }
-      for (const block of text.matchAll(STYLE_BLOCK)) checkCss(block[1], where, errors)
+      for (const block of text.matchAll(STYLE_BLOCK)) checkCss(block[1] ?? '', where, errors)
     }
     if (path.endsWith('.css')) checkCss(text, where, errors)
     if (path.endsWith('.js')) {

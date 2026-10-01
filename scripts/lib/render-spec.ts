@@ -1,5 +1,11 @@
 import { marked } from 'marked'
 
+/** The deployment base path the shell script tag is written with, and the document title. */
+export interface RenderSpecOptions {
+  basePath: string
+  title: string
+}
+
 const STYLE = `
 :root { color-scheme: light dark; --bg: #fbfaf8; --fg: #1b1b1a; --muted: #5d5d58; --rule: #e2e0da; --accent: #b4441f; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #14140f; --fg: #eceadf; --muted: #a3a099; --rule: #2d2d26; --accent: #e07a4f; } }
@@ -21,7 +27,7 @@ th { background: color-mix(in srgb, var(--fg) 5%, transparent); }
 blockquote { margin: 1rem 0; padding-left: 1rem; border-left: 3px solid var(--rule); color: var(--muted); }
 `.trim()
 
-export function renderSpecPage(markdown, { basePath, title }) {
+export function renderSpecPage(markdown: string, { basePath, title }: RenderSpecOptions): string {
   const body = marked.parse(markdown, { async: false, gfm: true, breaks: false })
   return `<!doctype html>
 <html lang="en">
