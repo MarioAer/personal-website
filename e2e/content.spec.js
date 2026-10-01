@@ -22,12 +22,11 @@ for (const path of paths) {
       }
     })
 
-    test('states the positioning, the location and the availability', async ({ page }) => {
+    test('states the positioning and the location', async ({ page }) => {
       await page.goto(path)
       const body = page.locator('body')
       expect(flatten(await body.innerText())).toContain(POSITIONING)
       await expect(body).toContainText('Cologne')
-      await expect(body).toContainText(/Available for/i)
     })
 
     test('carries the evidence numbers exactly', async ({ page }) => {

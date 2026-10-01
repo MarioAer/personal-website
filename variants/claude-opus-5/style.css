@@ -172,9 +172,6 @@ h1 {
   flex: none;
 }
 
-.availability { color: var(--accent); font-weight: 600; }
-.availability::before { background: var(--accent); }
-
 /* Sections */
 
 .section { padding-block: clamp(2.75rem, 5vw, 4.25rem); }
@@ -252,15 +249,6 @@ h1 {
   width: 0.6rem;
   height: 2px;
   background: var(--accent);
-}
-
-/* Engagement */
-
-.engagement-text {
-  max-width: 46rem;
-  font-size: clamp(1.02rem, 1.8vw, 1.2rem);
-  border-left: 3px solid var(--accent);
-  padding-left: 1.25rem;
 }
 
 /* Approach */

@@ -6,7 +6,7 @@ const STORAGE_KEY = 'theme'
 // when the registry cannot be loaded, and must always match registry.contact exactly; see
 // tests/fallback-contact.test.mjs.
 const FALLBACK_CONTACT = {
-  linkedin: 'https://www.linkedin.com/in/marioerazo/',
+  linkedin: 'https://www.linkedin.com/in/marioaer',
   github: 'https://github.com/MarioAer',
 }
 
