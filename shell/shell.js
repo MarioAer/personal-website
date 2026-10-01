@@ -128,6 +128,17 @@ async function loadRegistry(root) {
   }
 
   const select = root.querySelector('[data-testid="shell-select"]')
+  if (!VARIANT_ID) {
+    // The specification page and the 404 page are not a variant, so no option below matches
+    // VARIANT_ID. Without this placeholder the browser would select the first variant by default,
+    // misreporting it as the current page.
+    const placeholder = document.createElement('option')
+    placeholder.value = ''
+    placeholder.textContent = 'Select a version'
+    placeholder.disabled = true
+    placeholder.selected = true
+    select.append(placeholder)
+  }
   for (const variant of registry.variants) {
     const option = document.createElement('option')
     option.value = variant.id

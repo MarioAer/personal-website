@@ -109,6 +109,16 @@ test('the specification link opens the specification page', async ({ page }) => 
   await expect(shell(page).locator('[data-testid="shell-select"]')).toBeVisible()
 })
 
+// The specification page is not a variant, so no registered option matches it. Without a
+// placeholder, the browser would select the first registered variant and misreport it as current.
+test('the specification page selector shows the placeholder, not a variant label', async ({ page }) => {
+  await page.goto('spec/')
+  const select = control(page, 'shell-select')
+  const selected = select.locator('option:checked')
+  await expect(selected).toHaveText('Select a version')
+  await expect(selected).toBeDisabled()
+})
+
 test('the colophon names the model and the generation date', async ({ page }) => {
   await page.goto('./')
   await expect(control(page, 'shell-colophon')).toContainText(defaultEntry.label)
