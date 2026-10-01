@@ -21,7 +21,7 @@ const EXPECTED_TAGS = new Set([
 
 test('rendering the real specification file emits only expected HTML tags', async () => {
   const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-  const specsDir = join(root, 'docs', 'superpowers', 'specs')
+  const specsDir = join(root, 'spec')
   const specFile = (await readdir(specsDir)).filter((name) => name.endsWith('-personal-website-design.md')).sort().at(-1)
   const markdown = await readFile(join(specsDir, specFile), 'utf8')
   const html = renderSpecPage(markdown, { basePath: '/', title: 'Specification' })

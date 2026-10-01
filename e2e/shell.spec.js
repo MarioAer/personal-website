@@ -8,7 +8,7 @@ const otherEntry = registry.variants.find((variant) => variant.id !== registry.d
 // The shell marks a variant stale against the site-level specVersion the build injects, which it takes
 // from the specification filename. Comparing variants with one another instead would report green when
 // every variant has fallen behind the specification together.
-const specsDir = new URL('../docs/superpowers/specs/', import.meta.url)
+const specsDir = new URL('../spec/', import.meta.url)
 const specFile = (await readdir(specsDir)).filter((name) => name.endsWith('-personal-website-design.md')).sort().at(-1)
 const siteSpecVersion = specFile.slice(0, 10)
 const staleEntry = registry.variants.find((variant) => variant.specVersion !== siteSpecVersion)

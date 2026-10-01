@@ -3,7 +3,7 @@
 Written for the specification dated 2026-10-01.
 
 You are implementing one version of a personal consulting website. The specification is the file
-`docs/superpowers/specs/2026-10-01-personal-website-design.md`. Read it in full before writing anything.
+`spec/2026-10-01-personal-website-design.md`. Read it in full before writing anything.
 
 Implement the sections titled "Positioning", "Content inventory" and "Design constraints for variants"
 as a single self-contained folder at `variants/<ID>/`, obeying every rule in the section titled

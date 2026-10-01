@@ -133,7 +133,7 @@ main{max-width:40rem;margin:0 auto;padding:3rem 1rem}
 const invokedDirectly = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]
 if (invokedDirectly) {
   const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-  const specsDir = join(root, 'docs', 'superpowers', 'specs')
+  const specsDir = join(root, 'spec')
   const specFile = (await readdir(specsDir)).filter((name) => name.endsWith('-personal-website-design.md')).sort().at(-1)
   if (!specFile) throw new Error(`No specification found in ${relative(root, specsDir)}${sep}`)
   const { warnings } = await build({

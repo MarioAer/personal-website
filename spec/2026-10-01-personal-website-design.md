@@ -143,8 +143,8 @@ Static site, served by GitHub Pages, built by a small Node script. No site frame
 
 ```
 personal-website/
-  docs/superpowers/specs/2026-10-01-personal-website-design.md   this document
-  docs/superpowers/specs/variant-prompt.md                       prompt given to every model
+  spec/2026-10-01-personal-website-design.md   this document
+  spec/variant-prompt.md                       prompt given to every model
   variants.json                 registry of variants and the default
   variants/
     <variant-id>/
@@ -249,7 +249,7 @@ Switching to the custom domain later requires: setting the `SITE_DOMAIN` reposit
 ## 7. Generating a variant
 
 1. Create a branch `variant/<id>`.
-2. Give the model this specification and the prompt stored in `docs/superpowers/specs/variant-prompt.md`, created in the first milestone. The prompt refers to sections by title, not number ("Positioning", "Content inventory", "Design constraints for variants", "Variant contract"), names the target folder, forbids changes outside it, and records the specification date it was written for. Record `modelId`, `toolVersion` and the date in the registry entry.
+2. Give the model this specification and the prompt stored in `spec/variant-prompt.md`, created in the first milestone. The prompt refers to sections by title, not number ("Positioning", "Content inventory", "Design constraints for variants", "Variant contract"), names the target folder, forbids changes outside it, and records the specification date it was written for. Record `modelId`, `toolVersion` and the date in the registry entry.
 3. Generation is single-shot. If the result violates the contract or the content inventory, the model is instructed to fix it in the same session. A full regeneration from scratch is allowed once; `attempts` records the count. If the second run also fails review, the variant is not published for that model; the branch is kept for reference and the model may be retried after the next specification change.
 4. Add the registry entry, run `npm test` and `npm run build`, open the result locally with `npm run serve` (which serves `dist/` under the configured base path, so the subpath is exercised).
 5. Review against the content inventory (4), the design constraints (5) and the contract warnings (6.4 rule 4). Any fix, whether content, design or contract, is first requested from the model; manual edits are a last resort and are listed in the variant's `NOTES.md`.

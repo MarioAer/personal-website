@@ -28,8 +28,8 @@ async function fixture(overrides = {}) {
   }
   await mkdir(join(root, 'shell'), { recursive: true })
   await writeFile(join(root, 'shell', 'shell.js'), '// shell\n')
-  await mkdir(join(root, 'docs', 'superpowers', 'specs'), { recursive: true })
-  await writeFile(join(root, 'docs', 'superpowers', 'specs', '2026-10-01-personal-website-design.md'), '# Spec\n\nText.\n')
+  await mkdir(join(root, 'spec'), { recursive: true })
+  await writeFile(join(root, 'spec', '2026-10-01-personal-website-design.md'), '# Spec\n\nText.\n')
   await writeFile(join(root, 'variants.json'), overrides.registryText ?? JSON.stringify(registry, null, 2))
   return root
 }
@@ -38,7 +38,7 @@ const run = (root, options = {}) =>
   build({
     root,
     outDir: join(root, 'dist'),
-    specPath: join(root, 'docs', 'superpowers', 'specs', '2026-10-01-personal-website-design.md'),
+    specPath: join(root, 'spec', '2026-10-01-personal-website-design.md'),
     basePath: '/',
     ...options,
   })
