@@ -1,13 +1,46 @@
 import { test, expect } from '@playwright/test'
-import { readFile } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 
 const registry = JSON.parse(await readFile(new URL('../variants.json', import.meta.url), 'utf8'))
 const defaultEntry = registry.variants.find((variant) => variant.id === registry.default)
 const otherEntry = registry.variants.find((variant) => variant.id !== registry.default)
-const staleEntry = registry.variants.find((variant) => variant.specVersion !== defaultEntry.specVersion)
+
+// The shell marks a variant stale against the site-level specVersion the build injects, which it takes
+// from the specification filename. Comparing variants with one another instead would report green when
+// every variant has fallen behind the specification together.
+const specsDir = new URL('../docs/superpowers/specs/', import.meta.url)
+const specFile = (await readdir(specsDir)).filter((name) => name.endsWith('-personal-website-design.md')).sort().at(-1)
+const siteSpecVersion = specFile.slice(0, 10)
+const staleEntry = registry.variants.find((variant) => variant.specVersion !== siteSpecVersion)
 
 const shell = (page) => page.locator('site-shell')
 const control = (page, id) => shell(page).locator(`[data-testid="${id}"]`)
+
+// Finding 5: the selector is the site's distinctive feature, and a single-entry registry cannot exercise
+// it. These helpers serve a two-entry registry from the network so the selected-option logic, both
+// navigation directions and the stale notice are covered whatever the real registry holds.
+const MOCK_ID = 'mock-variant'
+const MOCK_ENTRY = {
+  id: MOCK_ID,
+  label: 'Mock Variant',
+  tool: 'Claude Code',
+  toolVersion: '0.0.0',
+  modelId: 'mock-variant',
+  generatedAt: '2026-09-01',
+  specVersion: siteSpecVersion,
+  attempts: 1,
+}
+
+async function serveTwoEntryRegistry(page, defaultOverrides = {}) {
+  // The mock is listed first so that a selector which merely falls back to the first option fails.
+  const body = JSON.stringify({
+    default: defaultEntry.id,
+    variants: [MOCK_ENTRY, { ...defaultEntry, ...defaultOverrides }],
+    contact: registry.contact,
+    specVersion: siteSpecVersion,
+  })
+  await page.route('**/variants.json', (route) => route.fulfill({ status: 200, contentType: 'application/json', body }))
+}
 
 test('the bar appears on the default variant', async ({ page }) => {
   await page.goto('./')
@@ -98,6 +131,38 @@ test('the bar works when the registry cannot be loaded', async ({ page }) => {
   await expect(control(page, 'shell-theme')).toBeVisible()
   await expect(control(page, 'shell-github')).toBeVisible()
   expect(errors).toEqual([])
+})
+
+test.describe('with a two-entry registry served from the network', () => {
+  test('the selector lists every entry and marks the current variant, not the first', async ({ page }) => {
+    await serveTwoEntryRegistry(page)
+    await page.goto(`${defaultEntry.id}/`)
+    const select = control(page, 'shell-select')
+    await expect(select.locator('option')).toHaveCount(2)
+    await expect(select.locator('option').first()).toHaveText(MOCK_ENTRY.label)
+    await expect(select).toHaveValue(defaultEntry.id)
+  })
+
+  test('choosing a non-default variant navigates to its path', async ({ page }) => {
+    await serveTwoEntryRegistry(page)
+    await page.goto('./')
+    await control(page, 'shell-select').selectOption(MOCK_ID)
+    await page.waitForURL(`**/personal-website/${MOCK_ID}/`)
+  })
+
+  test('choosing the default variant navigates to the site root', async ({ page }) => {
+    await serveTwoEntryRegistry(page)
+    await page.goto(`${MOCK_ID}/`)
+    await control(page, 'shell-select').selectOption(defaultEntry.id)
+    await page.waitForURL((url) => url.pathname === '/personal-website/')
+  })
+
+  test('the colophon marks a variant built from an older specification', async ({ page }) => {
+    await serveTwoEntryRegistry(page, { specVersion: '2026-09-01' })
+    await page.goto(`${defaultEntry.id}/`)
+    await expect(control(page, 'shell-colophon')).toContainText('2026-09-01')
+    await expect(control(page, 'shell-colophon')).toContainText('older specification')
+  })
 })
 
 test('the 404 page carries the bar', async ({ page }) => {
