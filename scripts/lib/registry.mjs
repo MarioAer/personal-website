@@ -1,6 +1,9 @@
 export const ID_PATTERN = /^[a-z0-9][a-z0-9.-]*$/
 export const RESERVED_NAMES = ['shell', 'spec', 'index.html', '404.html', 'variants.json', 'cname', '.nojekyll']
 
+// Entries a variant folder may not contain. index.html is absent: every variant must have one.
+export const RESERVED_VARIANT_ENTRIES = RESERVED_NAMES.filter((name) => name !== 'index.html')
+
 const REQUIRED_FIELDS = ['id', 'label', 'tool', 'toolVersion', 'modelId', 'generatedAt', 'specVersion']
 
 export function validateRegistry(registry, context = {}) {

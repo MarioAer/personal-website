@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { validateRegistry, ID_PATTERN, RESERVED_NAMES } from '../scripts/lib/registry.mjs'
+import { validateRegistry, ID_PATTERN, RESERVED_NAMES, RESERVED_VARIANT_ENTRIES } from '../scripts/lib/registry.mjs'
 
 const entry = (over = {}) => ({
   id: 'claude-opus-5',
@@ -82,7 +82,10 @@ test('contact links must be https urls', () => {
   assert.ok(validateRegistry(r, context()).some((e) => /contact/i.test(e)))
 })
 
-test('the exported pattern and reserved list are usable by other modules', () => {
+test('the exported pattern and reserved lists are usable by other modules', () => {
   assert.ok(ID_PATTERN.test('claude-opus-5'))
   assert.ok(RESERVED_NAMES.includes('variants.json'))
+  assert.ok(RESERVED_NAMES.includes('index.html'))
+  assert.ok(!RESERVED_VARIANT_ENTRIES.includes('index.html'))
+  assert.ok(RESERVED_VARIANT_ENTRIES.includes('shell'))
 })
