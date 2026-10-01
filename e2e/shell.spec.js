@@ -1,4 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { readFile } from 'node:fs/promises'
+
+const registry = JSON.parse(await readFile(new URL('../variants.json', import.meta.url), 'utf8'))
+const defaultEntry = registry.variants.find((variant) => variant.id === registry.default)
+const otherEntry = registry.variants.find((variant) => variant.id !== registry.default)
+const staleEntry = registry.variants.find((variant) => variant.specVersion !== defaultEntry.specVersion)
 
 const shell = (page) => page.locator('site-shell')
 const control = (page, id) => shell(page).locator(`[data-testid="${id}"]`)
@@ -11,22 +17,30 @@ test('the bar appears on the default variant', async ({ page }) => {
 })
 
 test('the selector shows the current variant and lists every entry', async ({ page }) => {
-  await page.goto('fixture-b/')
-  await expect(control(page, 'shell-select')).toHaveValue('fixture-b')
-  await expect(control(page, 'shell-select').locator('option')).toHaveCount(2)
+  await page.goto(`${defaultEntry.id}/`)
+  await expect(control(page, 'shell-select')).toHaveValue(defaultEntry.id)
+  await expect(control(page, 'shell-select').locator('option')).toHaveCount(registry.variants.length)
 })
 
 test('choosing a variant navigates to its path', async ({ page }) => {
+  test.skip(!otherEntry, 'the registry holds a single variant')
   await page.goto('./')
-  await control(page, 'shell-select').selectOption('fixture-b')
-  await page.waitForURL('**/personal-website/fixture-b/')
-  await expect(page.locator('h1')).toHaveText('Fixture B')
+  await control(page, 'shell-select').selectOption(otherEntry.id)
+  await page.waitForURL(`**/personal-website/${otherEntry.id}/`)
+  await expect(page.locator('meta[name="variant"]')).toHaveAttribute('content', otherEntry.id)
 })
 
 test('choosing the default variant navigates to the site root', async ({ page }) => {
-  await page.goto('fixture-b/')
-  await control(page, 'shell-select').selectOption('fixture-a')
+  test.skip(!otherEntry, 'the registry holds a single variant')
+  await page.goto(`${otherEntry.id}/`)
+  await control(page, 'shell-select').selectOption(registry.default)
   await page.waitForURL((url) => url.pathname === '/personal-website/')
+})
+
+test('the default variant is also served under its own id', async ({ page }) => {
+  await page.goto(`${defaultEntry.id}/`)
+  await expect(page.locator('meta[name="variant"]')).toHaveAttribute('content', defaultEntry.id)
+  await expect(control(page, 'shell-github')).toBeVisible()
 })
 
 test('the theme toggle writes and persists the theme', async ({ page }) => {
@@ -62,11 +76,17 @@ test('the specification link opens the specification page', async ({ page }) => 
   await expect(shell(page).locator('[data-testid="shell-select"]')).toBeVisible()
 })
 
-test('the colophon names the model and marks a stale variant', async ({ page }) => {
+test('the colophon names the model and the generation date', async ({ page }) => {
   await page.goto('./')
-  await expect(control(page, 'shell-colophon')).toContainText('Fixture A')
-  await page.goto('fixture-b/')
-  await expect(control(page, 'shell-colophon')).toContainText('2026-09-01')
+  await expect(control(page, 'shell-colophon')).toContainText(defaultEntry.label)
+  await expect(control(page, 'shell-colophon')).toContainText(defaultEntry.generatedAt)
+})
+
+test('the colophon marks a variant built from an older specification', async ({ page }) => {
+  test.skip(!staleEntry, 'every registered variant matches the current specification')
+  await page.goto(`${staleEntry.id}/`)
+  await expect(control(page, 'shell-colophon')).toContainText(staleEntry.specVersion)
+  await expect(control(page, 'shell-colophon')).toContainText('older specification')
 })
 
 test('the bar works when the registry cannot be loaded', async ({ page }) => {
