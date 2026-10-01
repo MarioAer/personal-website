@@ -93,3 +93,24 @@ test('a protocol-relative url in javascript is not warned about', () => {
 test('a reserved top-level entry is an error', () => {
   assert.ok(run({ 'index.html': page(), 'shell': null }).errors.some((e) => /reserved/.test(e)))
 })
+
+test('a fake tag inside an attribute value does not grant the anchor exception', () => {
+  const body = '<img alt="see <a href" src="https://evil.example/x.png">'
+  assert.ok(run({ 'index.html': page(body) }).errors.some((e) => /evil\.example/.test(e)))
+})
+
+test('an absolute path in an inline script is a warning, not an error', () => {
+  const html = page('', SHELL + '<script>const src = "/images/logo.png"</script>')
+  const result = run({ 'index.html': html })
+  assert.deepEqual(result.errors, [])
+  assert.ok(result.warnings.some((w) => /logo\.png/.test(w)))
+})
+
+test('a script src that merely contains the shell path does not satisfy the rule', () => {
+  const html = page('', '<script type="module" src="/shell/shell.js.bak"></script>')
+  assert.ok(run({ 'index.html': html }).errors.some((e) => /exactly one/.test(e)))
+})
+
+test('references inside html comments are ignored', () => {
+  assert.deepEqual(run({ 'index.html': page('<!-- <img src="https://example.com/a.png"> -->') }).errors, [])
+})

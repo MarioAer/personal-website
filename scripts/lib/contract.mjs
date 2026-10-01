@@ -1,7 +1,9 @@
 import { RESERVED_VARIANT_ENTRIES } from './registry.mjs'
 
 const SHELL_SRC = '/shell/shell.js'
-const SCRIPT_TAG = /<script\b[^>]*>/gi
+const TAG = /<([a-z0-9-]+)((?:"[^"]*"|'[^']*'|[^>"'])*)>/gi
+const SCRIPT_BLOCK = /<script\b[^>]*>([\s\S]*?)<\/script>/gi
+const HTML_COMMENT = /<!--[\s\S]*?-->/g
 const ATTR = /\b(src|href|srcset|poster|data|xlink:href)\s*=\s*("([^"]*)"|'([^']*)')/gi
 const CSS_URL = /url\(\s*(?:"([^"]*)"|'([^']*)'|([^)'"]+))\s*\)/gi
 const CSS_IMPORT = /@import\s+(?:url\(\s*)?(?:"([^"]*)"|'([^']*)')/gi
@@ -11,6 +13,11 @@ const JS_ABSOLUTE = /(?:"|')(\/(?!\/)[^"'\s]*)(?:"|')/g
 const ALLOWED_PREFIXES = ['data:', 'blob:', '#']
 
 const attrValue = (match) => match[3] ?? match[4] ?? ''
+
+const srcOf = (attrs) => {
+  const match = attrs.match(/\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)')/i)
+  return match ? (match[1] ?? match[2]).trim() : null
+}
 
 function classify(value) {
   const v = value.trim()
@@ -69,15 +76,19 @@ export function checkVariant({ id, files }) {
   if (!declared) errors.push(`variants/${id}/index.html: <meta name="variant" content="${id}"> is missing`)
   else if (declared !== id) errors.push(`variants/${id}/index.html: the variant meta tag declares "${declared}" but the folder is "${id}"`)
 
-  const shellTags = [...html.matchAll(SCRIPT_TAG)].filter((m) => m[0].includes(SHELL_SRC))
+  const withoutCommentsHtml = html.replace(HTML_COMMENT, '')
+  const withoutScriptBodiesHtml = withoutCommentsHtml.replace(SCRIPT_BLOCK, (full, body) => (body ? full.replace(body, '') : full))
+
+  const scriptTags = [...withoutScriptBodiesHtml.matchAll(TAG)].filter((m) => m[1].toLowerCase() === 'script')
+  const shellTags = scriptTags.filter((m) => srcOf(m[2]) === SHELL_SRC)
   if (shellTags.length !== 1) {
     errors.push(`variants/${id}/index.html: expected exactly one script tag loading ${SHELL_SRC}, found ${shellTags.length}`)
   } else {
-    const headEnd = html.toLowerCase().indexOf('</head>')
+    const headEnd = withoutScriptBodiesHtml.toLowerCase().indexOf('</head>')
     if (headEnd === -1 || shellTags[0].index > headEnd) {
       errors.push(`variants/${id}/index.html: the shell script tag must be inside <head>`)
     }
-    if (!/type\s*=\s*(?:"module"|'module')/i.test(shellTags[0][0])) {
+    if (!/type\s*=\s*(?:"module"|'module')/i.test(shellTags[0][2])) {
       errors.push(`variants/${id}/index.html: the shell script tag must have type="module"`)
     }
   }
@@ -86,12 +97,24 @@ export function checkVariant({ id, files }) {
     if (typeof text !== 'string') continue
     const where = `variants/${id}/${path}`
     if (path.endsWith('.html') || path.endsWith('.svg')) {
-      for (const match of text.matchAll(ATTR)) {
-        const tag = text.slice(Math.max(0, match.index - 200), match.index).match(/<([a-z0-9-]+)(?![\s\S]*<[a-z0-9-]+)/i)
-        checkReference(attrValue(match), { where, isAnchor: (tag?.[1] ?? '').toLowerCase() === 'a', errors })
+      const scrubbed = text.replace(HTML_COMMENT, '')
+      const withoutScriptBodies = scrubbed.replace(SCRIPT_BLOCK, (full, body) => (body ? full.replace(body, '') : full))
+
+      for (const block of scrubbed.matchAll(SCRIPT_BLOCK)) {
+        for (const match of block[1].matchAll(JS_ABSOLUTE)) {
+          warnings.push(`${where}: the string "${match[1]}" looks like an absolute path; variant scripts must resolve assets relative to document.baseURI`)
+        }
       }
-      for (const block of text.matchAll(STYLE_BLOCK)) checkCss(block[1], where, errors)
-      for (const attr of text.matchAll(STYLE_ATTR)) checkCss(attr[1] ?? attr[2] ?? '', where, errors)
+
+      for (const tagMatch of withoutScriptBodies.matchAll(TAG)) {
+        const attrs = tagMatch[2]
+        const isAnchor = tagMatch[1].toLowerCase() === 'a'
+        for (const match of attrs.matchAll(ATTR)) {
+          checkReference(attrValue(match), { where, isAnchor, errors })
+        }
+        for (const attr of attrs.matchAll(STYLE_ATTR)) checkCss(attr[1] ?? attr[2] ?? '', where, errors)
+      }
+      for (const block of scrubbed.matchAll(STYLE_BLOCK)) checkCss(block[1], where, errors)
     }
     if (path.endsWith('.css')) checkCss(text, where, errors)
     if (path.endsWith('.js')) {
