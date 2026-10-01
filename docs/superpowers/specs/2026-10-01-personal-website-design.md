@@ -94,7 +94,7 @@ Every variant must contain the following sections. Names are canonical identifie
 | `approach` | The four principles (3.4) | |
 | `background` | Compact career summary (4.1) | Prose of at most 80 words, or a timeline of at most five lines with organisation and role per line. No responsibilities, no grades, no skills grid. Education and languages optional, one line each. |
 | `contact` | LinkedIn, GitHub | Visible from every page (top bar, footer or persistent element). No email address, no phone number. |
-| `colophon` | "Built with <model label>, generated on <date> from this specification"; link that opens the spec | Provided by the shared shell; variants must not duplicate it. |
+| `colophon` | "Built with `<model label>`, generated on `<date>` from this specification"; link that opens the spec | Provided by the shared shell; variants must not duplicate it. |
 
 ### 4.1 Career summary
 
