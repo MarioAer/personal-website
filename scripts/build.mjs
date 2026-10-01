@@ -105,7 +105,13 @@ export async function build({ root, outDir, basePath, siteDomain, specPath }) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Page not found</title>
 <script type="module" src="${base}shell/shell.js"></script>
-<style>body{margin:0;padding-top:var(--shell-height,56px);font:16px/1.6 ui-sans-serif,system-ui,sans-serif}main{max-width:40rem;margin:0 auto;padding:3rem 1rem}</style>
+<style>
+:root { color-scheme: light dark; --bg: #fbfaf8; --fg: #1b1b1a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #14140f; --fg: #eceadf; } }
+:root[data-theme="dark"] { --bg: #14140f; --fg: #eceadf; }
+body{margin:0;padding-top:var(--shell-height,56px);background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,sans-serif}
+main{max-width:40rem;margin:0 auto;padding:3rem 1rem}
+</style>
 </head>
 <body>
 <main>
