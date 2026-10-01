@@ -60,7 +60,7 @@
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: `RESERVED_NAMES: string[]`, `ID_PATTERN: RegExp`, `validateRegistry(registry, context) -> string[]` where `registry` is the parsed `variants.json` object, `context` is `{ variantFolders: string[], defaultTopLevelEntries: string[] }`, and the return value is an array of human-readable error messages, empty when valid.
+- Produces: `RESERVED_NAMES: string[]` (ids a variant may not use), `RESERVED_VARIANT_ENTRIES: string[]` (the same list without `index.html`, for entries inside a variant folder), `ID_PATTERN: RegExp`, `validateRegistry(registry, context) -> string[]` where `registry` is the parsed `variants.json` object, `context` is `{ variantFolders: string[], defaultTopLevelEntries: string[] }`, and the return value is an array of human-readable error messages, empty when valid.
 
 - [ ] **Step 1: Create `package.json`**
 
@@ -71,7 +71,7 @@
   "type": "module",
   "engines": { "node": ">=22" },
   "scripts": {
-    "test": "node --test tests/",
+    "test": "node --test \"tests/**/*.test.mjs\"",
     "test:e2e": "playwright test",
     "build": "node scripts/build.mjs",
     "serve": "node scripts/serve.mjs"
@@ -90,7 +90,7 @@ Create `tests/registry.test.mjs`:
 ```js
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { validateRegistry, ID_PATTERN, RESERVED_NAMES } from '../scripts/lib/registry.mjs'
+import { validateRegistry, ID_PATTERN, RESERVED_NAMES, RESERVED_VARIANT_ENTRIES } from '../scripts/lib/registry.mjs'
 
 const entry = (over = {}) => ({
   id: 'claude-opus-5',
@@ -172,9 +172,12 @@ test('contact links must be https urls', () => {
   assert.ok(validateRegistry(r, context()).some((e) => /contact/i.test(e)))
 })
 
-test('the exported pattern and reserved list are usable by other modules', () => {
+test('the exported pattern and reserved lists are usable by other modules', () => {
   assert.ok(ID_PATTERN.test('claude-opus-5'))
   assert.ok(RESERVED_NAMES.includes('variants.json'))
+  assert.ok(RESERVED_NAMES.includes('index.html'))
+  assert.ok(!RESERVED_VARIANT_ENTRIES.includes('index.html'))
+  assert.ok(RESERVED_VARIANT_ENTRIES.includes('shell'))
 })
 ```
 
@@ -190,6 +193,8 @@ Create `scripts/lib/registry.mjs`:
 ```js
 export const ID_PATTERN = /^[a-z0-9][a-z0-9.-]*$/
 export const RESERVED_NAMES = ['shell', 'spec', 'index.html', '404.html', 'variants.json', 'cname', '.nojekyll']
+// Entries a variant folder may not contain. index.html is absent: every variant must have one.
+export const RESERVED_VARIANT_ENTRIES = RESERVED_NAMES.filter((name) => name !== 'index.html')
 
 const REQUIRED_FIELDS = ['id', 'label', 'tool', 'toolVersion', 'modelId', 'generatedAt', 'specVersion']
 
@@ -273,7 +278,7 @@ git commit -m "chore: add registry validation with tests"
 - Create: `tests/contract.test.mjs`
 
 **Interfaces:**
-- Consumes: `RESERVED_NAMES` from `scripts/lib/registry.mjs`.
+- Consumes: `RESERVED_VARIANT_ENTRIES` from `scripts/lib/registry.mjs`.
 - Produces: `checkVariant({ id, files }) -> { errors: string[], warnings: string[] }`. `files` is a `Map` from a path relative to the variant folder (POSIX separators, for example `index.html`, `assets/style.css`) to the file's text, or `null` for a binary file.
 
 - [ ] **Step 1: Write the failing test**
@@ -388,7 +393,7 @@ Expected: FAIL, `Cannot find module '../scripts/lib/contract.mjs'`.
 Create `scripts/lib/contract.mjs`:
 
 ```js
-import { RESERVED_NAMES } from './registry.mjs'
+import { RESERVED_VARIANT_ENTRIES } from './registry.mjs'
 
 const SHELL_SRC = '/shell/shell.js'
 const SCRIPT_TAG = /<script\b[^>]*>/gi
@@ -443,7 +448,7 @@ export function checkVariant({ id, files }) {
 
   for (const path of files.keys()) {
     const top = path.split('/')[0]
-    if (RESERVED_NAMES.includes(top.toLowerCase())) {
+    if (RESERVED_VARIANT_ENTRIES.includes(top.toLowerCase())) {
       errors.push(`variants/${id}/${top}: "${top}" is a reserved name and must not appear in a variant`)
     }
   }
@@ -1611,7 +1616,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   verify:
