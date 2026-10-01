@@ -1,8 +1,15 @@
 import { test, expect } from '@playwright/test'
+import type { Page } from '@playwright/test'
 import { readdir, readFile } from 'node:fs/promises'
+import { isRegistry } from '../scripts/lib/registry.ts'
+import type { Registry, Variant } from '../scripts/lib/registry.ts'
 
-const registry = JSON.parse(await readFile(new URL('../variants.json', import.meta.url), 'utf8'))
-const defaultEntry = registry.variants.find((variant) => variant.id === registry.default)
+const parsed: unknown = JSON.parse(await readFile(new URL('../variants.json', import.meta.url), 'utf8'))
+if (!isRegistry(parsed)) throw new Error('variants.json is not a valid registry')
+const registry: Registry = parsed
+const found = registry.variants.find((variant) => variant.id === registry.default)
+if (!found) throw new Error('variants.json names a default that is not registered')
+const defaultEntry: Variant = found
 const otherEntry = registry.variants.find((variant) => variant.id !== registry.default)
 
 // The shell marks a variant stale against the site-level specVersion the build injects, which it takes
@@ -10,17 +17,18 @@ const otherEntry = registry.variants.find((variant) => variant.id !== registry.d
 // every variant has fallen behind the specification together.
 const specsDir = new URL('../spec/', import.meta.url)
 const specFile = (await readdir(specsDir)).filter((name) => name.endsWith('-personal-website-design.md')).sort().at(-1)
+if (!specFile) throw new Error(`no specification file in ${specsDir.pathname}`)
 const siteSpecVersion = specFile.slice(0, 10)
 const staleEntry = registry.variants.find((variant) => variant.specVersion !== siteSpecVersion)
 
-const shell = (page) => page.locator('site-shell')
-const control = (page, id) => shell(page).locator(`[data-testid="${id}"]`)
+const shell = (page: Page) => page.locator('site-shell')
+const control = (page: Page, id: string) => shell(page).locator(`[data-testid="${id}"]`)
 
 // Finding 5: the selector is the site's distinctive feature, and a single-entry registry cannot exercise
 // it. These helpers serve a two-entry registry from the network so the selected-option logic, both
 // navigation directions and the stale notice are covered whatever the real registry holds.
 const MOCK_ID = 'mock-variant'
-const MOCK_ENTRY = {
+const MOCK_ENTRY: Variant = {
   id: MOCK_ID,
   label: 'Mock Variant',
   tool: 'Claude Code',
@@ -31,7 +39,7 @@ const MOCK_ENTRY = {
   attempts: 1,
 }
 
-async function serveTwoEntryRegistry(page, defaultOverrides = {}) {
+async function serveTwoEntryRegistry(page: Page, defaultOverrides: Partial<Variant> = {}): Promise<void> {
   // The mock is listed first so that a selector which merely falls back to the first option fails.
   const body = JSON.stringify({
     default: defaultEntry.id,
@@ -57,6 +65,7 @@ test('the selector shows the current variant and lists every entry', async ({ pa
 
 test('choosing a variant navigates to its path', async ({ page }) => {
   test.skip(!otherEntry, 'the registry holds a single variant')
+  if (!otherEntry) return // unreachable: test.skip above has already ended the test
   await page.goto('./')
   await control(page, 'shell-select').selectOption(otherEntry.id)
   await page.waitForURL(`**/personal-website/${otherEntry.id}/`)
@@ -65,6 +74,7 @@ test('choosing a variant navigates to its path', async ({ page }) => {
 
 test('choosing the default variant navigates to the site root', async ({ page }) => {
   test.skip(!otherEntry, 'the registry holds a single variant')
+  if (!otherEntry) return // unreachable: test.skip above has already ended the test
   await page.goto(`${otherEntry.id}/`)
   await control(page, 'shell-select').selectOption(registry.default)
   await page.waitForURL((url) => url.pathname === '/personal-website/')
@@ -81,6 +91,7 @@ test('the theme toggle writes and persists the theme', async ({ page }) => {
   await control(page, 'shell-theme').click()
   const theme = await page.locator('html').getAttribute('data-theme')
   expect(['light', 'dark']).toContain(theme)
+  if (theme === null) throw new Error('the theme toggle left no data-theme attribute')
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
 })
@@ -92,7 +103,7 @@ test('the theme toggle still works when storage throws', async ({ page }) => {
       get() { throw new Error('storage is blocked') },
     })
   })
-  const errors = []
+  const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('./')
   await expect(control(page, 'shell-theme')).toBeVisible()
@@ -127,6 +138,7 @@ test('the colophon names the model and the generation date', async ({ page }) =>
 
 test('the colophon marks a variant built from an older specification', async ({ page }) => {
   test.skip(!staleEntry, 'every registered variant matches the current specification')
+  if (!staleEntry) return // unreachable: test.skip above has already ended the test
   await page.goto(`${staleEntry.id}/`)
   await expect(control(page, 'shell-colophon')).toContainText(staleEntry.specVersion)
   await expect(control(page, 'shell-colophon')).toContainText('older specification')
@@ -134,7 +146,7 @@ test('the colophon marks a variant built from an older specification', async ({ 
 
 test('the bar works when the registry cannot be loaded', async ({ page }) => {
   await page.route('**/variants.json', (route) => route.abort())
-  const errors = []
+  const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('./')
   await expect(control(page, 'shell-select')).toHaveCount(0)
@@ -177,6 +189,7 @@ test.describe('with a two-entry registry served from the network', () => {
 
 test('the 404 page carries the bar', async ({ page }) => {
   const response = await page.goto('no-such-page')
+  if (!response) throw new Error('navigating to no-such-page produced no response')
   expect(response.status()).toBe(404)
   await expect(page.locator('h1')).toHaveText('Page not found')
   await expect(control(page, 'shell-linkedin')).toBeVisible()

@@ -1,14 +1,16 @@
 import { test, expect } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
+import { isRegistry } from '../scripts/lib/registry.ts'
 
-const registry = JSON.parse(await readFile(new URL('../variants.json', import.meta.url), 'utf8'))
+const registry: unknown = JSON.parse(await readFile(new URL('../variants.json', import.meta.url), 'utf8'))
+if (!isRegistry(registry)) throw new Error('variants.json is not a valid registry')
 const paths = ['./', ...registry.variants.map((variant) => `${variant.id}/`)]
 
 const SERVICES = ['Solution architecture and integration', 'Interim and fractional engineering leadership', 'AI-assisted engineering enablement']
 const POSITIONING = 'Solution architecture, engineering leadership and AI-assisted engineering for cloud-native commerce platforms.'
 const EMAIL = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i
 
-const flatten = (value) => value.replace(/\s+/g, ' ').trim()
+const flatten = (value: string): string => value.replace(/\s+/g, ' ').trim()
 
 for (const path of paths) {
   test.describe(`variant at ${path}`, () => {
@@ -67,7 +69,7 @@ for (const path of paths) {
     })
 
     test('loads no third-party resource and logs no error', async ({ page }) => {
-      const problems = []
+      const problems: string[] = []
       page.on('console', (message) => { if (message.type() === 'error') problems.push(message.text()) })
       page.on('pageerror', (error) => problems.push(error.message))
       page.on('requestfailed', (request) => problems.push(`failed request: ${request.url()}`))
@@ -81,10 +83,11 @@ for (const path of paths) {
     })
 
     test('shows the services and one evidence sentence each within two screens', async ({ page }, testInfo) => {
-      test.skip(testInfo.project.use.viewport.width < 1000, 'desktop criterion')
+      test.skip((testInfo.project.use.viewport?.width ?? 0) < 1000, 'desktop criterion')
       await page.goto(path)
       for (const service of SERVICES) {
         const box = await page.getByText(service, { exact: false }).first().boundingBox()
+        if (!box) throw new Error(`"${service}" has no bounding box`)
         expect(box.y + (await page.evaluate(() => window.scrollY))).toBeLessThan(1800)
       }
     })
