@@ -73,6 +73,9 @@ export async function build({ root, outDir, basePath, siteDomain, specPath }) {
     warnings.push(...result.warnings)
   }
 
+  if (basename(outDir) !== 'dist') {
+    throw new Error(`outDir must end in "dist" before it is recursively removed, got "${outDir}"`)
+  }
   await rm(outDir, { recursive: true, force: true })
   await mkdir(outDir, { recursive: true })
 
