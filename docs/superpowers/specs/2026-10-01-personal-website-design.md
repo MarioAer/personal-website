@@ -182,7 +182,7 @@ personal-website/
     }
   ],
   "contact": {
-    "linkedin": "https://www.linkedin.com/in/marioerazo/",
+    "linkedin": "https://www.linkedin.com/in/marioaer",
     "github": "https://github.com/MarioAer"
   }
 }
