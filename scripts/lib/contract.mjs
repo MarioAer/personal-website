@@ -9,7 +9,7 @@ const CSS_URL = /url\(\s*(?:"([^"]*)"|'([^']*)'|([^)'"]+))\s*\)/gi
 const CSS_IMPORT = /@import\s+(?:url\(\s*)?(?:"([^"]*)"|'([^']*)')/gi
 const STYLE_BLOCK = /<style\b[^>]*>([\s\S]*?)<\/style>/gi
 const STYLE_ATTR = /\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/gi
-const JS_ABSOLUTE = /(?:"|')(\/(?!\/)[^"'\s]*)(?:"|')/g
+const JS_ABSOLUTE = /(?:"|'|`)(\/(?!\/)[^"'`\s]*)(?:"|'|`)/g
 const ALLOWED_PREFIXES = ['data:', 'blob:', '#']
 
 const attrValue = (match) => match[3] ?? match[4] ?? ''

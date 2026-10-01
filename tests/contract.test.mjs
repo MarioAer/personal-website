@@ -86,6 +86,12 @@ test('an absolute path in variant javascript is a warning, not an error', () => 
   assert.ok(result.warnings.some((w) => /data\.json/.test(w)))
 })
 
+test('an absolute path in a template literal is a warning, not an error', () => {
+  const result = run({ 'index.html': page(), 'app.js': 'fetch(`/data.json`)' })
+  assert.deepEqual(result.errors, [])
+  assert.ok(result.warnings.some((w) => /data\.json/.test(w)))
+})
+
 test('a protocol-relative url in javascript is not warned about', () => {
   assert.deepEqual(run({ 'index.html': page(), 'app.js': 'const u = "//example.com/a"' }).warnings, [])
 })
