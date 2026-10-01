@@ -137,7 +137,7 @@ Variants have full freedom of visual design within these limits:
 
 ### 6.1 Decision
 
-Static site, served by GitHub Pages, built by a small Node script. No site framework, and no front-end library: the site has three interactions (theme, variant navigation, viewing the specification), none of which a library such as htmx or React would shorten, and every dependency is weight each variant carries. Rationale: the picker exists so that different models interpret the same specification freely; the fewer framework rules a variant must obey, the fairer the comparison and the simpler it is to add one. The only shared code is the shell. Alternatives considered: Astro (shared layouts, but variants would have to be Astro components) and Next.js static export (mirrors the reference, but requires React per variant and forbids API routes on Pages). Both were rejected for constraining the variants.
+Static site, served by GitHub Pages, built by a small Node script. No site framework, and no front-end library: the site has three interactions (theme, variant navigation, viewing the specification), none of which a library such as htmx or React would shorten, and every dependency is weight each variant carries. Rationale: the picker exists so that different models interpret the same specification freely; the fewer framework rules a variant must obey, the fairer the comparison and the simpler it is to add one. The build tooling is TypeScript executed directly by Node 24, which strips the types at load time: there is no compiler in the run path and no build step, and `tsc` is a checker only, run as `npm run typecheck` and never emitting. The only shared code is the shell. Alternatives considered: Astro (shared layouts, but variants would have to be Astro components) and Next.js static export (mirrors the reference, but requires React per variant and forbids API routes on Pages). Both were rejected for constraining the variants.
 
 ### 6.2 Repository layout
 
@@ -153,10 +153,10 @@ personal-website/
   shell/
     shell.js                    top bar: theme, variant selector, links
   scripts/
-    build.mjs                   validate registry and variants, assemble dist/
-    lib/registry.mjs            registry validation, pure functions
-    lib/contract.mjs            variant contract checks, pure functions
-    lib/render-spec.mjs         specification markdown to a page
+    build.ts                    validate registry and variants, assemble dist/
+    lib/registry.ts             registry validation, pure functions
+    lib/contract.ts             variant contract checks, pure functions
+    lib/render-spec.ts          specification markdown to a page
   tests/                        node --test, build and contract
   e2e/                          Playwright, browser behaviour
   .github/workflows/pages.yml   test, build, deploy
@@ -224,7 +224,7 @@ There is no drawer, no dialog, no focus trap and no markdown rendering in the br
 
 The colophon line from section 4 (model label, generation date, specification version, and a notice when the variant's `specVersion` differs from the site's) is rendered in the bar when the registry loads, or in the bar's title attribute on narrow viewports.
 
-### 6.6 Build (`scripts/build.mjs`)
+### 6.6 Build (`scripts/build.ts`)
 
 Inputs: the repository, the environment variable `BASE_PATH` (default `/`; for a GitHub project site `/personal-website/`), and optionally `SITE_DOMAIN`.
 
