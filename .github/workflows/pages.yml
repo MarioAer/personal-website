@@ -16,17 +16,13 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    # The browsers and their system libraries are baked into this image, so nothing is
-    # downloaded at run time. The tag must match the @playwright/test version in
-    # package.json exactly, which is why that dependency is pinned rather than ranged;
-    # a mismatch fails loudly with "Executable doesn't exist at /ms-playwright/...".
+    # Tag must match @playwright/test in package.json, which is pinned for that reason.
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
       options: --ipc=host
     steps:
       - uses: actions/checkout@v4
-      # The image ships its own Node, which is older than this project requires: Node 24
-      # runs the TypeScript sources directly by stripping types.
+      # The image ships an older Node; this project needs 24 to run TypeScript directly.
       - uses: actions/setup-node@v4
         with:
           node-version: 24
