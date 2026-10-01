@@ -1,21 +1,47 @@
 import { readFile, writeFile, readdir, mkdir, rm, cp } from 'node:fs/promises'
 import { join, relative, sep, basename, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { validateRegistry } from './lib/registry.mjs'
-import { checkVariant } from './lib/contract.mjs'
-import { renderSpecPage } from './lib/render-spec.mjs'
+import { isRecord, isRegistry, validateRegistry } from './lib/registry.ts'
+import type { Registry } from './lib/registry.ts'
+import { checkVariant } from './lib/contract.ts'
+import type { VariantFiles } from './lib/contract.ts'
+import { renderSpecPage } from './lib/render-spec.ts'
+
+/** A file found under a directory, with both its absolute path and its path relative to that root. */
+interface FoundFile {
+  absolute: string
+  relative: string
+}
+
+/** The inputs of a build. Section 6.6. */
+export interface BuildOptions {
+  /** Repository root: the folder holding `variants.json`, `variants/`, `shell/` and `spec/`. */
+  root: string
+  /** Output folder. Its basename must be `dist`, because it is removed recursively. */
+  outDir: string
+  /** Deployment base path, normalised by `normaliseBasePath`. Defaults to `/`. */
+  basePath?: string | undefined
+  /** When set, a `CNAME` file holding this domain is written. */
+  siteDomain?: string | undefined
+  /** Path of the specification markdown file; its filename carries the specification date. */
+  specPath: string
+}
+
+export interface BuildResult {
+  warnings: string[]
+}
 
 const TEXT_EXTENSIONS = new Set(['.html', '.css', '.js', '.svg', '.json', '.txt', '.md'])
 
-export function normaliseBasePath(value) {
+export function normaliseBasePath(value: string | undefined | null): string {
   const raw = (value ?? '').trim()
   if (raw === '' || raw === '/') return '/'
   return `/${raw.replace(/^\/+/, '').replace(/\/+$/, '')}/`
 }
 
-async function listFiles(dir, prefix = '') {
+async function listFiles(dir: string, prefix = ''): Promise<FoundFile[]> {
   const entries = await readdir(dir, { withFileTypes: true })
-  const files = []
+  const files: FoundFile[] = []
   for (const entry of entries) {
     const path = join(dir, entry.name)
     if (entry.isDirectory()) files.push(...(await listFiles(path, `${prefix}${entry.name}/`)))
@@ -24,8 +50,8 @@ async function listFiles(dir, prefix = '') {
   return files
 }
 
-async function readVariantFiles(dir) {
-  const files = new Map()
+async function readVariantFiles(dir: string): Promise<VariantFiles> {
+  const files: VariantFiles = new Map()
   for (const file of await listFiles(dir)) {
     const extension = file.relative.slice(file.relative.lastIndexOf('.'))
     files.set(file.relative, TEXT_EXTENSIONS.has(extension) ? await readFile(file.absolute, 'utf8') : null)
@@ -33,7 +59,7 @@ async function readVariantFiles(dir) {
   return files
 }
 
-async function listVariantFolders(root) {
+async function listVariantFolders(root: string): Promise<string[]> {
   try {
     const entries = await readdir(join(root, 'variants'), { withFileTypes: true })
     return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort()
@@ -42,30 +68,34 @@ async function listVariantFolders(root) {
   }
 }
 
-function rewriteShellPath(html, basePath) {
+function rewriteShellPath(html: string, basePath: string): string {
   return html.replace(/(<script\b[^>]*\bsrc\s*=\s*["'])\/shell\/shell\.js(["'])/gi, `$1${basePath}shell/shell.js$2`)
 }
 
-export async function build({ root, outDir, basePath, siteDomain, specPath }) {
+export async function build({ root, outDir, basePath, siteDomain, specPath }: BuildOptions): Promise<BuildResult> {
   const base = normaliseBasePath(basePath)
   const registryPath = join(root, 'variants.json')
 
-  let registry
+  let parsed: unknown
   try {
-    registry = JSON.parse(await readFile(registryPath, 'utf8'))
+    parsed = JSON.parse(await readFile(registryPath, 'utf8'))
   } catch (cause) {
-    throw new Error(`variants.json could not be read as JSON: ${cause.message}`)
+    throw new Error(`variants.json could not be read as JSON: ${cause instanceof Error ? cause.message : String(cause)}`)
   }
 
   const variantFolders = await listVariantFolders(root)
-  const defaultTopLevelEntries = registry?.default && variantFolders.includes(registry.default)
-    ? (await readdir(join(root, 'variants', registry.default))).sort()
+  const parsedDefault = isRecord(parsed) ? parsed.default : undefined
+  const defaultTopLevelEntries = typeof parsedDefault === 'string' && variantFolders.includes(parsedDefault)
+    ? (await readdir(join(root, 'variants', parsedDefault))).sort()
     : []
 
-  const registryErrors = validateRegistry(registry, { variantFolders, defaultTopLevelEntries })
+  const registryErrors = validateRegistry(parsed, { variantFolders, defaultTopLevelEntries })
   if (registryErrors.length > 0) throw new Error(`The registry is invalid:\n  ${registryErrors.join('\n  ')}`)
+  // validateRegistry has already established every field below; this narrows the parsed JSON.
+  if (!isRegistry(parsed)) throw new Error('The registry is invalid:\n  variants.json does not have the expected shape')
+  const registry: Registry = parsed
 
-  const warnings = []
+  const warnings: string[] = []
   for (const variant of registry.variants) {
     const files = await readVariantFiles(join(root, 'variants', variant.id))
     const result = checkVariant({ id: variant.id, files })
