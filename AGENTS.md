@@ -38,6 +38,12 @@ The `firefox-desktop` Playwright project cannot launch on the maintainer's macOS
 Its failures there are environmental; CI on Linux exercises it. Do not try to fix it locally
 and do not remove it from the configuration.
 
+CI runs the browser suite inside the official Playwright container image, which has the
+browsers and their system libraries baked in. The image tag in
+`.github/workflows/pages.yml` and the `@playwright/test` version in `package.json` must
+match exactly, which is why that dependency is pinned to a single version rather than a
+range. If you upgrade one, upgrade the other in the same commit.
+
 ## Language and runtime
 
 Node 24 or newer, which runs `.ts` files directly by stripping types. There is no compiler
