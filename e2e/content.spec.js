@@ -5,6 +5,10 @@ const registry = JSON.parse(await readFile(new URL('../variants.json', import.me
 const paths = ['./', ...registry.variants.map((variant) => `${variant.id}/`)]
 
 const SERVICES = ['Solution architecture and integration', 'Interim and fractional engineering leadership', 'AI-assisted engineering enablement']
+const POSITIONING = 'Solution architecture, engineering leadership and AI-assisted engineering for cloud-native commerce platforms.'
+const EMAIL = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i
+
+const flatten = (value) => value.replace(/\s+/g, ' ').trim()
 
 for (const path of paths) {
   test.describe(`variant at ${path}`, () => {
@@ -21,6 +25,7 @@ for (const path of paths) {
     test('states the positioning, the location and the availability', async ({ page }) => {
       await page.goto(path)
       const body = page.locator('body')
+      expect(flatten(await body.innerText())).toContain(POSITIONING)
       await expect(body).toContainText('Cologne')
       await expect(body).toContainText(/Available for/i)
     })
@@ -35,10 +40,11 @@ for (const path of paths) {
 
     test('contains no job-seeking phrases and no personal contact data', async ({ page }) => {
       await page.goto(path)
-      const text = (await page.locator('main').innerText()).toLowerCase()
+      const text = flatten(await page.locator('body').innerText()).toLowerCase()
       for (const phrase of ['looking for', 'open to work', 'seeking', 'hire me', 'résumé', 'curriculum vitae']) {
         expect(text).not.toContain(phrase)
       }
+      expect(text).not.toMatch(EMAIL)
       await expect(page.locator('a[href^="mailto:"], a[href^="tel:"]')).toHaveCount(0)
     })
 
@@ -57,8 +63,8 @@ for (const path of paths) {
 
     test('clears the top bar', async ({ page }) => {
       await page.goto(path)
-      const top = await page.locator('main').first().evaluate((node) => node.getBoundingClientRect().top + window.scrollY)
-      expect(top).toBeGreaterThanOrEqual(56)
+      const reserved = await page.evaluate(() => parseFloat(getComputedStyle(document.body).paddingTop))
+      expect(reserved).toBeGreaterThanOrEqual(56)
     })
 
     test('loads no third-party resource and logs no error', async ({ page }) => {
