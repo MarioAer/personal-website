@@ -4,14 +4,22 @@ import { mkdtemp, mkdir, writeFile, readFile, readdir, rm } from 'node:fs/promis
 import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { build, normaliseBasePath } from '../scripts/build.mjs'
+import { build, normaliseBasePath } from '../scripts/build.ts'
+import type { BuildOptions, BuildResult } from '../scripts/build.ts'
+import { isRegistry } from '../scripts/lib/registry.ts'
+
+/** Pieces of the fixture repository a single test wants to differ from the valid default. */
+interface FixtureOverrides {
+  registry?: Record<string, unknown>
+  registryText?: string
+}
 
 const SHELL = '<script type="module" src="/shell/shell.js"></script>'
 
-const variantHtml = (id) =>
+const variantHtml = (id: string): string =>
   `<!doctype html><html lang="en"><head><meta name="variant" content="${id}">${SHELL}</head><body><h1>${id}</h1></body></html>`
 
-async function fixture(overrides = {}) {
+async function fixture(overrides: FixtureOverrides = {}): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), 'pw-build-'))
   const registry = {
     default: 'alpha',
@@ -34,7 +42,7 @@ async function fixture(overrides = {}) {
   return root
 }
 
-const run = (root, options = {}) =>
+const run = (root: string, options: Partial<BuildOptions> = {}): Promise<BuildResult> =>
   build({
     root,
     outDir: join(root, 'dist'),
@@ -43,9 +51,9 @@ const run = (root, options = {}) =>
     ...options,
   })
 
-async function hashTree(dir, prefix = '') {
+async function hashTree(dir: string, prefix = ''): Promise<string> {
   const entries = await readdir(dir, { withFileTypes: true })
-  const parts = []
+  const parts: string[] = []
   for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
     const path = join(dir, entry.name)
     if (entry.isDirectory()) parts.push(await hashTree(path, `${prefix}${entry.name}/`))
@@ -90,7 +98,8 @@ test('the output registry carries the current specification version', async (t) 
   const root = await fixture()
   t.after(() => rm(root, { recursive: true, force: true }))
   await run(root)
-  const out = JSON.parse(await readFile(join(root, 'dist', 'variants.json'), 'utf8'))
+  const out: unknown = JSON.parse(await readFile(join(root, 'dist', 'variants.json'), 'utf8'))
+  if (!isRegistry(out)) assert.fail('the build must write a valid registry')
   assert.equal(out.specVersion, '2026-10-01')
   assert.equal(out.variants.length, 2)
 })
@@ -146,5 +155,5 @@ test('a contract warning is returned, not thrown', async (t) => {
   t.after(() => rm(root, { recursive: true, force: true }))
   await writeFile(join(root, 'variants', 'beta', 'app.js'), 'fetch("/data.json")')
   const result = await run(root)
-  assert.ok(result.warnings.some((w) => /data\.json/.test(w)))
+  assert.ok(result.warnings.some((w: string) => /data\.json/.test(w)))
 })

@@ -1,8 +1,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { validateRegistry, ID_PATTERN, RESERVED_NAMES, RESERVED_VARIANT_ENTRIES } from '../scripts/lib/registry.mjs'
+import type { Variant } from '../scripts/lib/registry.ts'
+import { validateRegistry, ID_PATTERN, RESERVED_NAMES, RESERVED_VARIANT_ENTRIES } from '../scripts/lib/registry.ts'
 
-const entry = (over = {}) => ({
+const entry = (over: Partial<Variant> = {}): Record<string, unknown> => ({
   id: 'claude-opus-5',
   label: 'Claude Opus 5',
   tool: 'Claude Code',
@@ -14,14 +15,14 @@ const entry = (over = {}) => ({
   ...over,
 })
 
-const registry = (over = {}) => ({
+const registry = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
   default: 'claude-opus-5',
   variants: [entry()],
   contact: { linkedin: 'https://www.linkedin.com/in/marioerazo/', github: 'https://github.com/MarioAer' },
   ...over,
 })
 
-const context = (over = {}) => ({ variantFolders: ['claude-opus-5'], defaultTopLevelEntries: ['index.html', 'style.css'], ...over })
+const context = (over: { variantFolders?: string[], defaultTopLevelEntries?: string[] } = {}) => ({ variantFolders: ['claude-opus-5'], defaultTopLevelEntries: ['index.html', 'style.css'], ...over })
 
 test('a well-formed registry produces no errors', () => {
   assert.deepEqual(validateRegistry(registry(), context()), [])
@@ -37,49 +38,49 @@ test('the default must name an existing variant', () => {
 test('duplicate ids are rejected', () => {
   const r = registry({ variants: [entry(), entry()] })
   const errors = validateRegistry(r, context())
-  assert.ok(errors.some((e) => /duplicate/i.test(e) && e.includes('claude-opus-5')))
+  assert.ok(errors.some((e: string) => /duplicate/i.test(e) && e.includes('claude-opus-5')))
 })
 
 test('an id that breaks the pattern is rejected', () => {
   const r = registry({ default: 'Claude_5', variants: [entry({ id: 'Claude_5' })] })
   const errors = validateRegistry(r, context({ variantFolders: ['Claude_5'] }))
-  assert.ok(errors.some((e) => /pattern/i.test(e)))
+  assert.ok(errors.some((e: string) => /pattern/i.test(e)))
 })
 
 test('reserved ids are rejected', () => {
   for (const name of ['shell', 'spec']) {
     const r = registry({ default: name, variants: [entry({ id: name })] })
     const errors = validateRegistry(r, context({ variantFolders: [name] }))
-    assert.ok(errors.some((e) => /reserved/i.test(e)), `${name} should be reserved`)
+    assert.ok(errors.some((e: string) => /reserved/i.test(e)), `${name} should be reserved`)
   }
 })
 
 test('an id colliding with a top-level entry of the default variant is rejected', () => {
   const r = registry({ variants: [entry(), entry({ id: 'style.css' })] })
   const errors = validateRegistry(r, context({ variantFolders: ['claude-opus-5', 'style.css'] }))
-  assert.ok(errors.some((e) => /collides/i.test(e) && e.includes('style.css')))
+  assert.ok(errors.some((e: string) => /collides/i.test(e) && e.includes('style.css')))
 })
 
 test('a missing required field is reported with the field name', () => {
-  const broken = entry()
+  const broken: Record<string, unknown> = entry()
   delete broken.modelId
   const errors = validateRegistry(registry({ variants: [broken] }), context())
-  assert.ok(errors.some((e) => e.includes('modelId')))
+  assert.ok(errors.some((e: string) => e.includes('modelId')))
 })
 
 test('a folder without a registry entry is reported', () => {
   const errors = validateRegistry(registry(), context({ variantFolders: ['claude-opus-5', 'orphan'] }))
-  assert.ok(errors.some((e) => e.includes('orphan')))
+  assert.ok(errors.some((e: string) => e.includes('orphan')))
 })
 
 test('a registry entry without a folder is reported', () => {
   const errors = validateRegistry(registry(), context({ variantFolders: [] }))
-  assert.ok(errors.some((e) => e.includes('claude-opus-5') && /folder/i.test(e)))
+  assert.ok(errors.some((e: string) => e.includes('claude-opus-5') && /folder/i.test(e)))
 })
 
 test('contact links must be https urls', () => {
   const r = registry({ contact: { linkedin: 'http://example.com', github: 'https://github.com/MarioAer' } })
-  assert.ok(validateRegistry(r, context()).some((e) => /contact/i.test(e)))
+  assert.ok(validateRegistry(r, context()).some((e: string) => /contact/i.test(e)))
 })
 
 test('the exported pattern and reserved lists are usable by other modules', () => {

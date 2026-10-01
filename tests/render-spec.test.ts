@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFile, readdir } from 'node:fs/promises'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { renderSpecPage } from '../scripts/lib/render-spec.mjs'
+import { renderSpecPage } from '../scripts/lib/render-spec.ts'
 
 const markdown = '# Title\n\nA paragraph with `code`.\n\n- one\n- two\n'
 
@@ -23,6 +23,7 @@ test('rendering the real specification file emits only expected HTML tags', asyn
   const root = join(dirname(fileURLToPath(import.meta.url)), '..')
   const specsDir = join(root, 'spec')
   const specFile = (await readdir(specsDir)).filter((name) => name.endsWith('-personal-website-design.md')).sort().at(-1)
+  if (!specFile) assert.fail(`no specification file in ${specsDir}`)
   const markdown = await readFile(join(specsDir, specFile), 'utf8')
   const html = renderSpecPage(markdown, { basePath: '/', title: 'Specification' })
   const unexpected = new Set()
