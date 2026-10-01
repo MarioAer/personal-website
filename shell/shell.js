@@ -1,30 +1,48 @@
+/**
+ * The registry as the shell reads it. The build writes the top-level specVersion; the repository
+ * copy does not carry one. See scripts/lib/registry.ts for the shape the build validates.
+ *
+ * @typedef {{
+ *   id: string, label: string, tool: string, toolVersion: string, modelId: string,
+ *   generatedAt: string, specVersion: string, attempts: number
+ * }} RegistryVariant
+ * @typedef {{
+ *   default: string, variants: RegistryVariant[],
+ *   contact?: { linkedin?: string, github?: string }, specVersion?: string
+ * }} ShellRegistry
+ */
+
 const BASE = new URL('..', import.meta.url)
-const VARIANT_ID = document.querySelector('meta[name="variant"]')?.content ?? ''
+const VARIANT_ID = /** @type {HTMLMetaElement | null} */ (document.querySelector('meta[name="variant"]'))?.content ?? ''
 const STORAGE_KEY = 'theme'
 
 // The registry (variants.json) is the single place a contact URL is changed. These are used only
 // when the registry cannot be loaded, and must always match registry.contact exactly; see
-// tests/fallback-contact.test.mjs.
+// tests/fallback-contact.test.ts.
 const FALLBACK_CONTACT = {
   linkedin: 'https://www.linkedin.com/in/marioaer',
   github: 'https://github.com/MarioAer',
 }
 
 const storage = {
+  /** @returns {string | null} */
   read() {
     try { return window.localStorage.getItem(STORAGE_KEY) } catch { return null }
   },
+  /** @param {string} value */
   write(value) {
     try { window.localStorage.setItem(STORAGE_KEY, value) } catch { /* storage unavailable */ }
   },
 }
 
+/** @returns {'light' | 'dark'} */
 function currentTheme() {
   const stored = storage.read()
   if (stored === 'light' || stored === 'dark') return stored
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+/** @param {string} theme */
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme
   storage.write(theme)
@@ -61,9 +79,15 @@ const ICONS = {
   github: '<path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48l-.01-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.1.39-1.99 1.03-2.69-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.03a9.5 9.5 0 0 1 5 0c1.91-1.3 2.75-1.03 2.75-1.03.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.69 0 3.85-2.34 4.7-4.57 4.95.36.31.68.92.68 1.86l-.01 2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/>',
 }
 
+/**
+ * @param {'linkedin' | 'github'} name
+ * @param {string} title
+ * @returns {string}
+ */
 const icon = (name, title) =>
   `<svg viewBox="0 0 24 24" role="img" aria-label="${title}"><title>${title}</title>${ICONS[name]}</svg>`
 
+/** @returns {{ host: HTMLElement, root: ShadowRoot }} */
 function mount() {
   const host = document.createElement('site-shell')
   host.dataset.theme = currentTheme()
@@ -86,7 +110,8 @@ function mount() {
   document.documentElement.style.setProperty('--shell-height', `${BAR_HEIGHT_PX}px`)
   applyTheme(currentTheme())
 
-  root.querySelector('[data-testid="shell-theme"]').addEventListener('click', () => {
+  const themeButton = /** @type {HTMLButtonElement} */ (root.querySelector('[data-testid="shell-theme"]'))
+  themeButton.addEventListener('click', () => {
     const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'
     applyTheme(next)
     host.dataset.theme = next
@@ -95,6 +120,12 @@ function mount() {
   return { host, root }
 }
 
+/**
+ * @param {Element} contact
+ * @param {'linkedin' | 'github'} key
+ * @param {string} title
+ * @param {string | undefined} href
+ */
 function appendContactLink(contact, key, title, href) {
   if (!href) return
   const anchor = document.createElement('a')
@@ -107,12 +138,17 @@ function appendContactLink(contact, key, title, href) {
   contact.append(anchor)
 }
 
+/**
+ * @param {ShadowRoot} root
+ * @returns {Promise<void>}
+ */
 async function loadRegistry(root) {
   const response = await fetch(new URL('variants.json', BASE), { cache: 'no-cache' })
   if (!response.ok) throw new Error(`variants.json responded with ${response.status}`)
-  const registry = await response.json()
+  const registry = /** @type {ShellRegistry} */ (await response.json())
 
-  const contact = root.querySelector('.contact')
+  const contact = /** @type {Element} */ (root.querySelector('.contact'))
+  /** @type {[ 'linkedin' | 'github', string, string | undefined ][]} */
   const links = [
     ['linkedin', 'LinkedIn', registry.contact?.linkedin],
     ['github', 'GitHub', registry.contact?.github],
@@ -122,12 +158,12 @@ async function loadRegistry(root) {
   const entry = registry.variants.find((variant) => variant.id === VARIANT_ID)
   if (entry) {
     const stale = entry.specVersion !== registry.specVersion
-    const colophon = root.querySelector('[data-testid="shell-colophon"]')
+    const colophon = /** @type {HTMLElement} */ (root.querySelector('[data-testid="shell-colophon"]'))
     colophon.textContent = `Built with ${entry.label}, ${entry.generatedAt}, spec ${entry.specVersion}${stale ? ' (older specification)' : ''}`
     if (stale) colophon.classList.add('stale')
   }
 
-  const select = root.querySelector('[data-testid="shell-select"]')
+  const select = /** @type {HTMLSelectElement} */ (root.querySelector('[data-testid="shell-select"]'))
   if (!VARIANT_ID) {
     // The specification page and the 404 page are not a variant, so no option below matches
     // VARIANT_ID. Without this placeholder the browser would select the first variant by default,
@@ -150,13 +186,14 @@ async function loadRegistry(root) {
     const target = select.value === registry.default ? BASE : new URL(`${select.value}/`, BASE)
     window.location.assign(target)
   })
-  root.querySelector('.registry').hidden = false
+  const registryGroup = /** @type {HTMLElement} */ (root.querySelector('.registry'))
+  registryGroup.hidden = false
 }
 
 const { root } = mount()
 loadRegistry(root).catch(() => {
   root.querySelector('.registry')?.remove()
-  const contact = root.querySelector('.contact')
+  const contact = /** @type {Element} */ (root.querySelector('.contact'))
   if (contact.children.length === 0) {
     appendContactLink(contact, 'linkedin', 'LinkedIn', FALLBACK_CONTACT.linkedin)
     appendContactLink(contact, 'github', 'GitHub', FALLBACK_CONTACT.github)
