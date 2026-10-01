@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const BASE_PATH = '/personal-website/'
+const BASE_PATH = process.env.BASE_PATH ?? '/personal-website/'
 const PORT = 4173
 
 export default defineConfig({
