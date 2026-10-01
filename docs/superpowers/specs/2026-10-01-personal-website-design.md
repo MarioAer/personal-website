@@ -130,7 +130,7 @@ Variants have full freedom of visual design within these limits:
 - Light and dark theme. The shell sets `data-theme="light"` or `data-theme="dark"` on `<html>`; a variant must style both. When no attribute is set, follow `prefers-color-scheme`.
 - Semantic HTML: one `<h1>`, landmarks (`<header>`, `<main>`, `<footer>`), descriptive link text, visible focus states, colour contrast of at least 4.5:1 for body text.
 - Fonts: self-hosted in the variant folder or system fonts. No third-party font or script CDNs; the site must work offline once loaded and must not leak visitor data.
-- Reserve the top 56 px of the viewport for the shell's top bar (`padding-top: var(--shell-height, 56px)` on `<body>` or equivalent). The shell is fixed-position and renders in a shadow DOM, so variant CSS cannot and must not restyle it.
+- Reserve the top 56 px of the viewport for the shell's top bar (`padding-top: var(--shell-height, 56px)` on `<body>` or equivalent). The bar is fixed-position and lives in a shadow root, so variant CSS cannot and must not restyle it.
 - No build step inside a variant: plain HTML, CSS and optional vanilla JavaScript. A variant is a folder a browser can serve directly, and it must work unchanged when served at the site root and under `/<id>/`; this is why the contract (6.4) requires relative paths.
 - Total transferred weight of a variant under 1 MB, images included.
 
@@ -138,7 +138,7 @@ Variants have full freedom of visual design within these limits:
 
 ### 6.1 Decision
 
-Static site, served by GitHub Pages, built by a small Node script. No site framework. Rationale: the picker exists so that different models interpret the same specification freely; the fewer framework rules a variant must obey, the fairer the comparison and the simpler it is to add one. The only shared code is the shell. Alternatives considered: Astro (shared layouts, but variants would have to be Astro components) and Next.js static export (mirrors the reference, but requires React per variant and forbids API routes on Pages). Both were rejected for constraining the variants.
+Static site, served by GitHub Pages, built by a small Node script. No site framework, and no front-end library: the site has three interactions (theme, variant navigation, viewing the specification), none of which a library such as htmx or React would shorten, and every dependency is weight each variant carries. Rationale: the picker exists so that different models interpret the same specification freely; the fewer framework rules a variant must obey, the fairer the comparison and the simpler it is to add one. The only shared code is the shell. Alternatives considered: Astro (shared layouts, but variants would have to be Astro components) and Next.js static export (mirrors the reference, but requires React per variant and forbids API routes on Pages). Both were rejected for constraining the variants.
 
 ### 6.2 Repository layout
 
@@ -152,13 +152,14 @@ personal-website/
       index.html
       ...                       variant-owned assets, relative paths only
   shell/
-    shell.js                    custom element <site-shell>, ES module
-    shell.test.js
-    vendor/marked.min.js        markdown renderer, vendored at install time
+    shell.js                    top bar: theme, variant selector, links
   scripts/
     build.mjs                   validate registry and variants, assemble dist/
-    build.test.mjs
-  e2e/                          Playwright tests against dist/
+    lib/registry.mjs            registry validation, pure functions
+    lib/contract.mjs            variant contract checks, pure functions
+    lib/render-spec.mjs         specification markdown to a page
+  tests/                        node --test, build and contract
+  e2e/                          Playwright, browser behaviour
   .github/workflows/pages.yml   test, build, deploy
   package.json
   dist/                         build output, ignored by git
@@ -180,7 +181,11 @@ personal-website/
       "specVersion": "2026-10-01",
       "attempts": 1
     }
-  ]
+  ],
+  "contact": {
+    "linkedin": "https://www.linkedin.com/in/marioerazo/",
+    "github": "https://github.com/MarioAer"
+  }
 }
 ```
 
@@ -192,6 +197,7 @@ Rules, all checked by the build:
 - `modelId` is the exact model identifier used by the tool; `toolVersion` is the tool's reported version; `attempts` is the number of full generation runs before the variant was accepted (section 7).
 - `specVersion` is the date in the filename of the specification the variant was generated from. The build writes the current specification date into the output registry as a top-level `specVersion`; the shell shows a notice when a variant's value differs, so visitors know a variant predates a specification change.
 - Order in the array is the order in the selector.
+- `contact` holds the two links the shell renders. It is the single place where a contact URL is changed.
 
 ### 6.4 Variant contract
 
@@ -208,30 +214,32 @@ The build enforces 1 to 3 and 5, warns on 4, and fails with a message naming the
 
 ### 6.5 Shell (`shell/shell.js`)
 
-A single ES module defining the custom element `<site-shell>`. On load it inserts itself as the first child of `<body>` (the script is a module, so it executes after parsing), reads the variant id from the `<meta name="variant">` tag, derives the site base URL as `new URL('..', import.meta.url)`, fetches `<base>/variants.json` with `{ cache: 'no-cache' }`, and renders inside a shadow root:
+One file, no framework, no custom element, no runtime dependency. It is a module script that runs after the page is parsed and does four things:
 
-- Site name "Mario Erazo", linking to `<base>/`.
-- Theme toggle. Cycles light and dark, writes `data-theme` on `<html>`, persists in `localStorage` under `theme`. Initial state: stored value, else `prefers-color-scheme`. The attribute lives on `<html>`, outside the shadow root, so variant CSS can select it.
-- "Built with" `<select>` with an associated visible label, listing every registry entry, current variant selected. On change: navigate to `<base>/` when the chosen id is the default, otherwise to `<base>/<id>/`.
-- "View spec" button. Opens a drawer (right side on desktop, full width on phone) with `role="dialog"`, `aria-modal="true"` and `aria-labelledby` pointing at its heading. On open: fetch `<base>/spec/website.md` (once, then cached in memory), render it with the vendored markdown renderer, move focus to the close button, set `inert` on every other child of `<body>`, and set `inert` on the top bar inside the shadow root so that Tab cycles only within the drawer. On close (close button, Escape, click outside): remove both `inert` attributes, return focus to the "View spec" button. When the fetch fails, the drawer shows "The specification could not be loaded." and a link to the repository file. The drawer header shows the colophon line from section 4: model label, generation date, spec version, and the stale-spec notice when applicable.
-- Contact links: LinkedIn and GitHub with accessible labels. Because the shell is present on every page, including the 404 page, the one-click contact criterion holds everywhere.
+1. Creates a `<div>` as the first child of `<body>`, attaches a shadow root, and writes the top bar into it with one template string and one `<style>` block. The shadow root is three lines of code and is the reason variant CSS cannot reach the bar and the bar's CSS cannot reach the variant.
+2. Derives the site base as `new URL('..', import.meta.url)` and fetches `<base>variants.json` with `{ cache: 'no-cache' }`.
+3. Renders the bar: site name linking to `<base>`; a theme toggle that writes `data-theme` on `<html>` and stores the value in `localStorage` under `theme` (initial value: stored, else `prefers-color-scheme`); a labelled `<select>` listing the registry entries that navigates to `<base>` for the default id and `<base><id>/` otherwise; a "View spec" link to `<base>spec/`; LinkedIn and GitHub links with accessible labels.
+4. Sets `--shell-height: 56px` on `:root`.
 
-The shell sets `--shell-height: 56px` on `:root` so variants can offset their layout. It has no dependency on variant CSS or JavaScript. When `variants.json` fails to load, the selector and colophon are hidden and everything else works.
+There is no drawer, no dialog, no focus trap and no markdown rendering in the browser: the specification is an ordinary page at `<base>spec/`, produced by the build. When `variants.json` fails to load, the selector is hidden and the rest of the bar works.
+
+The colophon line from section 4 (model label, generation date, specification version, and a notice when the variant's `specVersion` differs from the site's) is rendered in the bar when the registry loads, or in the bar's title attribute on narrow viewports.
 
 ### 6.6 Build (`scripts/build.mjs`)
 
 Inputs: the repository, the environment variable `BASE_PATH` (default `/`; for a GitHub project site `/personal-website/`), and optionally `SITE_DOMAIN`.
 
-1. Read and validate `variants.json` (6.3). Extract the specification date from the specification filename.
+1. Read and validate `variants.json` (6.3). Take the specification date from the specification filename.
 2. Validate every registered variant against the contract (6.4); fail on the first violation, print all warnings.
 3. Empty `dist/`.
 4. Copy `variants/<default>/*` to `dist/`.
 5. Copy every `variants/<id>/*` to `dist/<id>/`.
 6. In every copied `index.html`, rewrite the `src` of the shell script tag from `/shell/shell.js` to `${BASE_PATH}shell/shell.js`. No other content is rewritten.
-7. Copy `shell/` to `dist/shell/`, write `dist/variants.json` with the top-level `specVersion` added, and copy this specification to `dist/spec/website.md`.
-8. Write `dist/.nojekyll`, `dist/404.html` (a minimal page containing the shell script tag with the rewritten path, a heading and a sentence pointing to the selector), and `dist/CNAME` when `SITE_DOMAIN` is set.
+7. Copy `shell/` to `dist/shell/` and write `dist/variants.json` with the top-level `specVersion` added.
+8. Render the specification markdown to `dist/spec/index.html`: a minimal document with the shell script tag, a `<main>` holding the rendered markdown, and a small stylesheet. Rendering uses `marked`, the one development dependency of the build.
+9. Write `dist/.nojekyll`, `dist/404.html` (the shell script tag, a heading, and a sentence pointing to the selector), and `dist/CNAME` when `SITE_DOMAIN` is set.
 
-The script uses only Node's standard library. Output is deterministic: identical inputs produce byte-identical `dist/`.
+Output is deterministic: identical inputs produce byte-identical `dist/`.
 
 ### 6.7 Deployment
 
@@ -244,20 +252,20 @@ Switching to the custom domain later requires: setting the `SITE_DOMAIN` reposit
 1. Create a branch `variant/<id>`.
 2. Give the model this specification and the prompt stored in `docs/superpowers/specs/variant-prompt.md`, created in the first milestone. The prompt refers to sections by title, not number ("Positioning", "Content inventory", "Design constraints for variants", "Variant contract"), names the target folder, forbids changes outside it, and records the specification date it was written for. Record `modelId`, `toolVersion` and the date in the registry entry.
 3. Generation is single-shot. If the result violates the contract or the content inventory, the model is instructed to fix it in the same session. A full regeneration from scratch is allowed once; `attempts` records the count. If the second run also fails review, the variant is not published for that model; the branch is kept for reference and the model may be retried after the next specification change.
-4. Add the registry entry, run `npm test` and `npm run build`, open the result locally with `npx serve dist` (and, when `BASE_PATH` is not `/`, serve the parent directory so the subpath is exercised).
+4. Add the registry entry, run `npm test` and `npm run build`, open the result locally with `npm run serve` (which serves `dist/` under the configured base path, so the subpath is exercised).
 5. Review against the content inventory (4), the design constraints (5) and the contract warnings (6.4 rule 4). Any fix, whether content, design or contract, is first requested from the model; manual edits are a last resort and are listed in the variant's `NOTES.md`.
 6. Open a pull request; merge after review.
 
 ## 8. Testing
 
-Test-driven throughout; tests are written before implementation.
+Two tools, both standard: Node's built-in test runner for everything that is a pure function, and Playwright for everything that needs a browser. No jsdom, no second assertion library. Tests are written before implementation.
 
 | Layer | Tool | Covers |
 | --- | --- | --- |
-| Unit | Vitest | Registry validation: missing default, duplicate id, invalid id pattern, reserved id, id colliding with a default-variant top-level entry, missing `modelId`. Contract checks: each rule in 6.4 with one passing and one failing fixture, including `data:` URIs accepted and `../` rejected. Build on a fixture repository: output layout, shell path rewritten for `BASE_PATH=/` and `/sub/`, `specVersion` injected, determinism (two builds, identical hashes). |
-| Component | Vitest + jsdom | Shell: theme initial state and persistence; selector targets for default and non-default ids under both base paths; drawer open and close paths, focus moved on open and restored on close, `inert` applied to body siblings and to the top bar and removed on close, Tab from the last drawer control returns to the first, Escape handling; degraded modes for failed `variants.json` and failed spec fetch; stale-spec notice. |
-| End to end | Playwright, projects chromium, firefox and webkit, viewports 360×780 and 1440×900, against `dist/` built with `BASE_PATH=/personal-website/` and served under that subpath | Selector switches variant and URL; drawer shows the spec; LinkedIn and GitHub links visible on `/`, every `/<id>/` and the 404 page; no console errors or failed requests; at 1440×900 the three service names from 3.2 and one evidence sentence for each are positioned within the first two viewport heights (document y below 1800 px). webkit approximates Safari. |
-| Quality gate | Lighthouse CI on each variant | Accessibility 95 or higher; performance 90 or higher. |
+| Build and contract | `node --test` | Registry validation: missing default, duplicate id, invalid id pattern, reserved id, id colliding with a default-variant top-level entry, missing `modelId`. Contract checks: each rule in 6.4 with one passing and one failing fixture, including `data:` URIs accepted and `../` rejected. Build on a fixture repository: output layout, shell path rewritten for `BASE_PATH=/` and `/sub/`, `specVersion` injected, spec page produced, determinism (two builds, identical file hashes). |
+| Browser | Playwright, projects chromium, firefox and webkit, viewports 360×780 and 1440×900, against `dist/` built with `BASE_PATH=/personal-website/` and served under that subpath | Shell: theme toggle writes and persists `data-theme`; selector navigates to the right URL for default and non-default ids; "View spec" reaches the specification page; selector hidden when `variants.json` is unavailable. Site: LinkedIn and GitHub links visible on `/`, every `/<id>/`, the spec page and the 404 page; no console errors or failed requests; at 1440×900 the three service names from 3.2 and one evidence sentence for each are positioned within the first two viewport heights (document y below 1800 px). webkit approximates Safari. |
+
+Accessibility and performance are checked manually with the browser's built-in Lighthouse panel against the targets in section 2 before a variant is merged. A Lighthouse CI job may be added later; it is not part of the first milestone.
 
 Manual review covers what tests cannot: the content inventory, tone rules, and the visual quality of a variant.
 
@@ -280,4 +288,5 @@ These two statements are proposals by the author of this document, not facts fro
 | Item | Proposed wording | Fallback if not confirmed |
 | --- | --- | --- |
 | Availability line (`hero`) | "Available for engagements from Q1 2027" | "Available for consulting engagements" without a date |
+| LinkedIn URL | `https://www.linkedin.com/in/marioerazo/` | The LinkedIn link is omitted and GitHub is the only contact link |
 | How an engagement starts (`engagement`) | "An engagement starts with a written exchange about the problem, followed by a scoped assessment of two to four weeks that ends in a written report with recommendations. A longer engagement is decided on that basis." | The `engagement` block is omitted and the success criterion in section 2 is reduced to "how to make contact" |
