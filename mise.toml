@@ -29,3 +29,13 @@ run = "npm run test:e2e"
 [tasks.check]
 description = "Everything to run before claiming a change works"
 depends = ["typecheck", "test", "build"]
+
+[tasks.ci]
+description = "The GitHub workflow's steps, in its order: install, typecheck, unit suite, browser suite, build"
+run = [
+  { task = "install" },
+  { task = "typecheck" },
+  { task = "test" },
+  { task = "e2e" },
+  { task = "build" },
+]

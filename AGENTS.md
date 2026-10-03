@@ -30,9 +30,11 @@ Run with `mise run <task>`. Each wraps an npm script, so `npm run` works as well
 | `serve` | Builds, then serves `dist/` under `BASE_PATH`. |
 | `e2e` | Playwright browser suite, five projects. |
 | `check` | `typecheck`, `test` and `build`. Run before claiming any change works. |
+| `ci` | The GitHub workflow's steps in its order: `install`, `typecheck`, `test`, `e2e`, `build`. |
 
-CI runs `check` and `e2e`. It runs the browser suite in the Playwright container image; its tag
-and the pinned `@playwright/test` version must be upgraded together.
+`mise.toml` matches CI: the same Node major version, the same steps. Change one, change the
+other. CI runs the browser suite in the Playwright container image; its tag and the pinned
+`@playwright/test` version must be upgraded together.
 
 ## Specification versions
 
