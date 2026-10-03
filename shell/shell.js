@@ -8,7 +8,7 @@
  * }} RegistryVariant
  * @typedef {{
  *   default: string, variants: RegistryVariant[],
- *   contact?: { linkedin?: string, github?: string }, specVersion?: string
+ *   contact?: { linkedin?: string, github?: string }, repository?: string, specVersion?: string
  * }} ShellRegistry
  */
 
@@ -102,7 +102,7 @@ function mount() {
     <select id="variant-select" data-testid="shell-select"></select>
   </span>
   <button type="button" data-testid="shell-theme" aria-label="Switch colour theme">Theme</button>
-  <a class="link" data-testid="shell-spec" href="${BASE.pathname}spec/">View spec</a>
+  <a class="link" data-testid="shell-spec" hidden>View spec</a>
   <span class="group contact"></span>
 </nav>`
 
@@ -163,9 +163,17 @@ async function loadRegistry(root) {
     if (stale) colophon.classList.add('stale')
   }
 
+  // Each variant links the specification version it was built from; other pages link the current one.
+  const specVersion = entry?.specVersion ?? registry.specVersion
+  const specLink = /** @type {HTMLAnchorElement} */ (root.querySelector('[data-testid="shell-spec"]'))
+  if (registry.repository && specVersion) {
+    specLink.href = `${registry.repository}/blob/main/spec/${specVersion}.md`
+    specLink.hidden = false
+  }
+
   const select = /** @type {HTMLSelectElement} */ (root.querySelector('[data-testid="shell-select"]'))
   if (!VARIANT_ID) {
-    // The specification page and the 404 page are not a variant, so no option below matches
+    // The 404 page is not a variant, so no option below matches
     // VARIANT_ID. Without this placeholder the browser would select the first variant by default,
     // misreporting it as the current page.
     const placeholder = document.createElement('option')
@@ -193,6 +201,7 @@ async function loadRegistry(root) {
 const { root } = mount()
 loadRegistry(root).catch(() => {
   root.querySelector('.registry')?.remove()
+  root.querySelector('[data-testid="shell-spec"]')?.remove()
   const contact = /** @type {Element} */ (root.querySelector('.contact'))
   if (contact.children.length === 0) {
     appendContactLink(contact, 'linkedin', 'LinkedIn', FALLBACK_CONTACT.linkedin)

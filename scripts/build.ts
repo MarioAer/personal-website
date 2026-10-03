@@ -1,11 +1,11 @@
 import { readFile, writeFile, readdir, mkdir, rm, cp } from 'node:fs/promises'
-import { join, relative, sep, basename, dirname } from 'node:path'
+import { join, relative, basename, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { isRecord, isRegistry, validateRegistry } from './lib/registry.ts'
 import type { Registry } from './lib/registry.ts'
 import { checkVariant } from './lib/contract.ts'
 import type { VariantFiles } from './lib/contract.ts'
-import { renderSpecPage } from './lib/render-spec.ts'
+import { specVersions } from './lib/spec.ts'
 
 /** A file found under a directory, with both its absolute path and its path relative to that root. */
 interface FoundFile {
@@ -13,7 +13,7 @@ interface FoundFile {
   relative: string
 }
 
-/** The inputs of a build. Section 6.6. */
+/** The inputs of a build. */
 export interface BuildOptions {
   /** Repository root: the folder holding `variants.json`, `variants/`, `shell/` and `spec/`. */
   root: string
@@ -23,8 +23,6 @@ export interface BuildOptions {
   basePath?: string | undefined
   /** When set, a `CNAME` file holding this domain is written. */
   siteDomain?: string | undefined
-  /** Path of the specification markdown file; its filename carries the specification date. */
-  specPath: string
 }
 
 export interface BuildResult {
@@ -72,7 +70,15 @@ function rewriteShellPath(html: string, basePath: string): string {
   return html.replace(/(<script\b[^>]*\bsrc\s*=\s*["'])\/shell\/shell\.js(["'])/gi, `$1${basePath}shell/shell.js$2`)
 }
 
-export async function build({ root, outDir, basePath, siteDomain, specPath }: BuildOptions): Promise<BuildResult> {
+async function listSpecVersions(root: string): Promise<string[]> {
+  try {
+    return specVersions(await readdir(join(root, 'spec')))
+  } catch {
+    return []
+  }
+}
+
+export async function build({ root, outDir, basePath, siteDomain }: BuildOptions): Promise<BuildResult> {
   const base = normaliseBasePath(basePath)
   const registryPath = join(root, 'variants.json')
 
@@ -89,7 +95,11 @@ export async function build({ root, outDir, basePath, siteDomain, specPath }: Bu
     ? (await readdir(join(root, 'variants', parsedDefault))).sort()
     : []
 
-  const registryErrors = validateRegistry(parsed, { variantFolders, defaultTopLevelEntries })
+  const versions = await listSpecVersions(root)
+  const specVersion = versions.at(-1)
+  if (!specVersion) throw new Error('No specification found: spec/ must hold at least one <YYYY-MM-DD>.md file')
+
+  const registryErrors = validateRegistry(parsed, { variantFolders, defaultTopLevelEntries, specVersions: versions })
   if (registryErrors.length > 0) throw new Error(`The registry is invalid:\n  ${registryErrors.join('\n  ')}`)
   // validateRegistry has already established every field below; this narrows the parsed JSON.
   if (!isRegistry(parsed)) throw new Error('The registry is invalid:\n  variants.json does not have the expected shape')
@@ -123,12 +133,7 @@ export async function build({ root, outDir, basePath, siteDomain, specPath }: Bu
 
   await cp(join(root, 'shell'), join(outDir, 'shell'), { recursive: true })
 
-  const specVersion = basename(specPath).slice(0, 10)
   await writeFile(join(outDir, 'variants.json'), `${JSON.stringify({ ...registry, specVersion }, null, 2)}\n`)
-
-  await mkdir(join(outDir, 'spec'), { recursive: true })
-  const markdown = await readFile(specPath, 'utf8')
-  await writeFile(join(outDir, 'spec', 'index.html'), renderSpecPage(markdown, { basePath: base, title: 'Specification' }))
 
   await writeFile(join(outDir, '.nojekyll'), '')
   await writeFile(join(outDir, '404.html'), `<!doctype html>
@@ -163,15 +168,11 @@ main{max-width:40rem;margin:0 auto;padding:3rem 1rem}
 const invokedDirectly = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]
 if (invokedDirectly) {
   const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-  const specsDir = join(root, 'spec')
-  const specFile = (await readdir(specsDir)).filter((name) => name.endsWith('-personal-website-design.md')).sort().at(-1)
-  if (!specFile) throw new Error(`No specification found in ${relative(root, specsDir)}${sep}`)
   const { warnings } = await build({
     root,
     outDir: join(root, 'dist'),
     basePath: process.env.BASE_PATH,
     siteDomain: process.env.SITE_DOMAIN,
-    specPath: join(specsDir, specFile),
   })
   for (const warning of warnings) console.warn(`warning: ${warning}`)
   console.log(`Built ${relative(root, join(root, 'dist'))} for base path ${normaliseBasePath(process.env.BASE_PATH)}`)
