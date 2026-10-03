@@ -30,6 +30,16 @@
       "generatedAt": "2026-10-01",
       "specVersion": "2026-10-01",
       "attempts": 1
+    },
+    {
+      "id": "gemini-3.1-pro",
+      "label": "Gemini 3.1 Pro",
+      "tool": "Gemini API",
+      "toolVersion": "3.1",
+      "modelId": "gemini-3.1-pro",
+      "generatedAt": "2026-10-03",
+      "specVersion": "2026-10-01",
+      "attempts": 1
     }
   ],
   "contact": {
