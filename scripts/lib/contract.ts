@@ -11,7 +11,7 @@ export interface VariantToCheck {
   files: VariantFiles
 }
 
-/** Errors fail the build; warnings are printed and left to the reviewer (section 6.4 rule 4). */
+/** Errors fail the build; warnings are printed and left to the reviewer. */
 export interface ContractResult {
   errors: string[]
   warnings: string[]
@@ -82,7 +82,7 @@ function checkCss(text: string, where: string, errors: string[]): void {
   }
 }
 
-/** Checks a variant folder against the contract in section 6.4. */
+/** Checks a variant folder against the variant contract in AGENTS.md. */
 export function checkVariant({ id, files }: VariantToCheck): ContractResult {
   const errors: string[] = []
   const warnings: string[] = []
