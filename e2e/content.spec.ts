@@ -6,7 +6,7 @@ const registry: unknown = JSON.parse(await readFile(new URL('../variants.json', 
 if (!isRegistry(registry)) throw new Error('variants.json is not a valid registry')
 const paths = ['./', ...registry.variants.map((variant) => `${variant.id}/`)]
 
-const SERVICES = ['Solution architecture and integration', 'Interim and fractional engineering leadership', 'AI-assisted engineering enablement']
+const SERVICES = ['Solution architecture and integration', 'Engineering leadership', 'AI-assisted engineering']
 const POSITIONING = 'Solution architecture, engineering leadership and AI-assisted engineering for cloud-native commerce platforms.'
 const EMAIL = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i
 
