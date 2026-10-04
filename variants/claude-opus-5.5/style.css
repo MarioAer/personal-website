@@ -6,7 +6,7 @@
   --paper: #eef3f8;
   --ink: #1d4f8a;
   --muted: #3f5f86;
-  --pen: #b4532c;
+  --pen: #c62828;
   --card: rgb(255 255 255 / 0.6);
   --grid-major: rgb(29 79 138 / 0.08);
   --grid-minor: rgb(29 79 138 / 0.035);
@@ -27,7 +27,7 @@
     --paper: #1f4fa8;
     --ink: #ffffff;
     --muted: #d6e3f7;
-    --pen: #f6c9a6;
+    --pen: #ffd166;
     --card: rgb(255 255 255 / 0.06);
     --grid-major: rgb(255 255 255 / 0.12);
     --grid-minor: rgb(255 255 255 / 0.05);
@@ -39,7 +39,7 @@
   --paper: #1f4fa8;
   --ink: #ffffff;
   --muted: #d6e3f7;
-  --pen: #f6c9a6;
+  --pen: #ffd166;
   --card: rgb(255 255 255 / 0.06);
   --grid-major: rgb(255 255 255 / 0.12);
   --grid-minor: rgb(255 255 255 / 0.05);
