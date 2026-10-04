@@ -156,6 +156,21 @@ Variants have full freedom of visual design within these limits:
   folder a browser can serve directly, at the site root and under `/<id>/`.
 - Total transferred weight under 1 MB, images included.
 
+### Design brief
+
+The site must engage, not only inform. Every variant meets this brief; how is its own choice.
+
+- A distinctive first screen and a clear visual hierarchy. A plain text document is not enough.
+- The three areas of expertise as visually distinct units. The timeline as a graphic, not a
+  table or a list.
+- No figure callouts or statistic tiles.
+- Secondary facts (education, languages) get room of their own; nothing is crammed onto one line.
+- At least one element responds to scrolling or the pointer. Motion uses CSS where possible
+  (`animation-timeline`, transitions), sits behind `@supports` where needed, and stops under
+  `prefers-reduced-motion`. Decorative motion is `aria-hidden`.
+- Visible hover and focus feedback on interactive elements; contrast of at least 4.5:1 for body
+  text and 3:1 for large text in both themes.
+
 ## Shell (`shell/shell.js`)
 
 One JavaScript file with JSDoc types, served to browsers unmodified; it never becomes
@@ -213,9 +228,9 @@ the repository to `marioaer.github.io` serves at the root without one.
    also fails review, the variant is not published; the branch is kept.
 4. Add the registry entry with `specVersion` set to the specification used, run `mise run check`
    and look at the result with `mise run serve`.
-5. Review against the content inventory, the design constraints and the contract warnings. Every
-   fix is first requested from the model; manual edits are a last resort, listed in the
-   variant's `NOTES.md`.
+5. Review against the content inventory, the design constraints, the design brief and the
+   contract warnings. Every fix is first requested from the model; manual edits are a last
+   resort, listed in the variant's `NOTES.md`.
 6. Open a pull request; merge after review.
 
 Prompt:
@@ -226,7 +241,7 @@ You are implementing one version of a personal website.
 Read spec/<VERSION>.md (the content) and AGENTS.md (the rules) in full before writing anything.
 Implement the specification's "Positioning" and "Content inventory" as one self-contained
 folder at variants/<ID>/, following the AGENTS.md sections "Variant contract" and
-"Design constraints for variants".
+"Design constraints for variants", including its "Design brief".
 
 Write only inside variants/<ID>/. Every factual statement must come from the specification.
 The visual design is yours; the content and the constraints are not.
