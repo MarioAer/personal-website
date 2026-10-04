@@ -1,5 +1,5 @@
 {
-  "default": "claude-opus-5",
+  "default": "claude-fable-5.1",
   "variants": [
     {
       "id": "claude-fable-5.1",
