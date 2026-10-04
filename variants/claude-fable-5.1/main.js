@@ -1,21 +1,8 @@
-// Variant claude-fable-5.1. Two small enhancements; the page reads the same without this script.
+// Variant claude-fable-5.1. One enhancement; the page reads the same without this script.
 //
-// 1. Highlight the "before" or the "after" stops of the evidence journeys. Everything stays
-//    visible; the other state is only dimmed.
-// 2. The strip map. CSS scroll-driven animations move the carriage; this script marks the
-//    current station for assistive technology and, in browsers without scroll timelines, moves
-//    the carriage itself by writing the same custom properties the CSS animates.
-
-const section = document.querySelector('#expertise')
-const buttons = section ? [...section.querySelectorAll('.view__btn')] : []
-
-for (const button of buttons) {
-  button.addEventListener('click', () => {
-    const view = button.dataset.view ?? 'both'
-    if (section) section.dataset.view = view
-    for (const other of buttons) other.setAttribute('aria-pressed', String(other === button))
-  })
-}
+// The strip map. CSS scroll-driven animations move the carriage; this script marks the current
+// station for assistive technology and, in browsers without scroll timelines, moves the carriage
+// itself by writing the same custom properties the CSS animates.
 
 const strip = document.querySelector('.strip')
 const stations = strip ? [...strip.querySelectorAll('.strip__station')] : []
