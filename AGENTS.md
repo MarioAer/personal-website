@@ -223,19 +223,15 @@ the repository to `marioaer.github.io` serves at the root without one.
 1. Create a branch `variant/<id>`.
 2. Give the model the current specification and this file, with the prompt below. Record
    `modelId`, `toolVersion` and the date in the registry entry.
-3. Mockups first. The model writes `variants/<id>/MOCKUPS.md` with ASCII mockups at 1440 px and
-   360 px covering every section of the content inventory, and names the design direction and
-   the moving elements. The owner approves or requests changes; no HTML or CSS is written before
-   approval.
-4. Generation is single-shot. Contract or content violations are fixed by the model in the same
+3. Generation is single-shot. Contract or content violations are fixed by the model in the same
    session. One full regeneration is allowed; `attempts` records the count. If the second run
    also fails review, the variant is not published; the branch is kept.
-5. Add the registry entry with `specVersion` set to the specification used, run `mise run check`
+4. Add the registry entry with `specVersion` set to the specification used, run `mise run check`
    and look at the result with `mise run serve`.
-6. Review against the content inventory, the design constraints, the design brief and the
+5. Review against the content inventory, the design constraints, the design brief and the
    contract warnings. Every fix is first requested from the model; manual edits are a last
    resort, listed in the variant's `NOTES.md`.
-7. Open a pull request; merge after review.
+6. Open a pull request; merge after review.
 
 Prompt:
 
@@ -246,9 +242,6 @@ Read spec/<VERSION>.md (the content) and AGENTS.md (the rules) in full before wr
 Implement the specification's "Positioning" and "Content inventory" as one self-contained
 folder at variants/<ID>/, following the AGENTS.md sections "Variant contract" and
 "Design constraints for variants", including its "Design brief".
-
-Start with variants/<ID>/MOCKUPS.md: ASCII mockups at 1440 px and 360 px for every section of
-the content inventory. Stop and wait for approval before writing HTML or CSS.
 
 Write only inside variants/<ID>/. Every factual statement must come from the specification.
 The visual design is yours; the content and the constraints are not.
