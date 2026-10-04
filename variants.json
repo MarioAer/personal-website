@@ -57,8 +57,8 @@
       "tool": "Gemini API",
       "toolVersion": "3.1",
       "modelId": "gemini-3.1-pro",
-      "generatedAt": "2026-10-03",
-      "specVersion": "2026-10-01",
+      "generatedAt": "2026-10-04",
+      "specVersion": "2026-10-04",
       "attempts": 1
     }
   ],
