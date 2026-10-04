@@ -6,10 +6,10 @@
   --paper: #eef3f8;
   --ink: #1d4f8a;
   --muted: #3f5f86;
-  --pen: #b4532c;
+  --pen: #c62828;
   --card: rgb(255 255 255 / 0.6);
-  --grid-major: rgb(29 79 138 / 0.16);
-  --grid-minor: rgb(29 79 138 / 0.07);
+  --grid-major: rgb(29 79 138 / 0.08);
+  --grid-minor: rgb(29 79 138 / 0.035);
 
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
@@ -27,10 +27,10 @@
     --paper: #1f4fa8;
     --ink: #ffffff;
     --muted: #d6e3f7;
-    --pen: #f6c9a6;
+    --pen: #ffd166;
     --card: rgb(255 255 255 / 0.06);
-    --grid-major: rgb(255 255 255 / 0.22);
-    --grid-minor: rgb(255 255 255 / 0.1);
+    --grid-major: rgb(255 255 255 / 0.12);
+    --grid-minor: rgb(255 255 255 / 0.05);
   }
 }
 
@@ -39,10 +39,10 @@
   --paper: #1f4fa8;
   --ink: #ffffff;
   --muted: #d6e3f7;
-  --pen: #f6c9a6;
+  --pen: #ffd166;
   --card: rgb(255 255 255 / 0.06);
-  --grid-major: rgb(255 255 255 / 0.22);
-  --grid-minor: rgb(255 255 255 / 0.1);
+  --grid-major: rgb(255 255 255 / 0.12);
+  --grid-minor: rgb(255 255 255 / 0.05);
 }
 
 /* Base */
@@ -167,7 +167,7 @@ main > .sheet:first-child,
 .hero {
   display: grid;
   gap: 2rem 3rem;
-  grid-template-areas: "text" "ring" "block";
+  grid-template-areas: "note" "text" "ring" "block";
 }
 
 .hero-text { grid-area: text; align-self: center; }
@@ -234,7 +234,19 @@ main > .sheet:first-child,
   transform: rotate(-2deg);
 }
 
-.pen-note--hero { margin-top: 2rem; }
+.pen-note--hero {
+  grid-area: note;
+  justify-self: end;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  max-width: 21rem;
+  margin-top: calc(-0.6 * var(--pad));
+  text-align: right;
+  transform: translateX(var(--aim, 0px)) rotate(-2deg);
+}
+
+.pen-arrow--bar { flex: none; width: 2rem; height: 3rem; margin: -1.25rem 0 0; }
 
 .pen-arrow {
   display: inline-block;
@@ -269,8 +281,10 @@ main > .sheet:first-child,
 .ring-fine { stroke-width: 1; stroke-dasharray: 4 5; }
 .ring-solid { fill: var(--paper); }
 .ring-leader { stroke-width: 1; }
+.ring-output { stroke-width: 2; }
+.ring-arrow { fill: var(--ink); stroke: none; }
 
-.ring-letter,
+.ring-word,
 .ring-label {
   fill: var(--ink);
   stroke: none;
@@ -278,20 +292,39 @@ main > .sheet:first-child,
   text-transform: uppercase;
 }
 
-.ring-letter {
-  font-size: 15px;
+.ring-word {
+  font-size: 11px;
+  letter-spacing: 0.06em;
   font-weight: 700;
   text-anchor: middle;
   dominant-baseline: central;
-  transform-box: fill-box;
-  transform-origin: center;
 }
+
+.ring-tag { transform-box: fill-box; transform-origin: center; }
 
 .ring-label { font-size: 11px; letter-spacing: 0.08em; }
 
 .ring-rotor { transform-box: view-box; transform-origin: 200px 200px; }
 
-.ring .view-title { margin-top: 1rem; }
+.ring figcaption {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+
+.ring-claim { max-width: 24rem; margin: 0 auto 1rem; font-size: 1.125rem; line-height: 1.4; font-weight: 700; }
+
+.ring-hub-text {
+  fill: var(--ink);
+  stroke: none;
+  font: 700 18px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
 
 /* Title block */
 
@@ -333,10 +366,12 @@ main > .sheet:first-child,
 @media (min-width: 960px) {
   .hero {
     grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-    grid-template-areas: "text ring" "text block";
+    grid-template-areas: "note note" "text ring" "text block";
   }
 
   .ring { align-self: start; }
+
+  .pen-note--hero { margin-right: 3rem; margin-bottom: -1.5rem; }
 }
 
 /* Expertise: three modules joined by one connector */
@@ -799,7 +834,7 @@ main > .sheet:first-child,
     animation-timeline: scroll(root block);
   }
 
-  .ring-letter {
+  .ring-tag {
     animation: ring-counter linear both;
     animation-timeline: scroll(root block);
   }
@@ -845,7 +880,7 @@ main > .sheet:first-child,
 /* Without scroll-driven animations, main.js sets --scroll from 0 to 1. */
 
 .no-scroll-timeline .ring-rotor { transform: rotate(calc(var(--scroll, 0) * 120deg)); }
-.no-scroll-timeline .ring-letter { transform: rotate(calc(var(--scroll, 0) * -120deg)); }
+.no-scroll-timeline .ring-tag { transform: rotate(calc(var(--scroll, 0) * -120deg)); }
 .no-scroll-timeline .ruler-cursor { transform: translateY(calc(var(--scroll, 0) * (100% - 4.5rem))); }
 
 @media (prefers-reduced-motion: reduce) {
@@ -857,7 +892,7 @@ main > .sheet:first-child,
   }
 
   .ring-rotor,
-  .ring-letter,
+  .ring-tag,
   .ruler-cursor { transform: none !important; }
 
   .node:hover { transform: none; }

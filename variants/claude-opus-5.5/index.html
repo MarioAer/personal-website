@@ -23,6 +23,7 @@
 <div class="frame">
 
 <header class="sheet hero">
+  <p class="pen-note pen-note--hero"><span><span class="visually-hidden">Margin note: </span>one specification, several models. Compare them in the bar above.</span><svg class="pen-arrow pen-arrow--bar" viewBox="0 0 40 60" aria-hidden="true" focusable="false"><path class="pen-stroke pen-stroke--load" pathLength="1" d="M6 56 C 10 38, 20 20, 30 4 M30 4 L21 11 M30 4 L32 15"/></svg></p>
   <div class="hero-text">
     <p class="label">Drawing no. 01 · General arrangement</p>
     <h1 class="title">Mario Erazo</h1>
@@ -31,50 +32,50 @@
       <span class="mark mark-circle">Cloud architect.<svg class="pen-svg" viewBox="0 0 220 70" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pen-stroke pen-stroke--load" pathLength="1" d="M18 42 C 12 14, 90 4, 170 8 C 214 12, 218 52, 168 61 C 108 70, 18 66, 9 44 C 5 28, 30 13, 64 9"/></svg></span>
       Solution architecture, engineering leadership and AI-assisted engineering for cloud-native
       <span class="mark mark-underline">commerce platforms.<svg class="pen-svg" viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pen-stroke pen-stroke--load" pathLength="1" d="M2 8 C 50 2, 122 12, 198 4"/></svg></span>
-    </p>
-    <p class="pen-note pen-note--hero"><span class="visually-hidden">Margin note: </span>one specification, several models. Compare them in the bar above.<svg class="pen-arrow" viewBox="0 0 60 50" aria-hidden="true" focusable="false"><path class="pen-stroke pen-stroke--load" pathLength="1" d="M6 44 C 26 42, 44 30, 50 8 M50 8 L41 17 M50 8 L56 19"/></svg></p>
-  </div>
+    </p>  </div>
 
-  <figure class="ring" aria-hidden="true">
-    <svg class="ring-svg" viewBox="0 0 400 400" focusable="false">
+  <figure class="ring">
+    <p class="ring-claim" id="ring-desc">Technical direction at the centre, delivery as the result.</p>
+    <svg class="ring-svg" viewBox="0 0 400 400" role="img" aria-labelledby="ring-desc" focusable="false">
       <defs>
         <g id="module">
-          <rect class="ring-solid" x="168" y="37" width="64" height="44"/>
-          <rect x="174" y="45" width="16" height="28"/>
-          <rect x="210" y="45" width="16" height="28"/>
-          <line x1="200" y1="81" x2="200" y2="166"/>
+          <line x1="200" y1="75" x2="200" y2="166"/>
         </g>
-        <circle id="pod" class="ring-solid" cx="200" cy="59" r="9"/>
+        <circle id="person" class="ring-solid" cx="200" cy="59" r="9"/>
       </defs>
       <circle class="ring-draw" pathLength="1" cx="200" cy="200" r="158"/>
       <circle class="ring-fine" cx="200" cy="200" r="124"/>
       <g class="ring-rotor">
-        <use href="#pod" transform="rotate(30 200 200)"/>
-        <use href="#pod" transform="rotate(60 200 200)"/>
-        <use href="#pod" transform="rotate(90 200 200)"/>
-        <use href="#pod" transform="rotate(150 200 200)"/>
-        <use href="#pod" transform="rotate(180 200 200)"/>
-        <use href="#pod" transform="rotate(210 200 200)"/>
-        <use href="#pod" transform="rotate(270 200 200)"/>
-        <use href="#pod" transform="rotate(300 200 200)"/>
-        <use href="#pod" transform="rotate(330 200 200)"/>
+        <use class="pod" href="#person" transform="rotate(30 200 200)"/>
+        <use class="pod" href="#person" transform="rotate(60 200 200)"/>
+        <use class="pod" href="#person" transform="rotate(90 200 200)"/>
+        <use class="pod" href="#person" transform="rotate(150 200 200)"/>
+        <use class="pod" href="#person" transform="rotate(180 200 200)"/>
+        <use class="pod" href="#person" transform="rotate(210 200 200)"/>
+        <use class="pod" href="#person" transform="rotate(270 200 200)"/>
+        <use class="pod" href="#person" transform="rotate(300 200 200)"/>
+        <use class="pod" href="#person" transform="rotate(330 200 200)"/>
         <use href="#module"/>
         <use href="#module" transform="rotate(120 200 200)"/>
         <use href="#module" transform="rotate(240 200 200)"/>
-        <text class="ring-letter" x="200" y="59">A</text>
-        <text class="ring-letter" x="322.1" y="270.5">B</text>
-        <text class="ring-letter" x="77.9" y="270.5">C</text>
+        <g class="ring-tag"><rect class="ring-solid" x="162" y="43" width="76" height="32"/><text class="ring-word" x="200" y="59">Team</text></g>
+        <g class="ring-tag"><rect class="ring-solid" x="284.1" y="254.5" width="76" height="32"/><text class="ring-word" x="322.1" y="270.5">Partners</text></g>
+        <g class="ring-tag"><rect class="ring-solid" x="39.9" y="254.5" width="76" height="32"/><text class="ring-word" x="77.9" y="270.5">Clients</text></g>
       </g>
+      <circle class="ring-fine" cx="200" cy="200" r="62"/>
       <circle class="ring-solid ring-draw" pathLength="1" cx="200" cy="200" r="34"/>
-      <rect x="186" y="186" width="28" height="28" transform="rotate(45 200 200)"/>
-      <circle cx="200" cy="200" r="5"/>
+      <text class="ring-hub-text" x="200" y="200">Me</text>
       <polyline class="ring-leader" points="88,88 56,44 8,44"/>
-      <text class="ring-label" x="8" y="36">Ring · three areas</text>
-      <polyline class="ring-leader" points="222,226 262,382 392,382"/>
-      <text class="ring-label" x="392" y="374" text-anchor="end">Hub · commerce platform</text>
+      <text class="ring-label" x="8" y="36">Ring · keeping work progressing</text>
+      <polyline class="ring-output" points="312,312 352,352 392,352"/>
+      <polygon class="ring-arrow" points="392,347 400,352 392,357"/>
+      <text class="ring-label" x="392" y="370" text-anchor="end">Output · delivery</text>
     </svg>
-    <p class="view-title">Fig. 0 · One system, top view</p>
+    <figcaption>
+      <p class="view-title">Fig. 0 · How I lead, top view</p>
+    </figcaption>
   </figure>
+
 
   <dl class="title-block">
     <div><dt>Drawing</dt><dd>Mario Erazo</dd></div>
