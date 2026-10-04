@@ -2,6 +2,16 @@
   "default": "claude-opus-5",
   "variants": [
     {
+      "id": "claude-opus-5.5",
+      "label": "Claude Opus 5.5",
+      "tool": "Claude Code",
+      "toolVersion": "2.1.285",
+      "modelId": "claude-opus-5-5",
+      "generatedAt": "2026-10-04",
+      "specVersion": "2026-10-04",
+      "attempts": 1
+    },
+    {
       "id": "claude-opus-5",
       "label": "Claude Opus 5",
       "tool": "Claude Code",
