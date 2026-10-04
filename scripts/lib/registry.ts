@@ -1,4 +1,4 @@
-/** A registry entry, one implementation of the specification. See section 6.3. */
+/** A registry entry, one implementation of the specification. */
 export interface Variant {
   id: string
   label: string
@@ -17,13 +17,15 @@ export interface Contact {
 }
 
 /**
- * `variants.json`. `specVersion` is absent in the repository and written by the build into the
- * copy it places in the output, taken from the specification filename.
+ * `variants.json`. `repository` is the GitHub repository the shell links each variant's
+ * specification in. `specVersion` is absent in the repository and written by the build into the
+ * copy it places in the output: the newest file in `spec/`.
  */
 export interface Registry {
   default: string
   variants: Variant[]
   contact: Contact
+  repository: string
   specVersion?: string
 }
 
@@ -31,10 +33,12 @@ export interface Registry {
 export interface RegistryContext {
   variantFolders?: readonly string[]
   defaultTopLevelEntries?: readonly string[]
+  /** The specification versions in `spec/`; every variant's `specVersion` must be one of them. */
+  specVersions?: readonly string[]
 }
 
 export const ID_PATTERN = /^[a-z0-9][a-z0-9.-]*$/
-export const RESERVED_NAMES = ['shell', 'spec', 'index.html', '404.html', 'variants.json', 'cname', '.nojekyll']
+export const RESERVED_NAMES = ['shell', 'index.html', '404.html', 'variants.json', 'cname', '.nojekyll']
 
 // Entries a variant folder may not contain. index.html is absent: every variant must have one.
 export const RESERVED_VARIANT_ENTRIES = RESERVED_NAMES.filter((name) => name !== 'index.html')
@@ -72,12 +76,13 @@ export function isRegistry(value: unknown): value is Registry {
   const contact = value.contact
   if (!isRecord(contact)) return false
   if (typeof contact.linkedin !== 'string' || typeof contact.github !== 'string') return false
+  if (typeof value.repository !== 'string') return false
   return value.specVersion === undefined || typeof value.specVersion === 'string'
 }
 
-/** Checks `variants.json` against section 6.3 and returns one message per broken rule. */
+/** Checks `variants.json` and returns one message per broken rule. */
 export function validateRegistry(registry: unknown, context: RegistryContext = {}): string[] {
-  const { variantFolders = [], defaultTopLevelEntries = [] } = context
+  const { variantFolders = [], defaultTopLevelEntries = [], specVersions = [] } = context
   const errors: string[] = []
 
   if (!isRecord(registry)) return ['variants.json: the registry must be an object']
@@ -99,6 +104,10 @@ export function validateRegistry(registry: unknown, context: RegistryContext = {
     const attempts = variant?.attempts
     if (typeof attempts !== 'number' || !Number.isInteger(attempts) || attempts < 1) {
       errors.push(`${where}: "attempts" must be an integer of at least 1`)
+    }
+    const specVersion = variant?.specVersion
+    if (typeof specVersion === 'string' && specVersion.length > 0 && !specVersions.includes(specVersion)) {
+      errors.push(`${where}: specVersion "${specVersion}" has no specification at spec/${specVersion}.md`)
     }
     const id = variant?.id
     if (typeof id !== 'string') continue
@@ -134,6 +143,11 @@ export function validateRegistry(registry: unknown, context: RegistryContext = {
         errors.push(`variants.json: contact.${key} must be an https URL`)
       }
     }
+  }
+
+  const repository = registry.repository
+  if (typeof repository !== 'string' || !repository.startsWith('https://')) {
+    errors.push('variants.json: "repository" must be an https URL')
   }
 
   return errors

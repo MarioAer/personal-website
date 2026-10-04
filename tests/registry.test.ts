@@ -19,10 +19,11 @@ const registry = (over: Record<string, unknown> = {}): Record<string, unknown> =
   default: 'claude-opus-5',
   variants: [entry()],
   contact: { linkedin: 'https://www.linkedin.com/in/marioerazo/', github: 'https://github.com/MarioAer' },
+  repository: 'https://github.com/MarioAer/personal-website',
   ...over,
 })
 
-const context = (over: { variantFolders?: string[], defaultTopLevelEntries?: string[] } = {}) => ({ variantFolders: ['claude-opus-5'], defaultTopLevelEntries: ['index.html', 'style.css'], ...over })
+const context = (over: { variantFolders?: string[], defaultTopLevelEntries?: string[], specVersions?: string[] } = {}) => ({ variantFolders: ['claude-opus-5'], defaultTopLevelEntries: ['index.html', 'style.css'], specVersions: ['2026-10-01'], ...over })
 
 test('a well-formed registry produces no errors', () => {
   assert.deepEqual(validateRegistry(registry(), context()), [])
@@ -48,7 +49,7 @@ test('an id that breaks the pattern is rejected', () => {
 })
 
 test('reserved ids are rejected', () => {
-  for (const name of ['shell', 'spec']) {
+  for (const name of ['shell', '404.html']) {
     const r = registry({ default: name, variants: [entry({ id: name })] })
     const errors = validateRegistry(r, context({ variantFolders: [name] }))
     assert.ok(errors.some((e: string) => /reserved/i.test(e)), `${name} should be reserved`)
@@ -81,6 +82,24 @@ test('a registry entry without a folder is reported', () => {
 test('contact links must be https urls', () => {
   const r = registry({ contact: { linkedin: 'http://example.com', github: 'https://github.com/MarioAer' } })
   assert.ok(validateRegistry(r, context()).some((e: string) => /contact/i.test(e)))
+})
+
+test('the repository must be an https url', () => {
+  for (const repository of [undefined, 'http://github.com/MarioAer/personal-website']) {
+    const errors = validateRegistry(registry({ repository }), context())
+    assert.ok(errors.some((e: string) => /repository/.test(e)), `${String(repository)} should be rejected`)
+  }
+})
+
+test('a specVersion without a specification file is reported', () => {
+  const errors = validateRegistry(registry(), context({ specVersions: ['2026-10-03'] }))
+  assert.equal(errors.length, 1)
+  assert.match(errors[0], /2026-10-01/)
+  assert.match(errors[0], /spec\/2026-10-01\.md/)
+})
+
+test('spec is no longer a reserved name', () => {
+  assert.ok(!RESERVED_NAMES.includes('spec'))
 })
 
 test('the exported pattern and reserved lists are usable by other modules', () => {

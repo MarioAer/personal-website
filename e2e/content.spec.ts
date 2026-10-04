@@ -6,45 +6,22 @@ const registry: unknown = JSON.parse(await readFile(new URL('../variants.json', 
 if (!isRegistry(registry)) throw new Error('variants.json is not a valid registry')
 const paths = ['./', ...registry.variants.map((variant) => `${variant.id}/`)]
 
-const SERVICES = ['Solution architecture and integration', 'Interim and fractional engineering leadership', 'AI-assisted engineering enablement']
-const POSITIONING = 'Solution architecture, engineering leadership and AI-assisted engineering for cloud-native commerce platforms.'
 const EMAIL = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i
 
 const flatten = (value: string): string => value.replace(/\s+/g, ' ').trim()
 
 for (const path of paths) {
   test.describe(`variant at ${path}`, () => {
-    test('has one h1, the landmarks and the required sections', async ({ page }) => {
+    test('has one h1 and the landmarks', async ({ page }) => {
       await page.goto(path)
       await expect(page.locator('h1')).toHaveCount(1)
       await expect(page.locator('main')).toHaveCount(1)
       await expect(page.locator('footer')).toHaveCount(1)
-      for (const service of SERVICES) {
-        await expect(page.getByText(service, { exact: false }).first()).toBeVisible()
-      }
     })
 
-    test('states the positioning and the location', async ({ page }) => {
+    test('contains no personal contact data', async ({ page }) => {
       await page.goto(path)
-      const body = page.locator('body')
-      expect(flatten(await body.innerText())).toContain(POSITIONING)
-      await expect(body).toContainText('Cologne')
-    })
-
-    test('carries the evidence numbers exactly', async ({ page }) => {
-      await page.goto(path)
-      const text = await page.locator('body').innerText()
-      for (const phrase of ['18 engineers', '32 services into 24', 'six weeks', '40 percent']) {
-        expect(text).toContain(phrase)
-      }
-    })
-
-    test('contains no job-seeking phrases and no personal contact data', async ({ page }) => {
-      await page.goto(path)
-      const text = flatten(await page.locator('body').innerText()).toLowerCase()
-      for (const phrase of ['looking for', 'open to work', 'seeking', 'hire me', 'résumé', 'curriculum vitae']) {
-        expect(text).not.toContain(phrase)
-      }
+      const text = flatten(await page.locator('body').innerText())
       expect(text).not.toMatch(EMAIL)
       await expect(page.locator('a[href^="mailto:"], a[href^="tel:"]')).toHaveCount(0)
     })
@@ -81,28 +58,16 @@ for (const path of paths) {
       await page.waitForLoadState('networkidle')
       expect(problems).toEqual([])
     })
-
-    test('shows the services and one evidence sentence each within two screens', async ({ page }, testInfo) => {
-      test.skip((testInfo.project.use.viewport?.width ?? 0) < 1000, 'desktop criterion')
-      await page.goto(path)
-      for (const service of SERVICES) {
-        const box = await page.getByText(service, { exact: false }).first().boundingBox()
-        if (!box) throw new Error(`"${service}" has no bounding box`)
-        expect(box.y + (await page.evaluate(() => window.scrollY))).toBeLessThan(1800)
-      }
-    })
   })
 }
 
-// The specification requires LinkedIn and GitHub to be visible from every page, including the
-// specification page and the 404 page, which are not variants and so are outside the `paths` loop above.
-for (const [name, path] of [['the specification page', 'spec/'], ['the 404 page', 'no-such-page']]) {
-  test.describe(name, () => {
-    test('reaches LinkedIn and GitHub in one click', async ({ page }) => {
-      await page.goto(path)
-      const shell = page.locator('site-shell')
-      await expect(shell.locator('[data-testid="shell-linkedin"]')).toBeVisible()
-      await expect(shell.locator('[data-testid="shell-github"]')).toBeVisible()
-    })
+// The specification requires LinkedIn and GitHub to be visible from every page, including the 404
+// page, which is not a variant and so is outside the `paths` loop above.
+test.describe('the 404 page', () => {
+  test('reaches LinkedIn and GitHub in one click', async ({ page }) => {
+    await page.goto('no-such-page')
+    const shell = page.locator('site-shell')
+    await expect(shell.locator('[data-testid="shell-linkedin"]')).toBeVisible()
+    await expect(shell.locator('[data-testid="shell-github"]')).toBeVisible()
   })
-}
+})

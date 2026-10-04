@@ -28,6 +28,7 @@ async function fixture(overrides: FixtureOverrides = {}): Promise<string> {
       { id: 'beta', label: 'Beta', tool: 'Claude Code', toolVersion: '1.0.0', modelId: 'beta-1', generatedAt: '2026-09-01', specVersion: '2026-09-01', attempts: 1 },
     ],
     contact: { linkedin: 'https://www.linkedin.com/in/marioerazo/', github: 'https://github.com/MarioAer' },
+    repository: 'https://github.com/MarioAer/personal-website',
     ...overrides.registry,
   }
   for (const id of ['alpha', 'beta']) {
@@ -37,7 +38,7 @@ async function fixture(overrides: FixtureOverrides = {}): Promise<string> {
   await mkdir(join(root, 'shell'), { recursive: true })
   await writeFile(join(root, 'shell', 'shell.js'), '// shell\n')
   await mkdir(join(root, 'spec'), { recursive: true })
-  await writeFile(join(root, 'spec', '2026-10-01-personal-website-design.md'), '# Spec\n\nText.\n')
+  for (const version of ['2026-09-01', '2026-10-01']) await writeFile(join(root, 'spec', `${version}.md`), '# Spec\n\nText.\n')
   await writeFile(join(root, 'variants.json'), overrides.registryText ?? JSON.stringify(registry, null, 2))
   return root
 }
@@ -46,7 +47,6 @@ const run = (root: string, options: Partial<BuildOptions> = {}): Promise<BuildRe
   build({
     root,
     outDir: join(root, 'dist'),
-    specPath: join(root, 'spec', '2026-10-01-personal-website-design.md'),
     basePath: '/',
     ...options,
   })
@@ -75,9 +75,10 @@ test('the build produces the expected layout', async (t) => {
   t.after(() => rm(root, { recursive: true, force: true }))
   await run(root)
   const dist = join(root, 'dist')
-  for (const path of ['index.html', 'alpha/index.html', 'beta/index.html', 'shell/shell.js', 'variants.json', 'spec/index.html', '404.html', '.nojekyll']) {
+  for (const path of ['index.html', 'alpha/index.html', 'beta/index.html', 'shell/shell.js', 'variants.json', '404.html', '.nojekyll']) {
     await assert.doesNotReject(readFile(join(dist, path)), `${path} should exist`)
   }
+  await assert.rejects(readdir(join(dist, 'spec')), 'the specification is linked on GitHub, not published')
   const rootPage = await readFile(join(dist, 'index.html'), 'utf8')
   assert.match(rootPage, /content="alpha"/)
 })
@@ -92,6 +93,20 @@ test('the shell path is rewritten for both base paths', async (t) => {
   assert.match(page, /src="\/personal-website\/shell\/shell\.js"/)
   assert.doesNotMatch(page, /personal-websiteshell/)
   assert.match(await readFile(join(root, 'dist', '404.html'), 'utf8'), /src="\/personal-website\/shell\/shell\.js"/)
+})
+
+test('a variant built from a specification version that has no file fails the build', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await rm(join(root, 'spec', '2026-09-01.md'))
+  await assert.rejects(run(root), /2026-09-01/)
+})
+
+test('a repository without specification files fails the build', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await rm(join(root, 'spec'), { recursive: true })
+  await assert.rejects(run(root), /spec/)
 })
 
 test('the output registry carries the current specification version', async (t) => {

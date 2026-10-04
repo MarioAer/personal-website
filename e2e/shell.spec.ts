@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import type { Page } from '@playwright/test'
 import { readdir, readFile } from 'node:fs/promises'
 import { isRegistry } from '../scripts/lib/registry.ts'
+import { specVersions } from '../scripts/lib/spec.ts'
 import type { Registry, Variant } from '../scripts/lib/registry.ts'
 
 const parsed: unknown = JSON.parse(await readFile(new URL('../variants.json', import.meta.url), 'utf8'))
@@ -13,12 +14,11 @@ const defaultEntry: Variant = found
 const otherEntry = registry.variants.find((variant) => variant.id !== registry.default)
 
 // The shell marks a variant stale against the site-level specVersion the build injects, which it takes
-// from the specification filename. Comparing variants with one another instead would report green when
+// from the newest file in spec/. Comparing variants with one another instead would report green when
 // every variant has fallen behind the specification together.
 const specsDir = new URL('../spec/', import.meta.url)
-const specFile = (await readdir(specsDir)).filter((name) => name.endsWith('-personal-website-design.md')).sort().at(-1)
-if (!specFile) throw new Error(`no specification file in ${specsDir.pathname}`)
-const siteSpecVersion = specFile.slice(0, 10)
+const siteSpecVersion = specVersions(await readdir(specsDir)).at(-1)
+if (!siteSpecVersion) throw new Error(`no specification file in ${specsDir.pathname}`)
 const staleEntry = registry.variants.find((variant) => variant.specVersion !== siteSpecVersion)
 
 const shell = (page: Page) => page.locator('site-shell')
@@ -45,6 +45,7 @@ async function serveTwoEntryRegistry(page: Page, defaultOverrides: Partial<Varia
     default: defaultEntry.id,
     variants: [MOCK_ENTRY, { ...defaultEntry, ...defaultOverrides }],
     contact: registry.contact,
+    repository: registry.repository,
     specVersion: siteSpecVersion,
   })
   await page.route('**/variants.json', (route) => route.fulfill({ status: 200, contentType: 'application/json', body }))
@@ -112,18 +113,22 @@ test('the theme toggle still works when storage throws', async ({ page }) => {
   expect(errors).toEqual([])
 })
 
-test('the specification link opens the specification page', async ({ page }) => {
+const specUrl = (version: string): string => `${registry.repository}/blob/main/spec/${version}.md`
+
+test('the specification link opens the version the variant was built from', async ({ page }) => {
   await page.goto('./')
-  await control(page, 'shell-spec').click()
-  await page.waitForURL('**/personal-website/spec/')
-  await expect(page.locator('main h1')).toBeVisible()
-  await expect(shell(page).locator('[data-testid="shell-select"]')).toBeVisible()
+  await expect(control(page, 'shell-spec')).toHaveAttribute('href', specUrl(defaultEntry.specVersion))
 })
 
-// The specification page is not a variant, so no registered option matches it. Without a
-// placeholder, the browser would select the first registered variant and misreport it as current.
-test('the specification page selector shows the placeholder, not a variant label', async ({ page }) => {
-  await page.goto('spec/')
+test('the specification link on a page that is not a variant opens the current version', async ({ page }) => {
+  await page.goto('no-such-page')
+  await expect(control(page, 'shell-spec')).toHaveAttribute('href', specUrl(siteSpecVersion))
+})
+
+// The 404 page is not a variant, so no registered option matches it. Without a placeholder, the
+// browser would select the first registered variant and misreport it as current.
+test('the 404 page selector shows the placeholder, not a variant label', async ({ page }) => {
+  await page.goto('no-such-page')
   const select = control(page, 'shell-select')
   const selected = select.locator('option:checked')
   await expect(selected).toHaveText('Select a version')
@@ -150,6 +155,7 @@ test('the bar works when the registry cannot be loaded', async ({ page }) => {
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('./')
   await expect(control(page, 'shell-select')).toHaveCount(0)
+  await expect(control(page, 'shell-spec')).toHaveCount(0)
   await expect(control(page, 'shell-theme')).toBeVisible()
   await expect(control(page, 'shell-github')).toBeVisible()
   expect(errors).toEqual([])
@@ -184,6 +190,7 @@ test.describe('with a two-entry registry served from the network', () => {
     await page.goto(`${defaultEntry.id}/`)
     await expect(control(page, 'shell-colophon')).toContainText('2026-09-01')
     await expect(control(page, 'shell-colophon')).toContainText('older specification')
+    await expect(control(page, 'shell-spec')).toHaveAttribute('href', specUrl('2026-09-01'))
   })
 })
 

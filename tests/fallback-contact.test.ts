@@ -5,7 +5,7 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { isRecord, isRegistry } from '../scripts/lib/registry.ts'
 
-// variants.json is the single place a contact URL is changed (see the specification). shell/shell.js
+// variants.json is the single place a contact URL is changed (see AGENTS.md). shell/shell.js
 // keeps a FALLBACK_CONTACT constant for when the registry cannot be loaded; this test fails if that
 // constant drifts from the registry's contact object.
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
