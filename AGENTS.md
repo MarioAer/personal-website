@@ -163,7 +163,22 @@ The site must engage, not only inform. Every variant meets this brief; how is it
 - A distinctive first screen and a clear visual hierarchy. A plain text document is not enough.
 - The three areas of expertise as visually distinct units. The timeline as a graphic, not a
   table or a list.
-- No figure callouts or statistic tiles.
+- One design concept, drawn from the content, runs through the whole page and ties the sections
+  together. Name it in one sentence in a comment at the top of `style.css`.
+- Lead with the eye, not the paragraph. Each section is anchored by something to look at (a
+  diagram, an illustration, a graphic or an expressive typographic layout), and colour, scale and
+  contrast carry meaning rather than decoration alone.
+- Typography sets the hierarchy: a display headline that dominates the first screen and clear
+  steps in size between levels. A self-hosted display typeface is welcome where system fonts
+  cannot carry the concept.
+- One accent colour, used sparingly enough that it directs attention.
+- At least one illustration or diagram made for this person and this content; no generic
+  decorative shapes.
+- Details that reward a closer look: annotations, small toggles, responses to the pointer.
+- Text in scannable units. No section is an unbroken run of paragraphs; body text stays under
+  about 70 characters per line.
+- No figure callouts or statistic tiles. Avoid a centred column of paragraphs, a grid of
+  identical cards, generic gradients and rows of icon plus heading.
 - Secondary facts (education, languages) get room of their own; nothing is crammed onto one line.
 - At least one element responds to scrolling or the pointer. Motion uses CSS where possible
   (`animation-timeline`, transitions), sits behind `@supports` where needed, and stops under
@@ -244,9 +259,12 @@ folder at variants/<ID>/, following the AGENTS.md sections "Variant contract" an
 "Design constraints for variants", including its "Design brief".
 
 Write only inside variants/<ID>/. Every factual statement must come from the specification.
-The visual design is yours; the content and the constraints are not.
+The visual design is yours; the content and the constraints are not. Treat the page as a
+portfolio piece that a design jury will judge: a page that is correct but plain fails the brief.
 
-When you have finished, run `mise run check` and fix anything it reports.
+When you have finished, run `mise run check` and fix anything it reports. Then serve the site
+with `mise run serve`, take screenshots with Playwright at 360 and 1440 px wide in both themes,
+judge them against the design brief and revise. Repeat this review at least twice.
 ```
 
 ## Testing
