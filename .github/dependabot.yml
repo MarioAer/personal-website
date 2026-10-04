@@ -14,3 +14,7 @@ updates:
     groups:
       npm-minor-patch:
         update-types: ["minor", "patch"]
+    ignore:
+      # Matches the Node major in mise.toml and CI; bump together with them.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
