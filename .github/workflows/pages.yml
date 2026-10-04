@@ -23,7 +23,7 @@ jobs:
     env:
       HOME: /root # firefox will not start otherwise
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # The image ships an older Node; this project needs 24 to run TypeScript directly.
       - uses: actions/setup-node@v4
         with:
