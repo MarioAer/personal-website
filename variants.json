@@ -1,6 +1,16 @@
 {
-  "default": "claude-opus-5",
+  "default": "claude-fable-5.1",
   "variants": [
+    {
+      "id": "claude-fable-5.1",
+      "label": "Claude Fable 5.1",
+      "tool": "Claude Code",
+      "toolVersion": "2.1.285",
+      "modelId": "claude-fable-5-1",
+      "generatedAt": "2026-10-04",
+      "specVersion": "2026-10-04",
+      "attempts": 1
+    },
     {
       "id": "claude-sonnet-5.5",
       "label": "Claude Sonnet 5.5",
@@ -27,16 +37,6 @@
       "tool": "Claude Code",
       "toolVersion": "2.1.277",
       "modelId": "claude-opus-5",
-      "generatedAt": "2026-10-01",
-      "specVersion": "2026-10-01",
-      "attempts": 1
-    },
-    {
-      "id": "claude-fable-5.1",
-      "label": "Claude Fable 5.1",
-      "tool": "Claude Code",
-      "toolVersion": "2.1.277",
-      "modelId": "claude-fable-5-1",
       "generatedAt": "2026-10-01",
       "specVersion": "2026-10-01",
       "attempts": 1
