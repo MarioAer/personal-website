@@ -6,7 +6,7 @@
   --paper: #eef3f8;
   --ink: #1d4f8a;
   --muted: #3f5f86;
-  --pen: #b4532c;
+  --pen: #c62828;
   --card: rgb(255 255 255 / 0.6);
   --grid-major: rgb(29 79 138 / 0.08);
   --grid-minor: rgb(29 79 138 / 0.035);
@@ -27,7 +27,7 @@
     --paper: #1f4fa8;
     --ink: #ffffff;
     --muted: #d6e3f7;
-    --pen: #f6c9a6;
+    --pen: #ffd166;
     --card: rgb(255 255 255 / 0.06);
     --grid-major: rgb(255 255 255 / 0.12);
     --grid-minor: rgb(255 255 255 / 0.05);
@@ -39,7 +39,7 @@
   --paper: #1f4fa8;
   --ink: #ffffff;
   --muted: #d6e3f7;
-  --pen: #f6c9a6;
+  --pen: #ffd166;
   --card: rgb(255 255 255 / 0.06);
   --grid-major: rgb(255 255 255 / 0.12);
   --grid-minor: rgb(255 255 255 / 0.05);
@@ -281,8 +281,10 @@ main > .sheet:first-child,
 .ring-fine { stroke-width: 1; stroke-dasharray: 4 5; }
 .ring-solid { fill: var(--paper); }
 .ring-leader { stroke-width: 1; }
+.ring-output { stroke-width: 2; }
+.ring-arrow { fill: var(--ink); stroke: none; }
 
-.ring-letter,
+.ring-word,
 .ring-label {
   fill: var(--ink);
   stroke: none;
@@ -290,14 +292,15 @@ main > .sheet:first-child,
   text-transform: uppercase;
 }
 
-.ring-letter {
-  font-size: 15px;
+.ring-word {
+  font-size: 11px;
+  letter-spacing: 0.06em;
   font-weight: 700;
   text-anchor: middle;
   dominant-baseline: central;
-  transform-box: fill-box;
-  transform-origin: center;
 }
+
+.ring-tag { transform-box: fill-box; transform-origin: center; }
 
 .ring-label { font-size: 11px; letter-spacing: 0.08em; }
 
@@ -310,29 +313,17 @@ main > .sheet:first-child,
   margin-top: 1rem;
 }
 
-.ring-legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.4rem 1rem;
-  font: 600 0.8125rem/1.2 var(--font-mono);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.ring-legend li { display: inline-flex; align-items: center; gap: 0.4rem; }
-.ring-legend svg { width: 1rem; height: 1rem; fill: none; stroke: var(--ink); stroke-width: 1.5; }
-.ring-legend .node-letter { width: 1.15rem; height: 1.15rem; font-size: 0.65rem; }
 
 .ring-claim { max-width: 24rem; margin: 0 auto 1rem; font-size: 1.125rem; line-height: 1.4; font-weight: 700; }
 
 .ring-hub-text {
   fill: var(--ink);
   stroke: none;
-  font: 700 10px var(--font-mono);
+  font: 700 18px var(--font-mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   text-anchor: middle;
+  dominant-baseline: central;
 }
 
 /* Title block */
@@ -843,7 +834,7 @@ main > .sheet:first-child,
     animation-timeline: scroll(root block);
   }
 
-  .ring-letter {
+  .ring-tag {
     animation: ring-counter linear both;
     animation-timeline: scroll(root block);
   }
@@ -889,7 +880,7 @@ main > .sheet:first-child,
 /* Without scroll-driven animations, main.js sets --scroll from 0 to 1. */
 
 .no-scroll-timeline .ring-rotor { transform: rotate(calc(var(--scroll, 0) * 120deg)); }
-.no-scroll-timeline .ring-letter { transform: rotate(calc(var(--scroll, 0) * -120deg)); }
+.no-scroll-timeline .ring-tag { transform: rotate(calc(var(--scroll, 0) * -120deg)); }
 .no-scroll-timeline .ruler-cursor { transform: translateY(calc(var(--scroll, 0) * (100% - 4.5rem))); }
 
 @media (prefers-reduced-motion: reduce) {
@@ -901,7 +892,7 @@ main > .sheet:first-child,
   }
 
   .ring-rotor,
-  .ring-letter,
+  .ring-tag,
   .ruler-cursor { transform: none !important; }
 
   .node:hover { transform: none; }
