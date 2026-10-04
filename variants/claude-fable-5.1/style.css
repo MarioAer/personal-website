@@ -207,9 +207,10 @@ a { color: inherit; }
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: end;
   }
-  .board__name { grid-row: 1 / 3; }
-  .board__hint { grid-column: 2; }
-  .board__place { grid-column: 1; }
+  .board__name { grid-column: 1; grid-row: 1 / 3; }
+  .board__positioning { grid-column: 2; grid-row: 1; }
+  .board__hint { grid-column: 2; grid-row: 2; }
+  .board__place { grid-column: 1; grid-row: 3; }
 }
 
 /* ---------- the network: three lines inside a ring ---------- */
@@ -394,14 +395,7 @@ a { color: inherit; }
 
 @media (min-width: 60rem) {
   .net { display: block; }
-  .netlist {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
+  .netlist { display: none; }
 }
 
 /* ---------- the strip map: the carriage travels the page ---------- */
@@ -1232,13 +1226,13 @@ a { color: inherit; }
 }
 
 .net__train {
+  display: none;
   offset-rotate: 0deg;
   opacity: 0;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .net__train { animation: ride 7s linear infinite both; }
-  .net__train--ring { animation: loop 26s linear infinite both; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .net__train { display: none; }
+@supports (offset-path: path("M 0 0 L 1 0")) {
+  @media (prefers-reduced-motion: no-preference) {
+    .net__train { display: block; animation: ride 7s linear infinite both; }
+    .net__train--ring { animation: loop 26s linear infinite both; }
+  }
 }
