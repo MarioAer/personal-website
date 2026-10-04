@@ -19,18 +19,21 @@ a "View spec" link opens the specification version the current variant was built
 
 ## Tasks
 
-Run with `mise run <task>`. Each wraps an npm script, so `npm run` works as well.
+Run with `mise run <task>`. Most tasks wrap an npm script; the npm name is in the second column.
 
-| Task | What it does |
-| --- | --- |
-| `install` | `npm ci` |
-| `typecheck` | `tsc --noEmit`. The type checker is the only thing TypeScript does here. |
-| `test` | Unit suite, Node's built-in runner, `tests/**/*.test.ts`. |
-| `build` | Validates everything and writes `dist/`. `BASE_PATH` defaults to `/personal-website/`. |
-| `serve` | Builds, then serves `dist/` under `BASE_PATH`. |
-| `e2e` | Playwright browser suite, five projects. |
-| `check` | `typecheck`, `test` and `build`. Run before claiming any change works. |
-| `ci` | The GitHub workflow's steps in its order: `install`, `typecheck`, `test`, `e2e`, `build`. |
+| Task | npm | What it does |
+| --- | --- | --- |
+| `install` | `npm ci` | Installs the pinned dependencies. |
+| `typecheck` | `npm run typecheck` | `tsc --noEmit`. The type checker is the only thing TypeScript does here. |
+| `test` | `npm test` | Unit suite, Node's built-in runner, `tests/**/*.test.ts`. |
+| `build` | `npm run build` | Validates everything and writes `dist/`. |
+| `serve` | `npm run serve` | `mise` builds first; `npm` serves the existing `dist/` under `BASE_PATH`. |
+| `e2e` | `npm run test:e2e` | Playwright browser suite, five projects. Runs in CI; not needed locally. |
+| `check` | none | `typecheck`, `test` and `build`. Run before claiming any change works. |
+| `ci` | none | The GitHub workflow's steps in its order: `install`, `typecheck`, `test`, `e2e`, `build`. |
+
+`BASE_PATH` defaults to `/personal-website/` under `mise` and to `/` under `npm`; set it
+explicitly when running the npm scripts for a deployment-like build.
 
 `mise.toml` matches CI: the same Node major version, the same steps. Change one, change the
 other. CI runs the browser suite in the Playwright container image; its tag and the pinned
@@ -258,13 +261,14 @@ Implement the specification's "Positioning" and "Content inventory" as one self-
 folder at variants/<ID>/, following the AGENTS.md sections "Variant contract" and
 "Design constraints for variants", including its "Design brief".
 
-Write only inside variants/<ID>/. Every factual statement must come from the specification.
+Write only inside variants/<ID>/ and do not read the other folders under variants/. Every
+factual statement must come from the specification.
 The visual design is yours; the content and the constraints are not. Treat the page as a
 portfolio piece that a design jury will judge: a page that is correct but plain fails the brief.
 
 When you have finished, run `mise run check` and fix anything it reports. Then serve the site
-with `mise run serve`, take screenshots with Playwright at 360 and 1440 px wide in both themes,
-judge them against the design brief and revise. Repeat this review at least twice.
+with `mise run serve`, look at it in a browser at 360 and 1440 px wide in both themes, judge
+what you see against the design brief and revise. Repeat this review at least twice.
 ```
 
 ## Testing
@@ -277,10 +281,11 @@ mutation-checked and should stay that way.
 | Layer | Covers |
 | --- | --- |
 | Unit (`tests/`) | Registry rules, each contract rule with a passing and a failing fixture, specification versions, and the build on a fixture repository: layout, shell path for `/` and a subpath, `specVersion` injected, determinism. |
-| Browser (`e2e/`, Chromium, Firefox and WebKit at 360×780 and 1440×900, against `dist/` built for `/personal-website/`) | Theme toggle persists; selector navigates for default and other ids; "View spec" links the right version; bar works without the registry; LinkedIn and GitHub on every variant and the 404 page; no console errors or third-party requests; one `<h1>` and the landmarks; no horizontal scroll; the bar's 56 px kept clear; no email address, `mailto:` or `tel:`. Nothing that quotes the specification's wording, so a new version does not break the suite. |
+| Browser (`e2e/`, Chromium, Firefox and WebKit at 1440×900, Chromium and WebKit at 360×780, against `dist/` built for `/personal-website/`; runs in CI in the Playwright container) | Theme toggle persists; selector navigates for default and other ids; "View spec" links the right version; bar works without the registry; LinkedIn and GitHub on every variant and the 404 page; no console errors or third-party requests; one `<h1>` and the landmarks; no horizontal scroll; the bar's 56 px kept clear; no email address, `mailto:` or `tel:`. Nothing that quotes the specification's wording, so a new version does not break the suite. |
 
 Accessibility and performance are checked manually with Lighthouse before a variant is merged.
-Manual review covers everything the specification says: the content inventory, numbers, tone and visual quality.
+Manual review covers everything the specification says: the content inventory, numbers, tone
+and visual quality.
 
 ## Conventions
 
