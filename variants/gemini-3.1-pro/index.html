@@ -1,165 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <meta name="variant" content="gemini-3.1-pro">
-    <meta name="description" content="Mario Erazo: Independent consultant for solution architecture, engineering leadership and AI-assisted engineering.">
-    <title>Mario Erazo - Independent Consultant</title>
-    <script type="module" src="/shell/shell.js"></script>
-    <link rel="stylesheet" href="./styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="variant" content="gemini-3.1-pro">
+  <title>Mario Erazo</title>
+  <script type="module" src="/shell/shell.js"></script>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <header class="blueprint-hero">
+    <div class="grid-container">
+      <div class="col-main">
+        <h1>Mario Erazo</h1>
+      </div>
+      <div class="col-meta meta-text">
+        <p>Cologne, Germany</p>
+      </div>
+      <div class="col-content">
+        <p class="positioning">Solution architecture, engineering leadership and AI-assisted engineering for cloud-native commerce platforms.</p>
+      </div>
+    </div>
+  </header>
 
-    <header id="hero" class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1>Mario Erazo</h1>
-                <p class="subtitle">Independent Consultant</p>
-                <p class="positioning">Solution architecture, engineering leadership and AI-assisted engineering for cloud-native commerce platforms.</p>
-                <p class="location">Cologne, Germany</p>
-            </div>
+  <main>
+    <section id="expertise" class="blueprint-section">
+      <div class="grid-container">
+        <div class="col-main section-anchor">
+          <h2>Areas of Expertise</h2>
+          <svg class="anchor-diagram" aria-hidden="true" viewBox="0 0 100 100">
+            <rect x="10" y="10" width="80" height="80" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="2"/>
+            <line x1="50" y1="10" x2="50" y2="90" stroke="currentColor" stroke-width="2"/>
+            <circle cx="50" cy="50" r="10" fill="var(--accent-color, #ffd700)"/>
+          </svg>
         </div>
-    </header>
-
-    <main>
-        <section id="services" class="section bg-alt">
-            <div class="container">
-                <h2>Services</h2>
-                <div class="services-grid">
-
-                    <article class="card">
-                        <h3>Solution architecture and integration</h3>
-                        <p class="promise">Platforms that stay simple while the number of clients, systems and teams grows.</p>
-                        <div class="card-section">
-                            <h4>Work</h4>
-                            <p>Platform design on AWS and Kubernetes; integration layers across REST, gRPC, Kafka, SQS, S3 and SFTP; domain modelling for commerce and marketplace scenarios with multiple sourcing, delivery and fulfilment options; coordination so that client-specific customisation extends the shared product instead of fragmenting it.</p>
-                        </div>
-                        <div class="card-section">
-                            <h4>Evidence</h4>
-                            <ul>
-                                <li>Designed the integration layer between a commerce platform and heterogeneous client systems for four airlines and two airports.</li>
-                                <li>Halved the monthly AWS bill of the same platform over two years, a six-figure annual saving, through reserved-instance coverage, consolidated databases, self-hosted NAT, internal traffic routing and a migration of logging from ELK to Loki and Grafana.</li>
-                            </ul>
-                        </div>
-                    </article>
-
-                    <article class="card">
-                        <h3>Interim and fractional engineering leadership</h3>
-                        <p class="promise">Technical direction and delivery for distributed teams, without a permanent hire.</p>
-                        <div class="card-section">
-                            <h4>Work</h4>
-                            <p>Lead teams across platform, development and QA; translate client requirements, product initiatives and compliance obligations into prioritised work packages; set technical standards and review processes; manage the relationship between engineering and clients.</p>
-                        </div>
-                        <div class="card-section">
-                            <h4>Evidence</h4>
-                            <ul>
-                                <li>Led 18 engineers in three teams across five countries.</li>
-                                <li>Established a platform review and simplification programme that unified components, delivery processes and technical standards; the programme consolidated 32 services into 24 and reduced the release cadence from four months to six weeks.</li>
-                            </ul>
-                        </div>
-                    </article>
-
-                    <article class="card">
-                        <h3>AI-assisted engineering enablement</h3>
-                        <p class="promise">Codebases and pipelines that agents can work in safely, and teams that know how to use them.</p>
-                        <div class="card-section">
-                            <h4>Work</h4>
-                            <p>Restructure repositories and CI/CD into an agent-ready architecture; define specifications and review gates for AI-assisted development; introduce the practices to the team.</p>
-                        </div>
-                        <div class="card-section">
-                            <h4>Evidence</h4>
-                            <ul>
-                                <li>Reduced the median lead time from commit to delivery by 40 percent.</li>
-                                <li>This website: one specification, several models, comparable results.</li>
-                            </ul>
-                        </div>
-                    </article>
-
-                </div>
-            </div>
-        </section>
-
-        <section id="evidence" class="section">
-            <div class="container">
-                <h2>Selected Outcomes</h2>
-                <ul class="outcomes-list">
-                    <li>Designed the integration layer between a commerce platform and heterogeneous client systems for four airlines and two airports.</li>
-                    <li>Halved the monthly AWS bill of the same platform over two years, a six-figure annual saving, through reserved-instance coverage, consolidated databases, self-hosted NAT, internal traffic routing and a migration of logging from ELK to Loki and Grafana.</li>
-                    <li>Led 18 engineers in three teams across five countries.</li>
-                    <li>Established a platform review and simplification programme that unified components, delivery processes and technical standards; the programme consolidated 32 services into 24 and reduced the release cadence from four months to six weeks.</li>
-                    <li>Reduced the median lead time from commit to delivery by 40 percent.</li>
-                    <li>This website: one specification, several models, comparable results.</li>
-                    <li>Delivered federated search for a major European airport across flights, destinations, duty-free products and airport information, and product ingestion and indexing for a Nordic department store group.</li>
-                    <li>Built a recommendation engine (item-to-item and user-to-item collaborative filtering) on Apache Spark; master thesis on learning-to-rank over shop interaction events served through Elasticsearch.</li>
-                    <li>AWS Certified Solutions Architect – Associate.</li>
-                </ul>
-            </div>
-        </section>
-
-        <section id="approach" class="section bg-alt">
-            <div class="container">
-                <h2>How I Work</h2>
-                <ul class="principles-list">
-                    <li><strong>Specification before implementation:</strong> written, reviewed, then built.</li>
-                    <li><strong>Fewer components:</strong> consolidation is a feature.</li>
-                    <li><strong>Shared product over bespoke forks:</strong> client needs extend the platform, they do not fragment it.</li>
-                    <li><strong>Measured outcomes:</strong> cost, lead time, release cadence.</li>
-                </ul>
-            </div>
-        </section>
-
-        <section id="background" class="section">
-            <div class="container">
-                <h2>Background</h2>
-
-                <div class="timeline">
-                    <div class="timeline-item">
-                        <span class="timeline-date">2025 – present</span>
-                        <div class="timeline-content">
-                            <strong>Lead Engineer</strong>, Omnevo GmbH, Wiesbaden (remote)
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <span class="timeline-date">2022 – 2025</span>
-                        <div class="timeline-content">
-                            <strong>Solution Architect</strong>, Omnevo GmbH
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <span class="timeline-date">2021 – 2022</span>
-                        <div class="timeline-content">
-                            <strong>Technical Product Owner</strong>, Cloudflight GmbH, Cologne
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <span class="timeline-date">2019 – 2021</span>
-                        <div class="timeline-content">
-                            <strong>Technical Product Owner, Search and Recommendation</strong>, AOE GmbH, Wiesbaden
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <span class="timeline-date">2017 – 2019</span>
-                        <div class="timeline-content">
-                            <strong>Software Developer</strong>, AOE GmbH
-                        </div>
-                    </div>
-                </div>
-
-                <div class="education-languages mt-8">
-                    <p><strong>Education:</strong> M.Sc. Business Management (Berlin School of Economics and Law, 2024); M.Sc. Computer Science and Media (Hochschule der Medien, Stuttgart, 2017); B.Sc. Media Informatics (Hochschule der Medien, 2015).</p>
-                    <p><strong>Languages:</strong> Spanish (native), German (C2), English (C2).</p>
-                </div>
-
-            </div>
-        </section>
-    </main>
-
-    <footer class="footer">
-        <div class="container">
-            <p>Mario Erazo</p>
+        <div class="col-content expertise-list">
+          <article class="expertise-item hover-focus-target" tabindex="0">
+             <h3>Solution architecture and integration</h3>
+             <p class="outcome">Platforms that stay simple while the number of clients, systems and teams grows.</p>
+             <p class="work">Platform design on cloud infrastructure and container orchestration; integration layers across synchronous APIs, messaging and file-based exchange; domain modelling for commerce and marketplace scenarios with multiple sourcing, delivery and fulfilment options; coordination so that client-specific customisation extends the shared product instead of fragmenting it.</p>
+             <div class="evidence">
+               <ul>
+                 <li>Client and partner systems that each speak a different protocol connect to one commerce platform without fragmenting the shared product.</li>
+                 <li>Cloud bills that grow with every new tool shrink once infrastructure is consolidated and heavy tooling gives way to leaner alternatives.</li>
+               </ul>
+             </div>
+          </article>
+          <article class="expertise-item hover-focus-target" tabindex="0">
+             <h3>Engineering leadership</h3>
+             <p class="outcome">Technical direction and delivery for distributed teams.</p>
+             <p class="work">Lead teams across operations, development and quality assurance; translate client requirements, product initiatives and compliance obligations into prioritised work packages; set technical standards and review processes; coordinate interfaces and delivery sequencing with other teams and contractors; manage the relationship between engineering and clients.</p>
+             <div class="evidence">
+               <ul>
+                 <li>Distributed teams that pull in different directions become one delivery organisation with shared standards and clear priorities.</li>
+                 <li>A platform that has grown service by service becomes simpler to operate once components and technical standards are unified.</li>
+                 <li>Slow, unpredictable release cycles become short and regular once delivery processes are aligned across teams.</li>
+               </ul>
+             </div>
+          </article>
+          <article class="expertise-item hover-focus-target" tabindex="0">
+             <h3>AI-assisted engineering</h3>
+             <p class="outcome">Codebases and pipelines that agents can work in safely, and teams that know how to use them.</p>
+             <p class="work">Standardise repository structure so that changes across repositories stay manageable; co-locate dependent code; maintain architecture and agent instruction files at repository and module level; define specifications and review gates for AI-assisted development; introduce the practices to the team.</p>
+             <div class="evidence">
+               <ul>
+                 <li>Changes that stall on missing context reach delivery faster once repositories and their documentation are structured for engineers and agents alike.</li>
+                 <li>Agents that know nothing about a company's systems receive the context of every repository, its relations and the company's rules through shared Claude Code tooling.</li>
+                 <li>Built this website from one specification that several AI models implement independently, so that their results can be compared directly.</li>
+               </ul>
+             </div>
+          </article>
         </div>
-    </footer>
+      </div>
+    </section>
 
+    <section id="further-evidence" class="blueprint-section alt-bg">
+      <div class="grid-container">
+        <div class="col-main section-anchor">
+          <h2>Further Evidence</h2>
+          <svg class="anchor-diagram" aria-hidden="true" viewBox="0 0 100 100">
+            <polygon points="50,10 90,90 10,90" fill="none" stroke="currentColor" stroke-width="2"/>
+            <circle cx="50" cy="65" r="10" fill="var(--accent-color, #ffd700)"/>
+          </svg>
+        </div>
+        <div class="col-content">
+          <ul class="compact-list hover-focus-target" tabindex="0">
+            <li>Content scattered across separate systems becomes findable through one federated search.</li>
+            <li>Product data from many sources becomes searchable on a search product shared by several clients.</li>
+            <li>A product used by external clients and internal teams keeps a clear owner and a steady roadmap.</li>
+            <li>Programmes with several contractors deliver as one when interfaces and sequencing are coordinated.</li>
+            <li>Shop events turn into relevant recommendations through collaborative filtering.</li>
+            <li>Microservices run reliably on container platforms with automated delivery pipelines.</li>
+            <li>AWS Certified Solutions Architect – Associate.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="approach" class="blueprint-section">
+      <div class="grid-container">
+        <div class="col-main section-anchor">
+          <h2>How I work</h2>
+          <svg class="anchor-diagram" aria-hidden="true" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="2"/>
+            <line x1="50" y1="10" x2="50" y2="90" stroke="currentColor" stroke-width="2"/>
+            <rect x="40" y="40" width="20" height="20" fill="var(--accent-color, #ffd700)"/>
+          </svg>
+        </div>
+        <div class="col-content">
+          <ol class="principles-list hover-focus-target" tabindex="0">
+            <li>
+              <strong>Context before decisions.</strong>
+              <span>I gather the business and technical context first, investigate the options and weigh their trade-offs. I write an RFC after consulting the developers who will build the solution, and record the outcome in an architecture decision record.</span>
+            </li>
+            <li>
+              <strong>Leadership as peers.</strong>
+              <span>I lead as a peer, support engineers in doing their best work, and keep work progressing. I change my position when a different opinion rests on a real problem that the other person has understood.</span>
+            </li>
+            <li>
+              <strong>Development that serves the person and the work.</strong>
+              <span>Delegation is part of planning. The development of each engineer follows two inputs: the engineer's own goals, and what the current requirements need.</span>
+            </li>
+            <li>
+              <strong>Shared product over bespoke forks.</strong>
+              <span>A client requirement first passes a business analysis of its relevance. A relevant requirement is generalised into a product feature. A requirement that cannot be generalised is funded by the client and released behind a feature flag for that client only.</span>
+            </li>
+            <li>
+              <strong>Fewer components.</strong>
+              <span>Every service, database and pipeline adds operating cost and cognitive load. I treat consolidation as a deliverable and plan it like any other feature.</span>
+            </li>
+            <li>
+              <strong>Context in the repository.</strong>
+              <span>Architecture notes and agent instructions live in each repository and, where needed, in each module. Engineers and agents see what a change affects before they make it, which keeps changes targeted.</span>
+            </li>
+            <li>
+              <strong>Measured outcomes.</strong>
+              <span>I judge a change by its measured effect on cost, lead time and release cadence, compared before and after the change.</span>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section id="background" class="blueprint-section alt-bg">
+      <div class="grid-container">
+        <div class="col-main section-anchor">
+          <h2>Background</h2>
+          <svg class="anchor-diagram" aria-hidden="true" viewBox="0 0 100 100">
+             <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4"/>
+             <circle cx="50" cy="50" r="10" fill="var(--accent-color, #ffd700)"/>
+          </svg>
+        </div>
+        <div class="col-content hover-focus-target" tabindex="0">
+          <p class="summary-text">Since 2017, building and leading commerce platforms, from recommendation and search engineering through product ownership to solution architecture and the leadership of distributed teams.</p>
+
+          <div class="timeline-container">
+            <div class="timeline-path-wrapper" aria-hidden="true">
+               <svg class="timeline-svg" viewBox="0 0 20 100" preserveAspectRatio="none">
+                 <line x1="10" y1="0" x2="10" y2="100" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4" class="timeline-base"/>
+                 <line x1="10" y1="0" x2="10" y2="100" stroke="var(--accent-color)" stroke-width="4" class="timeline-progress"/>
+               </svg>
+            </div>
+            <ul class="timeline-list">
+              <li class="timeline-item">
+                <span class="meta-text time-period">2025 – present</span>
+                <div class="timeline-details">
+                  <strong>Lead Engineer</strong>, Omnevo GmbH, Wiesbaden (remote).
+                  <span class="focus-text">Operations, development and QA teams; platform simplification; AI-assisted engineering</span>
+                </div>
+              </li>
+              <li class="timeline-item">
+                <span class="meta-text time-period">2022 – 2025</span>
+                <div class="timeline-details">
+                  <strong>Solution Architect</strong>, Omnevo GmbH.
+                  <span class="focus-text">Integration architecture and cloud cost for a commerce platform</span>
+                </div>
+              </li>
+              <li class="timeline-item">
+                <span class="meta-text time-period">2021 – 2022</span>
+                <div class="timeline-details">
+                  <strong>Technical Product Owner</strong>, Cloudflight GmbH, Cologne.
+                  <span class="focus-text">Logistics software in a multi-contractor SAFe programme</span>
+                </div>
+              </li>
+              <li class="timeline-item">
+                <span class="meta-text time-period">2019 – 2021</span>
+                <div class="timeline-details">
+                  <strong>Technical Product Owner, Search and Recommendation</strong>, AOE GmbH, Wiesbaden.
+                  <span class="focus-text">Search product for external clients and internal products</span>
+                </div>
+              </li>
+              <li class="timeline-item">
+                <span class="meta-text time-period">2017 – 2019</span>
+                <div class="timeline-details">
+                  <strong>Software Developer</strong>, AOE GmbH.
+                  <span class="focus-text">Recommendation engine and core microservices</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="education-block mt-large">
+            <h3 class="meta-title">Education</h3>
+            <ul class="meta-list">
+              <li>M.Sc. Business Management, Berlin School of Economics and Law, 2024</li>
+              <li>M.Sc. Computer Science and Media; thesis "Ranking Search Results based on User Behaviour", Hochschule der Medien, Stuttgart, 2017</li>
+              <li>B.Sc. Media Informatics, Hochschule der Medien, Stuttgart, 2015</li>
+            </ul>
+          </div>
+
+          <div class="languages-block mt-large">
+             <h3 class="meta-title">Languages</h3>
+             <p class="meta-text">Spanish (native), German (C2), English (C2).</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="blueprint-footer">
+    <div class="grid-container">
+      <div class="col-main">
+        <p>© Mario Erazo</p>
+      </div>
+      <div class="col-content contact-links">
+        <a href="https://www.linkedin.com/in/marioaer" aria-label="Mario Erazo on LinkedIn">LinkedIn</a>
+        <a href="https://github.com/MarioAer" aria-label="Mario Erazo on GitHub">GitHub</a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
