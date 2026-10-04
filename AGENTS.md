@@ -244,10 +244,10 @@ mutation-checked and should stay that way.
 | Layer | Covers |
 | --- | --- |
 | Unit (`tests/`) | Registry rules, each contract rule with a passing and a failing fixture, specification versions, and the build on a fixture repository: layout, shell path for `/` and a subpath, `specVersion` injected, determinism. |
-| Browser (`e2e/`, Chromium, Firefox and WebKit at 360×780 and 1440×900, against `dist/` built for `/personal-website/`) | Theme toggle persists; selector navigates for default and other ids; "View spec" links the right version; bar works without the registry; LinkedIn and GitHub on every variant and the 404 page; no console errors or third-party requests; the three areas within the first two screens at desktop width. |
+| Browser (`e2e/`, Chromium, Firefox and WebKit at 360×780 and 1440×900, against `dist/` built for `/personal-website/`) | Theme toggle persists; selector navigates for default and other ids; "View spec" links the right version; bar works without the registry; LinkedIn and GitHub on every variant and the 404 page; no console errors or third-party requests; one `<h1>` and the landmarks; no horizontal scroll; the bar's 56 px kept clear; no email address, `mailto:` or `tel:`. Nothing that quotes the specification's wording, so a new version does not break the suite. |
 
 Accessibility and performance are checked manually with Lighthouse before a variant is merged.
-Manual review covers the content inventory, tone and visual quality.
+Manual review covers everything the specification says: the content inventory, numbers, tone and visual quality.
 
 ## Conventions
 
