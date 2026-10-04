@@ -23,9 +23,11 @@ jobs:
     env:
       HOME: /root # firefox will not start otherwise
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # nothing in this job pushes
       # The image ships an older Node; this project needs 24 to run TypeScript directly.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -42,10 +44,11 @@ jobs:
           else
             BASE_PATH="/${GITHUB_REPOSITORY#*/}/" npm run build
           fi
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         if: github.ref == 'refs/heads/main'
         with:
           path: dist
+          include-hidden-files: true # keeps dist/.nojekyll, dropped by default since v4
 
   deploy:
     needs: verify
@@ -59,4 +62,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
