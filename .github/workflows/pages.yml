@@ -42,7 +42,7 @@ jobs:
           else
             BASE_PATH="/${GITHUB_REPOSITORY#*/}/" npm run build
           fi
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         if: github.ref == 'refs/heads/main'
         with:
           path: dist
