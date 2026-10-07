@@ -211,7 +211,7 @@ links fall back to the mirrored constant.
 
 ## Build (`scripts/build.ts`)
 
-Inputs: the repository, `BASE_PATH` (default `/`) and optionally `SITE_DOMAIN`.
+Inputs: the repository and `BASE_PATH` (default `/`).
 
 1. Read the specification versions from `spec/`; fail when there is none.
 2. Validate `variants.json` (Registry) and every variant (Variant contract); fail on the first
@@ -220,21 +220,21 @@ Inputs: the repository, `BASE_PATH` (default `/`) and optionally `SITE_DOMAIN`.
 4. In every copied HTML file, rewrite the shell script `src` to `${BASE_PATH}shell/shell.js`.
    Nothing else is rewritten.
 5. Copy `shell/`, and write `dist/variants.json` with the current `specVersion` added.
-6. Write `dist/.nojekyll`, `dist/404.html` (shell, heading, a sentence pointing to the selector),
-   and `dist/CNAME` when `SITE_DOMAIN` is set.
+6. Write `dist/.nojekyll` and `dist/404.html` (shell, heading, a sentence pointing to the
+   selector).
 
 Output is deterministic: identical inputs produce byte-identical `dist/`.
 
 ## Deployment
 
 GitHub Actions on push to `main`: install, typecheck, unit and browser suites, build, upload
-`dist/`, deploy to Pages. Pull requests run everything except the deployment. `BASE_PATH` is
-`/<repository name>/` unless the repository variable `SITE_DOMAIN` is set, in which case it is
-`/` and `dist/CNAME` is written.
+`dist/`, deploy to Pages. Pull requests run everything except the deployment. `BASE_PATH` comes
+from `actions/configure-pages`, which reads the Pages settings: `/` with a custom domain,
+`/<repository name>/` without one.
 
-A custom domain needs the `SITE_DOMAIN` variable, the DNS records (CNAME or A/AAAA plus
-GitHub's verification TXT record) and the domain entered once in the Pages settings. Renaming
-the repository to `marioaer.github.io` serves at the root without one.
+A custom domain needs the DNS records (CNAME or A/AAAA plus GitHub's verification TXT record)
+and the domain entered once in the Pages settings; the build follows it without further
+configuration. Renaming the repository to `marioaer.github.io` serves at the root without one.
 
 ## Generating a variant
 

@@ -119,15 +119,6 @@ test('the output registry carries the current specification version', async (t) 
   assert.equal(out.variants.length, 2)
 })
 
-test('CNAME is written only when a domain is given', async (t) => {
-  const root = await fixture()
-  t.after(() => rm(root, { recursive: true, force: true }))
-  await run(root)
-  await assert.rejects(readFile(join(root, 'dist', 'CNAME')))
-  await run(root, { siteDomain: 'example.com' })
-  assert.equal((await readFile(join(root, 'dist', 'CNAME'), 'utf8')).trim(), 'example.com')
-})
-
 test('the build is deterministic', async (t) => {
   const root = await fixture()
   t.after(() => rm(root, { recursive: true, force: true }))
