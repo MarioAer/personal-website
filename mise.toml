@@ -9,6 +9,10 @@ run = "npm ci"
 description = "Type-check the TypeScript; never emits"
 run = "npm run typecheck"
 
+[tasks.lint]
+description = "Reject regular expressions that match HTML or CSS (Biome with the rule in lint/)"
+run = "npm run lint"
+
 [tasks.test]
 description = "Unit suite"
 run = "npm test"
@@ -28,13 +32,14 @@ run = "npm run test:e2e"
 
 [tasks.check]
 description = "Everything to run before claiming a change works"
-depends = ["typecheck", "test", "build"]
+depends = ["typecheck", "lint", "test", "build"]
 
 [tasks.ci]
-description = "The GitHub workflow's steps, in its order: install, typecheck, unit suite, browser suite, build"
+description = "The GitHub workflow's steps, in its order: install, typecheck, lint, unit suite, browser suite, build"
 run = [
   { task = "install" },
   { task = "typecheck" },
+  { task = "lint" },
   { task = "test" },
   { task = "e2e" },
   { task = "build" },
