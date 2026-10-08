@@ -100,6 +100,7 @@ test('a protocol-relative url in javascript is not warned about', () => {
 
 test('a reserved top-level entry is an error', () => {
   assert.ok(run({ 'index.html': page(), 'shell': null }).errors.some((e: string) => /reserved/.test(e)))
+  assert.ok(run({ 'index.html': page(), 'favicon.ico': 'x' }).errors.some((e: string) => /reserved/.test(e)))
 })
 
 test('a fake tag inside an attribute value does not grant the anchor exception', () => {
