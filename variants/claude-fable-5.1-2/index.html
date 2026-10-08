@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="variant" content="claude-fable-5.1-2">
+  <meta name="description" content="Mario Erazo, cloud architect in Cologne, Germany. Solution architecture, engineering leadership and AI-assisted engineering for cloud-native commerce platforms.">
+  <meta name="color-scheme" content="light dark">
+  <title>Mario Erazo – Cloud architect</title>
+  <link rel="preload" href="./fonts/big-shoulders-display-800.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/jetbrains-mono-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="/shell/shell.js"></script>
+</head>
+<body>
+
+<header class="sheet sheet--title" id="hero">
+  <p class="stamp" aria-hidden="true">A-00</p>
+  <div class="title__intro">
+    <p class="kicker">Drawing set · Cloud-native commerce platforms</p>
+    <h1 class="display display--xl">Mario Erazo</h1>
+    <p class="title__role">Cloud architect.</p>
+    <p class="title__positioning">Solution architecture, engineering leadership and AI-assisted engineering for cloud-native commerce platforms.</p>
+    <p class="title__lead">One section through the platforms I build: the systems that connect to them, the organisation that delivers them, and the repositories that agents and engineers work in. Each numbered part has its own sheet below.</p>
+  </div>
+
+  <figure class="drawing drawing--hero">
+    <svg class="drawing__svg" viewBox="0 0 760 500" role="img" aria-labelledby="hero-svg-title">
+      <title id="hero-svg-title">Section through a commerce platform: client and partner systems connect through an integration layer to one shared product on cloud infrastructure; a delivery organisation releases into the product and agent-ready repositories feed its pipeline.</title>
+      <defs>
+        <pattern id="h0" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="8" stroke="currentColor" stroke-width="1" opacity=".45"/>
+        </pattern>
+        <marker id="m0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <!-- client and partner systems -->
+      <g class="part" data-part="clients">
+        <rect class="s" pathLength="1" x="60" y="22" width="78" height="44"/>
+        <text class="t" x="99" y="40" text-anchor="middle">CLIENT</text><text class="t t--fine" x="99" y="56" text-anchor="middle">API</text>
+        <rect class="s" pathLength="1" x="150" y="22" width="78" height="44"/>
+        <text class="t" x="189" y="40" text-anchor="middle">PARTNER</text><text class="t t--fine" x="189" y="56" text-anchor="middle">MESSAGING</text>
+        <rect class="s" pathLength="1" x="240" y="22" width="78" height="44"/>
+        <text class="t" x="279" y="40" text-anchor="middle">CLIENT</text><text class="t t--fine" x="279" y="56" text-anchor="middle">FILE</text>
+        <rect class="s" pathLength="1" x="330" y="22" width="78" height="44"/>
+        <text class="t" x="369" y="40" text-anchor="middle">PARTNER</text><text class="t t--fine" x="369" y="56" text-anchor="middle">API</text>
+        <rect class="s" pathLength="1" x="420" y="22" width="78" height="44"/>
+        <text class="t" x="459" y="40" text-anchor="middle">CLIENT</text><text class="t t--fine" x="459" y="56" text-anchor="middle">MESSAGING</text>
+        <line class="s" pathLength="1" x1="99" y1="66" x2="99" y2="132"/>
+        <line class="s d" x1="189" y1="66" x2="189" y2="132"/>
+        <line class="s dd" x1="279" y1="66" x2="279" y2="132"/>
+        <line class="s" pathLength="1" x1="369" y1="66" x2="369" y2="132"/>
+        <line class="s d" x1="459" y1="66" x2="459" y2="132"/>
+      </g>
+
+      <!-- integration layer -->
+      <g class="part" data-part="integration">
+        <rect class="s" pathLength="1" x="60" y="132" width="440" height="36"/>
+        <text class="t" x="280" y="154" text-anchor="middle">INTEGRATION LAYER</text>
+      </g>
+
+      <!-- shared product -->
+      <g class="part" data-part="product">
+        <rect class="s" pathLength="1" x="60" y="196" width="440" height="140"/>
+        <text class="t t--head" x="78" y="224">SHARED PRODUCT</text>
+        <rect class="s" pathLength="1" x="78" y="246" width="124" height="30"/>
+        <text class="t t--fine" x="140" y="265" text-anchor="middle">SOURCING</text>
+        <rect class="s" pathLength="1" x="218" y="246" width="124" height="30"/>
+        <text class="t t--fine" x="280" y="265" text-anchor="middle">DELIVERY</text>
+        <rect class="s" pathLength="1" x="358" y="246" width="124" height="30"/>
+        <text class="t t--fine" x="420" y="265" text-anchor="middle">FULFILMENT</text>
+        <line class="s d" x1="78" y1="300" x2="482" y2="300"/>
+        <text class="t t--fine" x="78" y="322">CLIENT-SPECIFIC CUSTOMISATION EXTENDS THE SHARED PRODUCT</text>
+        <!-- client extensions behind feature flags -->
+        <rect class="s acc" pathLength="1" x="500" y="208" width="30" height="24"/>
+        <rect class="s acc" pathLength="1" x="500" y="300" width="30" height="24"/>
+        <text class="t t--fine t--acc" x="536" y="224">EXT</text>
+        <text class="t t--fine t--acc" x="536" y="316">EXT</text>
+      </g>
+
+      <!-- infrastructure -->
+      <g class="part" data-part="infra">
+        <rect class="hatch" x="60" y="364" width="440" height="44" fill="url(#h0)"/>
+        <rect class="s" pathLength="1" x="60" y="364" width="440" height="44"/>
+        <line class="s ground" pathLength="1" x1="40" y1="408" x2="520" y2="408"/>
+        <text class="t" x="280" y="436" text-anchor="middle">CLOUD INFRASTRUCTURE · CONTAINER ORCHESTRATION</text>
+      </g>
+
+      <!-- delivery organisation -->
+      <g class="part" data-part="delivery">
+        <rect class="s" pathLength="1" x="600" y="132" width="140" height="28"/>
+        <text class="t t--fine" x="670" y="150" text-anchor="middle">OPERATIONS</text>
+        <rect class="s" pathLength="1" x="600" y="168" width="140" height="28"/>
+        <text class="t t--fine" x="670" y="186" text-anchor="middle">DEVELOPMENT</text>
+        <rect class="s" pathLength="1" x="600" y="204" width="140" height="28"/>
+        <text class="t t--fine" x="670" y="222" text-anchor="middle">QUALITY ASSURANCE</text>
+        <polyline class="s" pathLength="1" points="592,132 586,132 586,232 592,232"/>
+        <polyline class="s arrow" pathLength="1" points="586,182 560,182 560,266 506,266"/>
+        <line class="s" pathLength="1" x1="548" y1="260" x2="548" y2="272"/>
+        <line class="s" pathLength="1" x1="536" y1="260" x2="536" y2="272"/>
+        <line class="s" pathLength="1" x1="524" y1="260" x2="524" y2="272"/>
+        <text class="t t--fine" x="600" y="254">RELEASES</text>
+      </g>
+
+      <!-- repositories and agents -->
+      <g class="part" data-part="repos">
+        <rect class="s" pathLength="1" x="622" y="282" width="124" height="68"/>
+        <rect class="s" pathLength="1" x="611" y="292" width="124" height="68"/>
+        <rect class="s paper" pathLength="1" x="600" y="302" width="124" height="68"/>
+        <text class="t t--fine" x="610" y="320">REPOSITORY</text>
+        <line class="s acc" pathLength="1" x1="608" y1="334" x2="690" y2="334"/>
+        <text class="t t--fine t--acc" x="608" y="348">AGENT INSTRUCTIONS</text>
+        <line class="s acc" pathLength="1" x1="608" y1="356" x2="716" y2="356"/>
+        <rect class="s" pathLength="1" x="600" y="396" width="70" height="26"/>
+        <text class="t t--fine" x="612" y="413">AGENT</text>
+        <rect class="caret" x="652" y="403" width="7" height="12"/>
+        <line class="s d" x1="635" y1="370" x2="635" y2="396"/>
+        <polyline class="s arrow" pathLength="1" points="600,386 560,386 560,386 506,386"/>
+        <text class="t t--fine" x="684" y="413">PIPELINE</text>
+      </g>
+
+      <!-- callouts -->
+      <g class="callout">
+        <line class="s" pathLength="1" x1="42" y1="150" x2="60" y2="150"/>
+        <circle cx="28" cy="150" r="13"/><text x="28" y="154" text-anchor="middle">1</text>
+      </g>
+      <g class="callout">
+        <line class="s" pathLength="1" x1="740" y1="100" x2="700" y2="132"/>
+        <circle cx="746" cy="92" r="13"/><text x="746" y="96" text-anchor="middle">2</text>
+      </g>
+      <g class="callout">
+        <line class="s" pathLength="1" x1="740" y1="258" x2="724" y2="282"/>
+        <circle cx="746" cy="250" r="13"/><text x="746" y="254" text-anchor="middle">3</text>
+      </g>
+    </svg>
+    <figcaption class="drawing__caption">Fig. A-00 · Section through the platform. Not to scale.</figcaption>
+  </figure>
+
+  <div class="title-block">
+    <dl class="title-block__facts">
+      <div><dt>Project</dt><dd>Cloud-native commerce platforms</dd></div>
+      <div><dt>Drawn by</dt><dd>Mario Erazo, cloud architect</dd></div>
+      <div><dt>Location</dt><dd>Cologne, Germany</dd></div>
+      <div><dt>Sheet</dt><dd>A-00 · Title sheet</dd></div>
+    </dl>
+    <nav class="sheet-index" aria-label="Sheet index">
+      <h2 class="sheet-index__title">Sheet index</h2>
+      <ol>
+        <li><a href="#a01"><span class="sheet-index__no">A-01</span> <span class="sheet-index__mark" aria-hidden="true">1</span> Solution architecture and integration</a></li>
+        <li><a href="#a02"><span class="sheet-index__no">A-02</span> <span class="sheet-index__mark" aria-hidden="true">2</span> Engineering leadership</a></li>
+        <li><a href="#a03"><span class="sheet-index__no">A-03</span> <span class="sheet-index__mark" aria-hidden="true">3</span> AI-assisted engineering</a></li>
+        <li><a href="#a04"><span class="sheet-index__no">A-04</span> Further evidence</a></li>
+        <li><a href="#a05"><span class="sheet-index__no">A-05</span> General notes · How I work</a></li>
+        <li><a href="#a06"><span class="sheet-index__no">A-06</span> Background</a></li>
+      </ol>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- A-01 -->
+  <section class="sheet sheet--area" id="a01" aria-labelledby="h-a01">
+    <p class="stamp" aria-hidden="true">A-01</p>
+    <header class="sheet__head">
+      <p class="kicker">Sheet A-01 · Area of expertise <span class="callout-mark" aria-hidden="true">1</span></p>
+      <h2 class="display display--l" id="h-a01">Solution architecture and integration</h2>
+      <p class="outcome">Platforms that stay simple while the number of clients, systems and teams grows.</p>
+    </header>
+
+    <figure class="drawing">
+      <svg class="drawing__svg" viewBox="0 0 520 440" role="img" aria-labelledby="a01-svg-title">
+        <title id="a01-svg-title">Four systems with different protocols connect through one integration layer to one platform with a shared product; a row of tools is consolidated below.</title>
+        <defs>
+          <pattern id="h1" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="8" stroke="currentColor" stroke-width="1" opacity=".45"/>
+          </pattern>
+        </defs>
+        <g class="part" data-part="integration">
+          <rect class="s" pathLength="1" x="16" y="30" width="110" height="46"/>
+          <text class="t" x="71" y="48" text-anchor="middle">SYSTEM A</text><text class="t t--fine" x="71" y="65" text-anchor="middle">SYNC API</text>
+          <rect class="s" pathLength="1" x="16" y="112" width="110" height="46"/>
+          <text class="t" x="71" y="130" text-anchor="middle">SYSTEM B</text><text class="t t--fine" x="71" y="147" text-anchor="middle">MESSAGING</text>
+          <rect class="s" pathLength="1" x="16" y="194" width="110" height="46"/>
+          <text class="t" x="71" y="212" text-anchor="middle">SYSTEM C</text><text class="t t--fine" x="71" y="229" text-anchor="middle">FILE EXCHANGE</text>
+          <rect class="s" pathLength="1" x="16" y="276" width="110" height="46"/>
+          <text class="t" x="71" y="294" text-anchor="middle">SYSTEM D</text><text class="t t--fine" x="71" y="311" text-anchor="middle">SYNC API</text>
+          <line class="s" pathLength="1" x1="126" y1="53" x2="216" y2="53"/>
+          <line class="s d" x1="126" y1="135" x2="216" y2="135"/>
+          <line class="s dd" x1="126" y1="217" x2="216" y2="217"/>
+          <line class="s" pathLength="1" x1="126" y1="299" x2="216" y2="299"/>
+          <rect class="s" pathLength="1" x="216" y="30" width="44" height="292"/>
+          <text class="t t--rot" transform="translate(243 176) rotate(-90)" text-anchor="middle">INTEGRATION LAYER</text>
+          <line class="s" pathLength="1" x1="260" y1="176" x2="316" y2="176"/>
+        </g>
+        <g class="part" data-part="platform-design">
+          <rect class="s" pathLength="1" x="316" y="60" width="184" height="226"/>
+          <text class="t t--head" x="330" y="86">ONE PLATFORM</text>
+          <text class="t t--fine" x="330" y="104">SHARED PRODUCT</text>
+          <rect class="s acc" pathLength="1" x="500" y="120" width="16" height="26"/>
+          <rect class="s acc" pathLength="1" x="500" y="230" width="16" height="26"/>
+          <rect class="hatch" x="316" y="286" width="184" height="36" fill="url(#h1)"/>
+          <rect class="s" pathLength="1" x="316" y="286" width="184" height="36"/>
+          <text class="t t--fine" x="408" y="340" text-anchor="middle">CLOUD · CONTAINERS</text>
+        </g>
+        <g class="part" data-part="domain-modelling">
+          <rect class="s" pathLength="1" x="330" y="126" width="156" height="24"/>
+          <text class="t t--fine" x="340" y="142">SOURCING</text>
+          <rect class="s" pathLength="1" x="330" y="166" width="156" height="24"/>
+          <text class="t t--fine" x="340" y="182">DELIVERY</text>
+          <rect class="s" pathLength="1" x="330" y="206" width="156" height="24"/>
+          <text class="t t--fine" x="340" y="222">FULFILMENT</text>
+          <line class="s" pathLength="1" x1="452" y1="130" x2="452" y2="146"/><line class="s" pathLength="1" x1="462" y1="130" x2="462" y2="146"/><line class="s" pathLength="1" x1="472" y1="130" x2="472" y2="146"/>
+          <line class="s" pathLength="1" x1="452" y1="170" x2="452" y2="186"/><line class="s" pathLength="1" x1="462" y1="170" x2="462" y2="186"/><line class="s" pathLength="1" x1="472" y1="170" x2="472" y2="186"/>
+          <line class="s" pathLength="1" x1="452" y1="210" x2="452" y2="226"/><line class="s" pathLength="1" x1="462" y1="210" x2="462" y2="226"/><line class="s" pathLength="1" x1="472" y1="210" x2="472" y2="226"/>
+        </g>
+        <g class="part" data-part="cost-management">
+          <text class="t t--fine" x="16" y="372">TOOLING</text>
+          <rect class="s" pathLength="1" x="16" y="382" width="22" height="22"/>
+          <rect class="s" pathLength="1" x="46" y="382" width="22" height="22"/>
+          <rect class="s" pathLength="1" x="76" y="382" width="22" height="22"/>
+          <rect class="s" pathLength="1" x="106" y="382" width="22" height="22"/>
+          <rect class="s" pathLength="1" x="136" y="382" width="22" height="22"/>
+          <rect class="s" pathLength="1" x="166" y="382" width="22" height="22"/>
+          <path class="s acc" pathLength="1" d="M48 384 L66 402 M66 384 L48 402"/>
+          <path class="s acc" pathLength="1" d="M108 384 L126 402 M126 384 L108 402"/>
+          <path class="s acc" pathLength="1" d="M168 384 L186 402 M186 384 L168 402"/>
+          <line class="s arrow" pathLength="1" x1="206" y1="393" x2="250" y2="393"/>
+          <rect class="s" pathLength="1" x="262" y="382" width="22" height="22"/>
+          <rect class="s" pathLength="1" x="292" y="382" width="22" height="22"/>
+          <rect class="s" pathLength="1" x="322" y="382" width="22" height="22"/>
+          <text class="t t--fine" x="360" y="398">CONSOLIDATED</text>
+          <text class="t t--fine" x="16" y="424">HEAVY TOOLING GIVES WAY TO LEANER ALTERNATIVES</text>
+        </g>
+      </svg>
+      <figcaption class="drawing__caption">Fig. A-01 · Integration and consolidation. Hover a topic in the key to find it in the drawing.</figcaption>
+    </figure>
+
+    <div class="key">
+      <h3 class="label">Key · Topics</h3>
+      <dl>
+        <div data-part="platform-design"><dt>Platform design</dt><dd>Platforms on cloud infrastructure and container orchestration, designed so that client-specific customisation extends the shared product instead of fragmenting it.</dd></div>
+        <div data-part="integration"><dt>Integration</dt><dd>Integration layers across synchronous APIs, messaging and file-based exchange.</dd></div>
+        <div data-part="domain-modelling"><dt>Domain modelling</dt><dd>Commerce and marketplace scenarios with multiple sourcing, delivery and fulfilment options.</dd></div>
+        <div data-part="cost-management"><dt>Cost management</dt><dd>Infrastructure and tooling kept in line with what the platform needs.</dd></div>
+      </dl>
+    </div>
+
+    <div class="notes">
+      <h3 class="label">Notes · Evidence</h3>
+      <ol>
+        <li><span class="rev" aria-hidden="true">1</span><p>Client and partner systems that each speak a different protocol connect to one commerce platform without fragmenting the shared product.</p></li>
+        <li><span class="rev" aria-hidden="true">2</span><p>Cloud bills that grow with every new tool shrink once infrastructure is consolidated and heavy tooling gives way to leaner alternatives.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- A-02 -->
+  <section class="sheet sheet--area" id="a02" aria-labelledby="h-a02">
+    <p class="stamp" aria-hidden="true">A-02</p>
+    <header class="sheet__head">
+      <p class="kicker">Sheet A-02 · Area of expertise <span class="callout-mark" aria-hidden="true">2</span></p>
+      <h2 class="display display--l" id="h-a02">Engineering leadership</h2>
+      <p class="outcome">Technical direction and delivery for distributed teams.</p>
+    </header>
+
+    <figure class="drawing">
+      <svg class="drawing__svg" viewBox="0 0 520 440" role="img" aria-labelledby="a02-svg-title">
+        <title id="a02-svg-title">Operations, development and quality assurance teams merge into one delivery organisation; standards and unified components sit below it, and a release track with regular marks runs along the bottom.</title>
+        <g class="part" data-part="delivery-organisation">
+          <path class="s d thin" d="M90 22 L60 4"/><path class="s d thin" d="M260 22 L260 2"/><path class="s d thin" d="M430 22 L462 4"/>
+          <rect class="s" pathLength="1" x="16" y="26" width="148" height="40"/>
+          <text class="t" x="90" y="51" text-anchor="middle">OPERATIONS</text>
+          <rect class="s" pathLength="1" x="186" y="26" width="148" height="40"/>
+          <text class="t" x="260" y="51" text-anchor="middle">DEVELOPMENT</text>
+          <rect class="s" pathLength="1" x="356" y="26" width="148" height="40"/>
+          <text class="t" x="430" y="51" text-anchor="middle">QUALITY ASSURANCE</text>
+          <line class="s" pathLength="1" x1="90" y1="66" x2="90" y2="104"/>
+          <line class="s" pathLength="1" x1="260" y1="66" x2="260" y2="104"/>
+          <line class="s" pathLength="1" x1="430" y1="66" x2="430" y2="104"/>
+          <rect class="s acc" pathLength="1" x="16" y="104" width="488" height="36"/>
+          <text class="t" x="260" y="127" text-anchor="middle">ONE DELIVERY ORGANISATION</text>
+          <text class="t t--fine" x="16" y="160">REQUIREMENTS · INITIATIVES · COMPLIANCE → PRIORITISED WORK PACKAGES</text>
+        </g>
+        <g class="part" data-part="development-standards">
+          <text class="t t--fine" x="16" y="196">STANDARDS</text>
+          <rect class="s" pathLength="1" x="16" y="206" width="220" height="24"/>
+          <text class="t t--fine" x="26" y="222">TECHNICAL STANDARDS</text>
+          <rect class="s" pathLength="1" x="16" y="240" width="220" height="24"/>
+          <text class="t t--fine" x="26" y="256">REVIEW PROCESS</text>
+          <path class="s acc" pathLength="1" d="M214 212 L220 220 L230 208"/>
+          <path class="s acc" pathLength="1" d="M214 246 L220 254 L230 242"/>
+        </g>
+        <g class="part" data-part="platform-simplification">
+          <text class="t t--fine" x="280" y="196">COMPONENTS</text>
+          <rect class="s" pathLength="1" x="280" y="206" width="26" height="18"/>
+          <rect class="s" pathLength="1" x="312" y="202" width="20" height="30"/>
+          <rect class="s" pathLength="1" x="338" y="210" width="34" height="14"/>
+          <rect class="s" pathLength="1" x="282" y="238" width="18" height="26"/>
+          <rect class="s" pathLength="1" x="306" y="240" width="40" height="20"/>
+          <rect class="s" pathLength="1" x="352" y="236" width="22" height="28"/>
+          <line class="s arrow" pathLength="1" x1="388" y1="234" x2="420" y2="234"/>
+          <rect class="s" pathLength="1" x="434" y="206" width="30" height="24"/>
+          <rect class="s" pathLength="1" x="470" y="206" width="30" height="24"/>
+          <rect class="s" pathLength="1" x="434" y="240" width="30" height="24"/>
+          <rect class="s" pathLength="1" x="470" y="240" width="30" height="24"/>
+          <text class="t t--fine" x="434" y="282">UNIFIED</text>
+        </g>
+        <g class="part" data-part="release-cadence">
+          <text class="t t--fine" x="16" y="334">CONTRACTORS · INTERFACES</text>
+          <line class="s d" x1="16" y1="346" x2="236" y2="346"/>
+          <path class="s arrow" pathLength="1" d="M236 346 L276 384"/>
+          <line class="s" pathLength="1" x1="16" y1="384" x2="504" y2="384"/>
+          <line class="s acc" pathLength="1" x1="60" y1="376" x2="60" y2="392"/>
+          <line class="s acc" pathLength="1" x1="120" y1="376" x2="120" y2="392"/>
+          <line class="s acc" pathLength="1" x1="180" y1="376" x2="180" y2="392"/>
+          <line class="s acc" pathLength="1" x1="240" y1="376" x2="240" y2="392"/>
+          <line class="s acc" pathLength="1" x1="300" y1="376" x2="300" y2="392"/>
+          <line class="s acc" pathLength="1" x1="360" y1="376" x2="360" y2="392"/>
+          <line class="s acc" pathLength="1" x1="420" y1="376" x2="420" y2="392"/>
+          <line class="s acc" pathLength="1" x1="480" y1="376" x2="480" y2="392"/>
+          <text class="t t--fine" x="16" y="414">RELEASE CADENCE · SHORT AND REGULAR</text>
+        </g>
+      </svg>
+      <figcaption class="drawing__caption">Fig. A-02 · One delivery organisation. Hover a topic in the key to find it in the drawing.</figcaption>
+    </figure>
+
+    <div class="key">
+      <h3 class="label">Key · Topics</h3>
+      <dl>
+        <div data-part="development-standards"><dt>Development standards</dt><dd>Technical standards and review processes.</dd></div>
+        <div data-part="platform-simplification"><dt>Platform simplification</dt><dd>Components and technical standards unified across the platform.</dd></div>
+        <div data-part="delivery-organisation"><dt>Delivery organisation</dt><dd>Operations, development and quality assurance led as one organisation, with requirements, initiatives and compliance obligations turned into prioritised work packages and the client relationship managed.</dd></div>
+        <div data-part="release-cadence"><dt>Release cadence</dt><dd>Interfaces and delivery sequencing coordinated with other teams and contractors.</dd></div>
+      </dl>
+    </div>
+
+    <div class="notes">
+      <h3 class="label">Notes · Evidence</h3>
+      <ol>
+        <li><span class="rev" aria-hidden="true">1</span><p>Distributed teams that pull in different directions become one delivery organisation with shared standards and clear priorities.</p></li>
+        <li><span class="rev" aria-hidden="true">2</span><p>A platform that has grown service by service becomes simpler to operate once components and technical standards are unified.</p></li>
+        <li><span class="rev" aria-hidden="true">3</span><p>Slow, unpredictable release cycles become short and regular once delivery processes are aligned across teams.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- A-03 -->
+  <section class="sheet sheet--area" id="a03" aria-labelledby="h-a03">
+    <p class="stamp" aria-hidden="true">A-03</p>
+    <header class="sheet__head">
+      <p class="kicker">Sheet A-03 · Area of expertise <span class="callout-mark" aria-hidden="true">3</span></p>
+      <h2 class="display display--l" id="h-a03">AI-assisted engineering</h2>
+      <p class="outcome">Codebases and pipelines that agents can work in safely, and teams that know how to use them.</p>
+    </header>
+
+    <figure class="drawing">
+      <svg class="drawing__svg" viewBox="0 0 520 440" role="img" aria-labelledby="a03-svg-title">
+        <title id="a03-svg-title">A repository tree with architecture notes and agent instructions at repository and module level; shared context tooling feeds an agent, whose changes pass a review gate before delivery; the practices reach the team.</title>
+        <g class="part" data-part="agent-ready-codebases">
+          <rect class="s" pathLength="1" x="16" y="24" width="150" height="30"/>
+          <text class="t" x="28" y="44">REPOSITORY</text>
+          <line class="s" pathLength="1" x1="32" y1="54" x2="32" y2="214"/>
+          <line class="s" pathLength="1" x1="32" y1="84" x2="52" y2="84"/>
+          <path class="s acc doc" pathLength="1" d="M56 76 h10 l5 5 v12 h-15 z"/>
+          <text class="t t--fine" x="80" y="89">ARCHITECTURE NOTES</text>
+          <line class="s" pathLength="1" x1="32" y1="114" x2="52" y2="114"/>
+          <path class="s acc doc" pathLength="1" d="M56 106 h10 l5 5 v12 h-15 z"/>
+          <text class="t t--fine" x="80" y="119">AGENT INSTRUCTIONS</text>
+          <line class="s" pathLength="1" x1="32" y1="144" x2="52" y2="144"/>
+          <rect class="s" pathLength="1" x="56" y="136" width="18" height="16"/>
+          <text class="t t--fine" x="80" y="149">MODULE</text>
+          <line class="s" pathLength="1" x1="64" y1="152" x2="64" y2="214"/>
+          <line class="s" pathLength="1" x1="64" y1="184" x2="84" y2="184"/>
+          <path class="s acc doc" pathLength="1" d="M88 176 h10 l5 5 v12 h-15 z"/>
+          <text class="t t--fine" x="112" y="189">AGENT INSTRUCTIONS</text>
+          <line class="s" pathLength="1" x1="64" y1="214" x2="84" y2="214"/>
+          <rect class="s" pathLength="1" x="88" y="206" width="18" height="16"/>
+          <text class="t t--fine" x="112" y="219">CO-LOCATED DEPENDENT CODE</text>
+        </g>
+        <g class="part" data-part="context-engineering">
+          <rect class="s" pathLength="1" x="300" y="24" width="204" height="64"/>
+          <text class="t" x="314" y="46">SHARED CONTEXT TOOLING</text>
+          <text class="t t--fine" x="314" y="64">REPOSITORIES · RELATIONS</text>
+          <text class="t t--fine" x="314" y="78">THE COMPANY'S RULES</text>
+          <line class="s arrow" pathLength="1" x1="402" y1="88" x2="402" y2="126"/>
+        </g>
+        <g class="part" data-part="agent">
+          <rect class="s" pathLength="1" x="330" y="128" width="144" height="40"/>
+          <text class="t" x="344" y="153">AGENT</text>
+          <rect class="caret" x="408" y="141" width="8" height="14"/>
+          <path class="s d arrow" d="M166 39 L260 39 L260 148 L330 148"/>
+          <text class="t t--fine" x="196" y="33">READS</text>
+        </g>
+        <g class="part" data-part="guardrails">
+          <line class="s" pathLength="1" x1="402" y1="168" x2="402" y2="210"/>
+          <rect class="s acc" pathLength="1" x="352" y="210" width="8" height="52"/>
+          <rect class="s acc" pathLength="1" x="444" y="210" width="8" height="52"/>
+          <line class="s acc" pathLength="1" x1="352" y1="214" x2="452" y2="214"/>
+          <line class="s acc" pathLength="1" x1="402" y1="214" x2="402" y2="262"/>
+          <text class="t t--fine" x="402" y="282" text-anchor="middle">REVIEW GATE · SPECIFICATION</text>
+          <line class="s arrow" pathLength="1" x1="402" y1="262" x2="402" y2="302"/>
+          <rect class="s" pathLength="1" x="330" y="304" width="144" height="32"/>
+          <text class="t" x="402" y="325" text-anchor="middle">DELIVERY</text>
+        </g>
+        <g class="part" data-part="team-enablement">
+          <text class="t t--fine" x="16" y="268">TEAM · PRACTICES INTRODUCED</text>
+          <rect class="s" pathLength="1" x="16" y="280" width="84" height="56"/>
+          <line class="s thin" pathLength="1" x1="26" y1="296" x2="90" y2="296"/><line class="s thin" pathLength="1" x1="26" y1="308" x2="78" y2="308"/><line class="s thin" pathLength="1" x1="26" y1="320" x2="84" y2="320"/>
+          <rect class="s" pathLength="1" x="110" y="280" width="84" height="56"/>
+          <line class="s thin" pathLength="1" x1="120" y1="296" x2="184" y2="296"/><line class="s thin" pathLength="1" x1="120" y1="308" x2="166" y2="308"/><line class="s thin" pathLength="1" x1="120" y1="320" x2="178" y2="320"/>
+          <rect class="s" pathLength="1" x="204" y="280" width="84" height="56"/>
+          <line class="s thin" pathLength="1" x1="214" y1="296" x2="278" y2="296"/><line class="s thin" pathLength="1" x1="214" y1="308" x2="262" y2="308"/><line class="s thin" pathLength="1" x1="214" y1="320" x2="272" y2="320"/>
+          <path class="s d arrow" d="M330 320 L310 320 L310 360 L58 360 L58 336"/>
+        </g>
+        <g class="part" data-part="spec">
+          <line class="s" pathLength="1" x1="16" y1="392" x2="504" y2="392"/>
+          <text class="t t--fine" x="16" y="414">ONE SPECIFICATION · SEVERAL MODELS · THIS WEBSITE</text>
+          <circle class="s" pathLength="1" cx="400" cy="420" r="6"/><circle class="s" pathLength="1" cx="424" cy="420" r="6"/><circle class="s" pathLength="1" cx="448" cy="420" r="6"/><circle class="s" pathLength="1" cx="472" cy="420" r="6"/><circle class="s acc" pathLength="1" cx="496" cy="420" r="6"/>
+        </g>
+      </svg>
+      <figcaption class="drawing__caption">Fig. A-03 · Agents in the delivery path. Hover a topic in the key to find it in the drawing.</figcaption>
+    </figure>
+
+    <div class="key">
+      <h3 class="label">Key · Topics</h3>
+      <dl>
+        <div data-part="agent-ready-codebases"><dt>Agent-ready codebases</dt><dd>Standardised repository structure, co-located dependent code, and architecture and agent instruction files at repository and module level.</dd></div>
+        <div data-part="context-engineering"><dt>Context engineering</dt><dd>Shared tooling that gives agents the company's context.</dd></div>
+        <div data-part="guardrails"><dt>Guardrails</dt><dd>Specifications and review gates for AI-assisted development.</dd></div>
+        <div data-part="team-enablement"><dt>Team enablement</dt><dd>The practices of AI-assisted development introduced to the team.</dd></div>
+      </dl>
+    </div>
+
+    <div class="notes">
+      <h3 class="label">Notes · Evidence</h3>
+      <ol>
+        <li><span class="rev" aria-hidden="true">1</span><p>Changes that stall on missing context reach delivery faster once repositories and their documentation are structured for engineers and agents alike.</p></li>
+        <li><span class="rev" aria-hidden="true">2</span><p>Agents that know nothing about a company's systems receive the context of every repository, its relations and the company's rules through shared Claude Code tooling.</p></li>
+        <li><span class="rev" aria-hidden="true">3</span><p>Built this website from one specification that several AI models implement independently, so that their results can be compared directly.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- A-04 -->
+  <section class="sheet sheet--schedule" id="a04" aria-labelledby="h-a04">
+    <p class="stamp" aria-hidden="true">A-04</p>
+    <header class="sheet__head">
+      <p class="kicker">Sheet A-04 · Schedule</p>
+      <h2 class="display display--m" id="h-a04">Further evidence</h2>
+    </header>
+    <ul class="schedule">
+      <li><span class="rev rev--tri" aria-hidden="true">A</span>Content scattered across separate systems becomes findable through one federated search.</li>
+      <li><span class="rev rev--tri" aria-hidden="true">B</span>Product data from many sources becomes searchable on a search product shared by several clients.</li>
+      <li><span class="rev rev--tri" aria-hidden="true">C</span>Programmes with several contractors deliver as one when interfaces and sequencing are coordinated.</li>
+      <li><span class="rev rev--tri" aria-hidden="true">D</span>Microservices run reliably on container platforms with automated delivery pipelines.</li>
+      <li><span class="rev rev--tri" aria-hidden="true">E</span>AWS Certified Solutions Architect – Associate.</li>
+    </ul>
+  </section>
+
+  <!-- A-05 -->
+  <section class="sheet sheet--notes" id="a05" aria-labelledby="h-a05">
+    <p class="stamp" aria-hidden="true">A-05</p>
+    <header class="sheet__head">
+      <p class="kicker">Sheet A-05 · General notes</p>
+      <h2 class="display display--m" id="h-a05">How I work</h2>
+      <p class="outcome">Nine notes that apply to every sheet in this set.</p>
+    </header>
+    <ol class="general-notes">
+      <li><h3 class="display display--s">Context first</h3><p>I gather the business and technical context first, investigate the options and weigh their trade-offs. I write an RFC after consulting the developers who will build the solution, and record the outcome in an architecture decision record.</p></li>
+      <li><h3 class="display display--s">Peer leadership</h3><p>I lead as a peer, support engineers in doing their best work, and keep work progressing. I change my position when a different opinion rests on a real problem that the other person has understood.</p></li>
+      <li><h3 class="display display--s">People development</h3><p>Delegation is part of planning. The development of each engineer follows two inputs: the engineer's own goals, and what the current requirements need.</p></li>
+      <li><h3 class="display display--s">Shared product</h3><p>A client requirement first passes a business analysis of its relevance. A relevant requirement is generalised into a product feature. A requirement that cannot be generalised is funded by the client and released behind a feature flag for that client only.</p></li>
+      <li><h3 class="display display--s">Simplicity</h3><p>Every service, database and pipeline adds operating cost and cognitive load. I treat consolidation as a deliverable and plan it like any other feature.</p></li>
+      <li><h3 class="display display--s">Documentation</h3><p>Architecture notes and agent instructions live in each repository and, where needed, in each module. Engineers and agents see what a change affects before they make it, which keeps changes targeted.</p></li>
+      <li><h3 class="display display--s">Measured outcomes</h3><p>I judge a change by its measured effect on cost, lead time and release cadence, compared before and after the change.</p></li>
+      <li><h3 class="display display--s">Quality assurance</h3><p>Quality is part of delivery, not a phase after it. I lead quality assurance alongside operations and development, so that a change is tested and reviewed before it is released.</p></li>
+      <li><h3 class="display display--s">Compliance</h3><p>Compliance obligations enter the backlog like any other requirement. I translate them into prioritised work packages together with client requirements and product initiatives, so that they are planned and verified rather than discovered late.</p></li>
+    </ol>
+  </section>
+
+  <!-- A-06 -->
+  <section class="sheet sheet--background" id="a06" aria-labelledby="h-a06">
+    <p class="stamp" aria-hidden="true">A-06</p>
+    <header class="sheet__head">
+      <p class="kicker">Sheet A-06 · Elevation</p>
+      <h2 class="display display--m" id="h-a06">Background</h2>
+      <p class="outcome">Since 2017, building and leading commerce platforms, from recommendation and search engineering through product ownership to solution architecture and the leadership of distributed teams.</p>
+    </header>
+
+    <div class="timeline" role="figure" aria-label="Career timeline from 2017 to the present">
+      <ol class="timeline__axis" aria-hidden="true">
+        <li>2017</li><li>2018</li><li>2019</li><li>2020</li><li>2021</li><li>2022</li><li>2023</li><li>2024</li><li>2025</li><li>2026</li>
+      </ol>
+      <ol class="timeline__rows">
+        <li class="timeline__row" style="--from: 9; --to: 11; --text-from: 7;">
+          <span class="timeline__period">2025 – present</span>
+          <span class="timeline__bar" aria-hidden="true"></span>
+          <span class="timeline__role">Lead Engineer</span>
+          <span class="timeline__org">Omnevo GmbH, Wiesbaden (remote)</span>
+          <span class="timeline__focus">Operations, development and QA teams; platform simplification; AI-assisted engineering</span>
+        </li>
+        <li class="timeline__row" style="--from: 6; --to: 9;">
+          <span class="timeline__period">2022 – 2025</span>
+          <span class="timeline__bar" aria-hidden="true"></span>
+          <span class="timeline__role">Solution Architect</span>
+          <span class="timeline__org">Omnevo GmbH</span>
+          <span class="timeline__focus">Integration architecture and cloud cost for a commerce platform</span>
+        </li>
+        <li class="timeline__row" style="--from: 5; --to: 6;">
+          <span class="timeline__period">2021 – 2022</span>
+          <span class="timeline__bar" aria-hidden="true"></span>
+          <span class="timeline__role">Technical Product Owner</span>
+          <span class="timeline__org">Cloudflight GmbH, Cologne</span>
+          <span class="timeline__focus">Logistics software in a multi-contractor SAFe programme</span>
+        </li>
+        <li class="timeline__row" style="--from: 3; --to: 5;">
+          <span class="timeline__period">2019 – 2021</span>
+          <span class="timeline__bar" aria-hidden="true"></span>
+          <span class="timeline__role">Technical Product Owner, Search and Recommendation</span>
+          <span class="timeline__org">AOE GmbH, Wiesbaden</span>
+          <span class="timeline__focus">Search product for external clients and internal products</span>
+        </li>
+        <li class="timeline__row" style="--from: 1; --to: 3;">
+          <span class="timeline__period">2017 – 2019</span>
+          <span class="timeline__bar" aria-hidden="true"></span>
+          <span class="timeline__role">Software Developer</span>
+          <span class="timeline__org">AOE GmbH</span>
+          <span class="timeline__focus">Recommendation engine and core microservices</span>
+        </li>
+      </ol>
+    </div>
+
+    <div class="facts">
+      <section class="facts__block" aria-labelledby="h-edu">
+        <h3 class="label" id="h-edu">Schedule · Education</h3>
+        <ol class="education">
+          <li><span class="education__year">2024</span><span class="education__degree">M.Sc. Business Management</span><span class="education__inst">Berlin School of Economics and Law</span></li>
+          <li><span class="education__year">2017</span><span class="education__degree">M.Sc. Computer Science and Media</span><span class="education__inst">Hochschule der Medien, Stuttgart</span><span class="education__thesis">Thesis: “Ranking Search Results based on User Behaviour” (learning-to-rank served through Elasticsearch)</span></li>
+          <li><span class="education__year">2015</span><span class="education__degree">B.Sc. Media Informatics</span><span class="education__inst">Hochschule der Medien, Stuttgart</span></li>
+        </ol>
+      </section>
+      <section class="facts__block" aria-labelledby="h-lang">
+        <h3 class="label" id="h-lang">Schedule · Languages</h3>
+        <p class="languages">Spanish (native), German (C2), English (C2).</p>
+      </section>
+    </div>
+  </section>
+
+</main>
+
+<footer class="sheet sheet--footer" id="contact">
+  <p class="kicker">Contact</p>
+  <ul class="contact">
+    <li><a href="https://www.linkedin.com/in/marioaer">Mario Erazo on LinkedIn</a></li>
+    <li><a href="https://github.com/MarioAer">Mario Erazo on GitHub</a></li>
+  </ul>
+  <p class="footer__note">Drawing set A-00 to A-06. The model, generation date and specification version are in the top bar.</p>
+</footer>
+
+</body>
+</html>
