@@ -132,3 +132,120 @@ test('a comment marker inside a script body does not hide the shell tag', () => 
   const head = '<script>const s = "<!--"</script>' + SHELL + '<!-- unrelated -->'
   assert.deepEqual(run({ 'index.html': page('', head) }).errors, [])
 })
+
+const EVIL = '<img src="https://evil.example/x.png" alt="x">'
+
+// Browsers close a raw-text element on any end tag whose name matches, however it is spaced.
+for (const [name, close] of [
+  ['a space', '</script >'],
+  ['a newline', '</script\n>'],
+  ['an attribute', '</script foo="bar">'],
+  ['a slash', '</script/>'],
+  ['upper case', '</SCRIPT>'],
+] as const) {
+  test(`a script end tag with ${name} does not hide later markup`, () => {
+    const html = page(`<script>1${close}${EVIL}<script>2</script>`)
+    assert.ok(run({ 'index.html': html }).errors.some((e: string) => /evil\.example/.test(e)))
+  })
+}
+
+for (const [name, close] of [
+  ['a space', '</style >'],
+  ['a newline', '</style\n>'],
+  ['an attribute', '</style foo="bar">'],
+] as const) {
+  test(`a style end tag with ${name} does not hide later markup`, () => {
+    const html = page(`<style>a{}${close}${EVIL}<style>b{}</style>`)
+    assert.ok(run({ 'index.html': html }).errors.some((e: string) => /evil\.example/.test(e)))
+  })
+}
+
+test('a style end tag with a space does not hide a later external url in css', () => {
+  const html = page('<style>a{}</style ><style>b{background:url(https://evil.example/x.png)}</style>')
+  assert.ok(run({ 'index.html': html }).errors.some((e: string) => /evil\.example/.test(e)))
+})
+
+test('a greater-than sign inside an attribute value does not end the script tag early', () => {
+  const head = '<script data-note="a>b" type="module" src="/shell/shell.js"></script>'
+  assert.deepEqual(run({ 'index.html': page('', head) }).errors, [])
+})
+
+test('a script tag inside a comment is not counted as the shell tag', () => {
+  const head = `<!-- ${SHELL} -->`
+  assert.ok(run({ 'index.html': page('', head) }).errors.some((e: string) => /exactly one script tag/.test(e)))
+})
+
+test('a reference inside a template is still checked, because scripts can clone it', () => {
+  const html = page(`<template>${EVIL}</template>`)
+  assert.ok(run({ 'index.html': html }).errors.some((e: string) => /evil\.example/.test(e)))
+})
+
+test('a script tag inside a template is not counted as the shell tag', () => {
+  const head = `<template>${SHELL}</template>`
+  assert.ok(run({ 'index.html': page('', head) }).errors.some((e: string) => /exactly one script tag/.test(e)))
+})
+
+const cssErrors = (css: string): string[] => run({ 'index.html': page(), 'style.css': css }).errors
+const jsWarnings = (js: string): string[] => run({ 'index.html': page(), 'app.js': js }).warnings
+
+test('a url inside a css comment is ignored', () => {
+  assert.deepEqual(cssErrors('/* url(https://evil.example/x.png) */ a { color: red }'), [])
+})
+
+test('a url inside a css string is not a reference', () => {
+  assert.deepEqual(cssErrors('a::after { content: "url(https://evil.example/x.png)" }'), [])
+})
+
+test('a css escape cannot hide an external url', () => {
+  assert.ok(cssErrors('a { background: url("\\68ttps://evil.example/x.png") }').some((e) => /evil\.example/.test(e)))
+})
+
+test('an unquoted url with surrounding whitespace is checked', () => {
+  assert.ok(cssErrors('a { background: url(\n  https://evil.example/x.png\n) }').some((e) => /evil\.example/.test(e)))
+})
+
+test('an image-set string is a reference', () => {
+  assert.ok(cssErrors('a { background: image-set("https://evil.example/x.png" 1x) }').some((e) => /evil\.example/.test(e)))
+  assert.ok(cssErrors('a { background: -webkit-image-set("https://evil.example/y.png" 1x) }').some((e) => /evil\.example/.test(e)))
+})
+
+test('an import with a plain string or a media query is checked', () => {
+  assert.ok(cssErrors('@import "https://evil.example/a.css";').some((e) => /evil\.example/.test(e)))
+  assert.ok(cssErrors('@import url(https://evil.example/b.css) screen;').some((e) => /evil\.example/.test(e)))
+})
+
+test('a relative url and a data url in css are accepted', () => {
+  assert.deepEqual(cssErrors('a { background: url(./a.png) } b { background: url("data:image/gif;base64,R0lGOD") }'), [])
+})
+
+test('a style attribute is parsed as a declaration list', () => {
+  const html = page('<p style="background:url(https://evil.example/x.png)">x</p>')
+  assert.ok(run({ 'index.html': html }).errors.some((e) => /evil\.example/.test(e)))
+})
+
+test('a commented-out absolute path in javascript is not warned about', () => {
+  assert.deepEqual(jsWarnings('// fetch("/data.json")\n/* "/other.json" */\nconst a = 1'), [])
+})
+
+test('an escaped slash in a javascript string is still an absolute path', () => {
+  assert.ok(jsWarnings('fetch("\\u002fdata.json")').some((w) => /data\.json/.test(w)))
+})
+
+test('a template literal with an expression keeps its leading path', () => {
+  assert.ok(jsWarnings('fetch(`/api/${name}`)').some((w) => /\/api\//.test(w)))
+})
+
+test('a division and a regular expression are not mistaken for strings', () => {
+  assert.deepEqual(jsWarnings('const a = 4 / 2, b = /"\\/x"/.test(s), c = 6 / 3'), [])
+})
+
+test('module syntax is understood', () => {
+  const warnings = jsWarnings('import { a } from "./a.js"\nexport const b = await a("/data.json")')
+  assert.ok(warnings.some((w) => /data\.json/.test(w)))
+})
+
+test('javascript that cannot be parsed is reported for review, not scanned', () => {
+  const result = run({ 'index.html': page(), 'app.js': 'const = ;' })
+  assert.deepEqual(result.errors, [])
+  assert.ok(result.warnings.some((w) => /could not be parsed/.test(w)))
+})

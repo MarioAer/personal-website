@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { isRecord, isRegistry, validateRegistry } from './lib/registry.ts'
 import type { Registry } from './lib/registry.ts'
 import { checkVariant } from './lib/contract.ts'
+import { rewriteScriptSrc } from './lib/html.ts'
 import type { VariantFiles } from './lib/contract.ts'
 import { specVersions } from './lib/spec.ts'
 
@@ -67,7 +68,7 @@ async function listVariantFolders(root: string): Promise<string[]> {
 }
 
 function rewriteShellPath(html: string, basePath: string): string {
-  return html.replace(/(<script\b[^>]*\bsrc\s*=\s*["'])\/shell\/shell\.js(["'])/gi, `$1${basePath}shell/shell.js$2`)
+  return rewriteScriptSrc(html, '/shell/shell.js', `${basePath}shell/shell.js`)
 }
 
 async function listSpecVersions(root: string): Promise<string[]> {
