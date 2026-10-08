@@ -21,8 +21,6 @@ export interface BuildOptions {
   outDir: string
   /** Deployment base path, normalised by `normaliseBasePath`. Defaults to `/`. */
   basePath?: string | undefined
-  /** When set, a `CNAME` file holding this domain is written. */
-  siteDomain?: string | undefined
 }
 
 export interface BuildResult {
@@ -78,7 +76,7 @@ async function listSpecVersions(root: string): Promise<string[]> {
   }
 }
 
-export async function build({ root, outDir, basePath, siteDomain }: BuildOptions): Promise<BuildResult> {
+export async function build({ root, outDir, basePath }: BuildOptions): Promise<BuildResult> {
   const base = normaliseBasePath(basePath)
   const registryPath = join(root, 'variants.json')
 
@@ -132,6 +130,8 @@ export async function build({ root, outDir, basePath, siteDomain }: BuildOptions
   }
 
   await cp(join(root, 'shell'), join(outDir, 'shell'), { recursive: true })
+  // Browsers request /favicon.ico for pages that declare no icon; variants that declare one keep it.
+  await cp(join(root, 'shell', 'favicon.ico'), join(outDir, 'favicon.ico'))
 
   await writeFile(join(outDir, 'variants.json'), `${JSON.stringify({ ...registry, specVersion }, null, 2)}\n`)
 
@@ -160,8 +160,6 @@ main{max-width:40rem;margin:0 auto;padding:3rem 1rem}
 </html>
 `)
 
-  if (siteDomain) await writeFile(join(outDir, 'CNAME'), `${siteDomain}\n`)
-
   return { warnings }
 }
 
@@ -172,7 +170,6 @@ if (invokedDirectly) {
     root,
     outDir: join(root, 'dist'),
     basePath: process.env.BASE_PATH,
-    siteDomain: process.env.SITE_DOMAIN,
   })
   for (const warning of warnings) console.warn(`warning: ${warning}`)
   console.log(`Built ${relative(root, join(root, 'dist'))} for base path ${normaliseBasePath(process.env.BASE_PATH)}`)
