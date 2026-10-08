@@ -107,8 +107,8 @@ Rules, all checked by the build:
 
 - `id` matches `^[a-z0-9][a-z0-9.-]*$`, is unique, and equals the folder name under `variants/`.
 - `id` is not a reserved name (`shell`, `index.html`, `404.html`, `variants.json`, `CNAME`,
-  `.nojekyll`) and does not equal a top-level entry of the default variant, whose files are
-  copied to the output root.
+  `.nojekyll`, `favicon.ico`) and does not equal a top-level entry of the default variant, whose
+  files are copied to the output root.
 - `default` names an existing `id`. The default variant is served at the site root; every
   variant, the default included, is also served at `<base>/<id>/`.
 - `modelId` is the exact model identifier the tool used, `toolVersion` the tool's reported
@@ -219,7 +219,8 @@ Inputs: the repository and `BASE_PATH` (default `/`).
 3. Empty `dist/`, copy the default variant to `dist/` and every variant to `dist/<id>/`.
 4. In every copied HTML file, rewrite the shell script `src` to `${BASE_PATH}shell/shell.js`.
    Nothing else is rewritten.
-5. Copy `shell/`, and write `dist/variants.json` with the current `specVersion` added.
+5. Copy `shell/` and `shell/favicon.ico` to `dist/favicon.ico`, and write `dist/variants.json`
+   with the current `specVersion` added.
 6. Write `dist/.nojekyll` and `dist/404.html` (shell, heading, a sentence pointing to the
    selector).
 

@@ -130,6 +130,8 @@ export async function build({ root, outDir, basePath }: BuildOptions): Promise<B
   }
 
   await cp(join(root, 'shell'), join(outDir, 'shell'), { recursive: true })
+  // Browsers request /favicon.ico for pages that declare no icon; variants that declare one keep it.
+  await cp(join(root, 'shell', 'favicon.ico'), join(outDir, 'favicon.ico'))
 
   await writeFile(join(outDir, 'variants.json'), `${JSON.stringify({ ...registry, specVersion }, null, 2)}\n`)
 

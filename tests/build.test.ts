@@ -37,6 +37,7 @@ async function fixture(overrides: FixtureOverrides = {}): Promise<string> {
   }
   await mkdir(join(root, 'shell'), { recursive: true })
   await writeFile(join(root, 'shell', 'shell.js'), '// shell\n')
+  await writeFile(join(root, 'shell', 'favicon.ico'), 'icon-bytes')
   await mkdir(join(root, 'spec'), { recursive: true })
   for (const version of ['2026-09-01', '2026-10-01']) await writeFile(join(root, 'spec', `${version}.md`), '# Spec\n\nText.\n')
   await writeFile(join(root, 'variants.json'), overrides.registryText ?? JSON.stringify(registry, null, 2))
@@ -117,6 +118,13 @@ test('the output registry carries the current specification version', async (t) 
   if (!isRegistry(out)) assert.fail('the build must write a valid registry')
   assert.equal(out.specVersion, '2026-10-01')
   assert.equal(out.variants.length, 2)
+})
+
+test('the site icon is served at the output root for the browser\'s /favicon.ico request', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await run(root)
+  assert.equal(await readFile(join(root, 'dist', 'favicon.ico'), 'utf8'), 'icon-bytes')
 })
 
 test('the build is deterministic', async (t) => {
