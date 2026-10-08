@@ -25,12 +25,13 @@ Run with `mise run <task>`. Most tasks wrap an npm script; the npm name is in th
 | --- | --- | --- |
 | `install` | `npm ci` | Installs the pinned dependencies. |
 | `typecheck` | `npm run typecheck` | `tsc --noEmit`. The type checker is the only thing TypeScript does here. |
+| `lint` | `npm run lint` | Biome with one custom rule: no regular expression may match HTML or CSS (see Conventions). |
 | `test` | `npm test` | Unit suite, Node's built-in runner, `tests/**/*.test.ts`. |
 | `build` | `npm run build` | Validates everything and writes `dist/`. |
 | `serve` | `npm run serve` | `mise` builds first; `npm` serves the existing `dist/` under `BASE_PATH`. |
 | `e2e` | `npm run test:e2e` | Playwright browser suite, five projects. Runs in CI; not needed locally. |
-| `check` | none | `typecheck`, `test` and `build`. Run before claiming any change works. |
-| `ci` | none | The GitHub workflow's steps in its order: `install`, `typecheck`, `test`, `e2e`, `build`. |
+| `check` | none | `typecheck`, `lint`, `test` and `build`. Run before claiming any change works. |
+| `ci` | none | The GitHub workflow's steps in its order: `install`, `typecheck`, `lint`, `test`, `e2e`, `build`. |
 
 `BASE_PATH` defaults to `/personal-website/` under `mise` and to `/` under `npm`; set it
 explicitly when running the npm scripts for a deployment-like build.
@@ -59,7 +60,9 @@ the simpler it is to add one. Astro and Next.js static export were considered an
 constraining the variants.
 
 The tooling is TypeScript executed directly by Node 24, which strips the types at load time.
-There is no compiler in the run path. The only code shared with the browser is the shell.
+There is no compiler in the run path. The only code shared with the browser is the shell. The
+build reads HTML with `parse5`, CSS with `css-tree` and JavaScript with `acorn`, and the lint
+step uses Biome. All are development dependencies, and none reaches a browser.
 
 ```
 spec/<date>.md          content specification, one file per version
@@ -67,10 +70,12 @@ variants/<id>/          one model's implementation: plain HTML, CSS, optional va
 variants.json           registry: default variant, entries, contact links, repository
 shell/shell.js          the shared top bar, injected into every page
 scripts/build.ts        validate, assemble dist/, rewrite the base path
-scripts/lib/            registry validation, variant contract checks, spec versions
+scripts/lib/            registry validation, variant contract checks, spec versions, HTML, CSS and JS parsing
 scripts/serve.ts        static server for dist/, used locally and by Playwright
 tests/                  unit suite
 e2e/                    browser suite
+lint/                   Biome rule files
+biome.json              lint configuration
 mise.toml               tasks
 dist/                   build output, git-ignored
 ```
@@ -227,10 +232,17 @@ Output is deterministic: identical inputs produce byte-identical `dist/`.
 
 ## Deployment
 
-GitHub Actions on push to `main`: install, typecheck, unit and browser suites, build, upload
+GitHub Actions on push to `main`: install, typecheck, lint, unit and browser suites, build, upload
 `dist/`, deploy to Pages. Pull requests run everything except the deployment. `BASE_PATH` is
 `/<repository name>/` unless the repository variable `SITE_DOMAIN` is set, in which case it is
 `/` and `dist/CNAME` is written.
+
+CodeQL (`.github/workflows/codeql.yml`) analyses the JavaScript and TypeScript on every pull
+request, on `main` and weekly, with the `security-and-quality` queries. The repository's branch
+ruleset on `main` should require the `Build and deploy / verify` and `CodeQL / analyze` checks and
+block merging while a high code-scanning alert is open; this is a repository setting, not a file.
+If the repository's default CodeQL setup is enabled, disable it, since GitHub rejects results
+from a workflow while the default setup is on.
 
 A custom domain needs the `SITE_DOMAIN` variable, the DNS records (CNAME or A/AAAA plus
 GitHub's verification TXT record) and the domain entered once in the Pages settings. Renaming
@@ -295,6 +307,15 @@ and visual quality.
   `scripts/lib/registry.ts`.
 - Commit messages: `type: description`, lowercase, imperative, no trailing period, at most 250
   characters. Only `chore`, `ci` and `docs` are used; other types would require a ticket number.
+- Documents are read with a parser, never with a regular expression: HTML with
+  `scripts/lib/html.ts` (`parse5`), CSS with `scripts/lib/css.ts` (`css-tree`), JavaScript with
+  `scripts/lib/js.ts` (`acorn`). A pattern cannot follow a browser's rules for end tags, comments,
+  quoting, escapes and raw-text elements, and a mismatch between the two lets a reference pass a
+  check and still reach the page. `npm run lint` rejects a regular expression literal, or a
+  `new RegExp` string, that contains `<`, `@import` or `url(` (`lint/markup-regex.grit`). An
+  exception needs `// biome-ignore lint/plugin: <reason>`.
+- A request path is accepted by where it resolves to, never by how it is spelled: the static
+  server decodes it, joins it to the root and rejects it when the result leaves the root.
 - One logical change per commit, each independently revertable.
 - Branch from `main`; never commit to it directly.
 
