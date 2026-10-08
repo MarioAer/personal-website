@@ -1,15 +1,15 @@
-// Pointer response: the hero strands and the trunk drift in opposite directions.
+// Pointer response: hovering a role highlights its span on the time strip, and the other way round.
 (() => {
-  const fig = document.querySelector('.hero-fig');
-  const hero = document.querySelector('.hero');
-  if (!fig || !hero || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  hero.addEventListener('pointermove', (e) => {
-    const r = hero.getBoundingClientRect();
-    fig.style.setProperty('--px', ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
-    fig.style.setProperty('--py', ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
-  });
-  hero.addEventListener('pointerleave', () => {
-    fig.style.setProperty('--px', '0');
-    fig.style.setProperty('--py', '0');
+  const root = document.querySelector('[data-timeline]');
+  if (!root) return;
+  const segs = root.querySelectorAll('.seg');
+  const recs = root.querySelectorAll('.rec');
+  const set = (i, on) => {
+    segs.forEach((s) => s.classList.toggle('is-on', on && s.dataset.i === i));
+    recs.forEach((r) => r.classList.toggle('is-on', on && r.dataset.i === i));
+  };
+  [...segs, ...recs].forEach((el) => {
+    el.addEventListener('pointerenter', () => set(el.dataset.i, true));
+    el.addEventListener('pointerleave', () => set(el.dataset.i, false));
   });
 })();
