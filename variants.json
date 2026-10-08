@@ -12,6 +12,16 @@
       "attempts": 1
     },
     {
+      "id": "claude-fable-5.1-2",
+      "label": "Claude Fable 5.1 (2)",
+      "tool": "Claude Code",
+      "toolVersion": "2.1.285",
+      "modelId": "claude-fable-5-1",
+      "generatedAt": "2026-10-08",
+      "specVersion": "2026-10-04",
+      "attempts": 1
+    },
+    {
       "id": "claude-sonnet-5.5",
       "label": "Claude Sonnet 5.5",
       "tool": "Claude Code",
