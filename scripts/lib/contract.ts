@@ -1,3 +1,8 @@
+import { cssReferences } from './css.ts'
+import type { CssContext } from './css.ts'
+import { parseHtml } from './html.ts'
+import type { HtmlElement } from './html.ts'
+import { jsStrings, jsonStrings } from './js.ts'
 import { RESERVED_VARIANT_ENTRIES } from './registry.ts'
 
 /**
@@ -26,26 +31,28 @@ interface ReferenceContext {
   errors: string[]
 }
 
-/** A regular expression match: capture groups that did not participate are `undefined`. */
-type Captures = readonly (string | undefined)[]
-
 const SHELL_SRC = '/shell/shell.js'
-const NODE = /<!--[\s\S]*?-->|<([a-z0-9-]+)((?:"[^"]*"|'[^']*'|[^>"'])*)>/g
-const SCRIPT_BLOCK = /(<script\b[^>]*>)([\s\S]*?)(<\/script>)/gi
-const STYLE_BLOCK_FULL = /(<style\b[^>]*>)([\s\S]*?)(<\/style>)/gi
-const ATTR = /\b(src|href|srcset|poster|data|xlink:href)\s*=\s*("([^"]*)"|'([^']*)')/gi
-const CSS_URL = /url\(\s*(?:"([^"]*)"|'([^']*)'|([^)'"]+))\s*\)/gi
-const CSS_IMPORT = /@import\s+(?:url\(\s*)?(?:"([^"]*)"|'([^']*)')/gi
-const STYLE_BLOCK = /<style\b[^>]*>([\s\S]*?)<\/style>/gi
-const STYLE_ATTR = /\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/gi
-const JS_ABSOLUTE = /(?:"|'|`)(\/(?!\/)[^"'`\s]*)(?:"|'|`)/g
+/** Attributes that hold a reference to another resource, by qualified name. */
+const REFERENCE_ATTRS = ['src', 'href', 'srcset', 'poster', 'data', 'xlink:href']
 const ALLOWED_PREFIXES = ['data:', 'blob:', '#']
 
-const attrValue = (match: Captures): string => match[3] ?? match[4] ?? ''
+/** Script types that are programs; other types are data blocks, read as JSON when they are import maps or rules. */
+const JAVASCRIPT_TYPES: ReadonlySet<string> = new Set(['', 'module', 'text/javascript', 'application/javascript'])
+const isJsonType = (type: string): boolean => type === 'importmap' || type === 'speculationrules' || type.endsWith('json')
 
-const srcOf = (attrs: string): string | null => {
-  const match: Captures | null = attrs.match(/\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)')/i)
-  return match ? (match[1] ?? match[2] ?? '').trim() : null
+/** Warns about every string that looks like an absolute path, and about source that cannot be read. */
+function absolutePathWarnings(source: { strings?: string[] | undefined; error?: string | undefined }, where: string): string[] {
+  if (source.strings === undefined) return [`${where}: the script could not be parsed (${source.error ?? 'unknown error'}); review it for absolute paths`]
+  return source.strings
+    .filter((value) => value.startsWith('/') && !value.startsWith('//') && !/\s/u.test(value))
+    .map((value) => `${where}: the string "${value}" looks like an absolute path; variant scripts must resolve assets relative to document.baseURI`)
+}
+
+function scriptWarnings(element: HtmlElement, where: string): string[] {
+  const type = (element.attrs.get('type') ?? '').trim().toLowerCase()
+  if (JAVASCRIPT_TYPES.has(type)) return absolutePathWarnings(jsStrings(element.text), where)
+  if (isJsonType(type)) return absolutePathWarnings(jsonStrings(element.text), where)
+  return []
 }
 
 function classify(value: string): ReferenceKind {
@@ -72,14 +79,8 @@ function checkReference(value: string, { where, isAnchor, errors }: ReferenceCon
   }
 }
 
-function checkCss(text: string, where: string, errors: string[]): void {
-  for (const pattern of [CSS_URL, CSS_IMPORT]) {
-    pattern.lastIndex = 0
-    for (const match of text.matchAll(pattern)) {
-      const value = match[1] ?? match[2] ?? match[3] ?? ''
-      checkReference(value, { where, isAnchor: false, errors })
-    }
-  }
+function checkCss(text: string, where: string, errors: string[], context: CssContext = 'stylesheet'): void {
+  for (const value of cssReferences(text, context)) checkReference(value, { where, isAnchor: false, errors })
 }
 
 /** Checks a variant folder against the variant contract in AGENTS.md. */
@@ -100,27 +101,29 @@ export function checkVariant({ id, files }: VariantToCheck): ContractResult {
     return { errors, warnings }
   }
 
-  const metaMatch = html.match(/<meta\b[^>]*name\s*=\s*["']variant["'][^>]*>/i)
-  const metaContent: Captures | null | undefined = metaMatch?.[0].match(/content\s*=\s*(?:"([^"]*)"|'([^']*)')/i)
-  const declared = metaContent?.[1] ?? metaContent?.[2]
+  const parsed = new Map<string, HtmlElement[]>()
+  const elementsOf = (path: string, text: string): HtmlElement[] => {
+    const known = parsed.get(path)
+    if (known) return known
+    const elements = parseHtml(text)
+    parsed.set(path, elements)
+    return elements
+  }
+
+  const indexElements = elementsOf('index.html', html)
+
+  const metaTag = indexElements.find((element) => element.tag === 'meta' && element.attrs.get('name')?.trim().toLowerCase() === 'variant')
+  const declared = metaTag?.attrs.get('content')
   if (!declared) errors.push(`variants/${id}/index.html: <meta name="variant" content="${id}"> is missing`)
   else if (declared !== id) errors.push(`variants/${id}/index.html: the variant meta tag declares "${declared}" but the folder is "${id}"`)
 
-  const blankedHtml = html
-    .replace(SCRIPT_BLOCK, (_full, open: string, _body: string, close: string) => `${open}${close}`)
-    .replace(STYLE_BLOCK_FULL, (_full, open: string, _body: string, close: string) => `${open}${close}`)
-
-  const scriptTags = [...blankedHtml.matchAll(NODE)].filter((m) => m[1] && m[1].toLowerCase() === 'script')
-  const shellTags = scriptTags.filter((m) => srcOf(m[2] ?? '') === SHELL_SRC)
+  const shellTags = indexElements.filter((element) => element.tag === 'script' && !element.inTemplate && element.attrs.get('src')?.trim() === SHELL_SRC)
   const shellTag = shellTags[0]
   if (shellTags.length !== 1 || shellTag === undefined) {
     errors.push(`variants/${id}/index.html: expected exactly one script tag loading ${SHELL_SRC}, found ${shellTags.length}`)
   } else {
-    const headEnd = blankedHtml.toLowerCase().indexOf('</head>')
-    if (headEnd === -1 || (shellTag.index ?? 0) > headEnd) {
-      errors.push(`variants/${id}/index.html: the shell script tag must be inside <head>`)
-    }
-    if (!/type\s*=\s*(?:"module"|'module')/i.test(shellTag[2] ?? '')) {
+    if (!shellTag.inHead) errors.push(`variants/${id}/index.html: the shell script tag must be inside <head>`)
+    if (shellTag.attrs.get('type')?.trim().toLowerCase() !== 'module') {
       errors.push(`variants/${id}/index.html: the shell script tag must have type="module"`)
     }
   }
@@ -129,33 +132,20 @@ export function checkVariant({ id, files }: VariantToCheck): ContractResult {
     if (typeof text !== 'string') continue
     const where = `variants/${id}/${path}`
     if (path.endsWith('.html') || path.endsWith('.svg')) {
-      const blanked = text
-        .replace(SCRIPT_BLOCK, (_full, open: string, _body: string, close: string) => `${open}${close}`)
-        .replace(STYLE_BLOCK_FULL, (_full, open: string, _body: string, close: string) => `${open}${close}`)
-
-      for (const block of text.matchAll(SCRIPT_BLOCK)) {
-        for (const match of (block[2] ?? '').matchAll(JS_ABSOLUTE)) {
-          warnings.push(`${where}: the string "${match[1]}" looks like an absolute path; variant scripts must resolve assets relative to document.baseURI`)
+      for (const element of elementsOf(path, text)) {
+        const isAnchor = element.tag === 'a'
+        for (const name of REFERENCE_ATTRS) {
+          const value = element.attrs.get(name)
+          if (value !== undefined) checkReference(value, { where, isAnchor, errors })
         }
+        const style = element.attrs.get('style')
+        if (style !== undefined) checkCss(style, where, errors, 'declarationList')
+        if (element.tag === 'style') checkCss(element.text, where, errors)
+        if (element.tag === 'script') warnings.push(...scriptWarnings(element, where))
       }
-
-      for (const node of blanked.matchAll(NODE)) {
-        if (!node[1]) continue
-        const attrs = node[2] ?? ''
-        const isAnchor = node[1].toLowerCase() === 'a'
-        for (const match of attrs.matchAll(ATTR)) {
-          checkReference(attrValue(match), { where, isAnchor, errors })
-        }
-        for (const attr of attrs.matchAll(STYLE_ATTR)) checkCss(attr[1] ?? attr[2] ?? '', where, errors)
-      }
-      for (const block of text.matchAll(STYLE_BLOCK)) checkCss(block[1] ?? '', where, errors)
     }
     if (path.endsWith('.css')) checkCss(text, where, errors)
-    if (path.endsWith('.js')) {
-      for (const match of text.matchAll(JS_ABSOLUTE)) {
-        warnings.push(`${where}: the string "${match[1]}" looks like an absolute path; variant scripts must resolve assets relative to document.baseURI`)
-      }
-    }
+    if (path.endsWith('.js')) warnings.push(...absolutePathWarnings(jsStrings(text), where))
   }
 
   return { errors, warnings }

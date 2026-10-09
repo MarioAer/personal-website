@@ -10,11 +10,17 @@
     "test": "node --test \"tests/**/*.test.ts\"",
     "test:e2e": "playwright test",
     "build": "node scripts/build.ts",
-    "serve": "node scripts/serve.ts"
+    "serve": "node scripts/serve.ts",
+    "lint": "biome lint"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.15",
     "@playwright/test": "1.63.0",
+    "@types/css-tree": "3.2.0",
     "@types/node": "^24.19.1",
+    "acorn": "8.19.0",
+    "css-tree": "3.2.1",
+    "parse5": "8.0.1",
     "typescript": "^7.0.2"
   }
 }

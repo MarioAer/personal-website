@@ -96,6 +96,17 @@ test('the shell path is rewritten for both base paths', async (t) => {
   assert.match(await readFile(join(root, 'dist', '404.html'), 'utf8'), /src="\/personal-website\/shell\/shell\.js"/)
 })
 
+test('the shell path is rewritten when an earlier attribute contains a greater-than sign, and nothing else changes', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const tag = (src: string): string => `<SCRIPT data-note="a>b"  src = '${src}'  type="module" ></SCRIPT >`
+  const html = (src: string): string => `<!doctype html><html><head><meta name="variant" content="alpha">${tag(src)}</head><body><h1>x</h1><!-- ${SHELL} --></body></html>`
+  await writeFile(join(root, 'variants', 'alpha', 'index.html'), html('/shell/shell.js'))
+  await run(root, { basePath: '/personal-website' })
+  const page = await readFile(join(root, 'dist', 'alpha', 'index.html'), 'utf8')
+  assert.equal(page, html('/personal-website/shell/shell.js'))
+})
+
 test('a variant built from a specification version that has no file fails the build', async (t) => {
   const root = await fixture()
   t.after(() => rm(root, { recursive: true, force: true }))

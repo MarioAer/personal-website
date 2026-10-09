@@ -1,7 +1,7 @@
 import { createServer } from 'node:http'
 import type { Server } from 'node:http'
 import { readFile, stat } from 'node:fs/promises'
-import { join, extname, normalize } from 'node:path'
+import { join, extname, relative, isAbsolute, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { normaliseBasePath } from './build.ts'
 
@@ -17,6 +17,23 @@ const TYPES: Record<string, string | undefined> = {
   '.webp': 'image/webp', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8',
 }
 
+/**
+ * The file a request path names, or `undefined` when it is malformed or leaves `root`. The decision
+ * rests on where the path resolves to, not on how it is spelled.
+ */
+function locate(root: string, requested: string): string | undefined {
+  let decoded: string
+  try {
+    decoded = decodeURIComponent(requested)
+  } catch {
+    return undefined
+  }
+  if (decoded.includes('\0')) return undefined
+  const target = join(root, decoded)
+  const inside = relative(root, target)
+  return inside === '..' || inside.startsWith(`..${sep}`) || isAbsolute(inside) ? undefined : target
+}
+
 export function createStaticServer({ root, basePath }: StaticServerOptions): Server {
   const base = normaliseBasePath(basePath)
   return createServer(async (request, response) => {
@@ -26,8 +43,12 @@ export function createStaticServer({ root, basePath }: StaticServerOptions): Ser
       response.end()
       return
     }
-    const relativePath = normalize(decodeURIComponent(url.pathname.slice(base.length))).replace(/^(\.\.(\/|$))+/, '')
-    let filePath = join(root, relativePath)
+    let filePath = locate(root, url.pathname.slice(base.length))
+    if (filePath === undefined) {
+      response.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' })
+      response.end('Bad request')
+      return
+    }
     try {
       if ((await stat(filePath)).isDirectory()) filePath = join(filePath, 'index.html')
     } catch {
