@@ -60,6 +60,16 @@
       "generatedAt": "2026-10-04",
       "specVersion": "2026-10-04",
       "attempts": 1
+    },
+    {
+      "id": "claude-haiku-4.5",
+      "label": "Claude Haiku 4.5",
+      "tool": "Claude Code",
+      "toolVersion": "2.1.285",
+      "modelId": "claude-haiku-4-5-20251001",
+      "generatedAt": "2026-10-09",
+      "specVersion": "2026-10-04",
+      "attempts": 1
     }
   ],
   "contact": {
