@@ -288,7 +288,7 @@ section:last-of-type {
 }
 
 .area-tag {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   display: block;
   font-weight: 700;
   margin-top: 2px;
@@ -471,7 +471,6 @@ section:last-of-type {
   padding: var(--spacing-lg);
   background: var(--color-accent-light);
   border-radius: 8px;
-  border-left: 4px solid var(--color-accent);
   transition: all 0.3s ease;
   animation: fadeInUp 0.6s ease-out both;
   animation-delay: calc(0.1s * var(--position));
