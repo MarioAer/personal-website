@@ -5,9 +5,9 @@
       "id": "claude-fable-5.1",
       "label": "Claude Fable 5.1",
       "tool": "Claude Code",
-      "toolVersion": "2.1.285",
+      "toolVersion": "2.1.287",
       "modelId": "claude-fable-5-1",
-      "generatedAt": "2026-10-04",
+      "generatedAt": "2026-10-11",
       "specVersion": "2026-10-04",
       "attempts": 1
     },
