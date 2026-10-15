@@ -237,10 +237,11 @@ GitHub Actions on push to `main`: install, typecheck, lint, unit and browser sui
 from `actions/configure-pages`, which reads the Pages settings: `/` with a custom domain,
 `/<repository name>/` without one.
 
-CodeQL (`.github/workflows/codeql.yml`) analyses the JavaScript and TypeScript on every pull
-request, on `main` and weekly, with the `security-and-quality` queries. The repository's branch
-ruleset on `main` should require the `Build and deploy / verify` and `CodeQL / analyze` checks and
-block merging while a high code-scanning alert is open; this is a repository setting, not a file.
+CodeQL (`.github/workflows/codeql.yml`) analyses `shell/` and `scripts/` on every pull request, on
+`main` and weekly, with the `security-and-quality` queries; tests and variants are left out. The
+repository's branch ruleset on `main` should require the `Build and deploy / verify` and
+`CodeQL / analyze` checks and block merging while a high code-scanning alert is open; this is a
+repository setting, not a file.
 If the repository's default CodeQL setup is enabled, disable it, since GitHub rejects results
 from a workflow while the default setup is on.
 
