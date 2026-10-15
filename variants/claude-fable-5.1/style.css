@@ -2,9 +2,10 @@
    Concept: a transit network. The three areas of expertise are three lines, each with four
    stations for the topics it serves and an endstation plate for the outcome it delivers; the nine
    working principles form a ring line around them, and the visitor rides the page along a strip
-   map whose carriage travels from the network to the terminus as they scroll. The surfaces are
-   printed, not flat: the board is drawn on a map grid lit by the three line colours under a film
-   grain, the page is laid on dotted plan paper, and each line's panel carries the same grain. */
+   map whose carriage travels from the network to the terminus as they scroll. */
+
+/* Surfaces: the board is drawn on a map grid lit by the three line colours under a film grain,
+   the page is laid on dotted plan paper, and each line's panel carries the same grain. */
 
 @font-face {
   font-family: "Schibsted Grotesk";
@@ -174,15 +175,12 @@ a { color: inherit; }
 
 /* the board's surface: a map grid, the three line colours bleeding through the dark like
    backlit signage, and a film grain over all of it; both layers sit under the content */
-.board::before,
-.board::after {
+.board::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-}
-.board::before {
   background-image:
     radial-gradient(42% 38% at 66% 24%, color-mix(in srgb, var(--board-line-1) 22%, transparent), transparent 100%),
     radial-gradient(40% 34% at 70% 52%, color-mix(in srgb, var(--board-line-2) 16%, transparent), transparent 100%),
@@ -195,12 +193,22 @@ a { color: inherit; }
   -webkit-mask-image: radial-gradient(120% 100% at 50% 50%, #000 55%, transparent 100%);
   mask-image: radial-gradient(120% 100% at 50% 50%, #000 55%, transparent 100%);
 }
-.board::after {
+
+/* the film grain, shared by the board and the line panels: plain opacity, no blend mode, so the
+   compositor keeps it as one layer while the trains animate underneath */
+.board::after,
+.line::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
   background-image: var(--grain);
   background-size: 180px 180px;
-  opacity: 0.16;
-  mix-blend-mode: overlay;
+  opacity: 0.11;
+  pointer-events: none;
 }
+.line::before { opacity: 0.07; }
 
 .board__inner {
   display: grid;
@@ -711,23 +719,6 @@ a { color: inherit; }
   background-color: color-mix(in srgb, var(--line) 8%, var(--bg));
   background-image: radial-gradient(70% 55% at 100% 0%, color-mix(in srgb, var(--line) 14%, transparent), transparent 100%);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 18%, transparent);
-}
-/* the panel's print grain, the same stock as the board */
-.line::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  background-image: var(--grain);
-  background-size: 180px 180px;
-  opacity: 0.1;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-}
-:root[data-theme="dark"] .line::before { mix-blend-mode: screen; opacity: 0.07; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .line::before { mix-blend-mode: screen; opacity: 0.07; }
 }
 .line + .line { margin-top: clamp(1.25rem, 2.5vw, 2rem); }
 .line--1 { --line: var(--line-1); }
