@@ -28,7 +28,7 @@ run = 'BASE_PATH="${BASE_PATH:-/personal-website/}" npm run serve'
 
 [tasks.e2e]
 description = "Browser suite (Playwright)"
-run = "npm run test:e2e"
+run = ["npx playwright install chromium", "npm run test:e2e"]
 
 [tasks.check]
 description = "Everything to run before claiming a change works"
