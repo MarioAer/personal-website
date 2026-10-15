@@ -4,6 +4,9 @@
    working principles form a ring line around them, and the visitor rides the page along a strip
    map whose carriage travels from the network to the terminus as they scroll. */
 
+/* Surfaces: the board is drawn on a map grid lit by the three line colours under a film grain,
+   the page is laid on dotted plan paper, and each line's panel carries the same grain. */
+
 @font-face {
   font-family: "Schibsted Grotesk";
   font-style: normal;
@@ -32,6 +35,10 @@
   --board-line-1: #ff5f93;
   --board-line-2: #2dd4bf;
   --board-line-3: #a78bfa;
+  --board-grid: rgb(255 255 255 / 0.045);
+  --paper-dot: rgb(16 24 40 / 0.11);
+  /* film grain: one tile of grey fractal noise, blended over the surface below it */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
   --strip-w: 0px;
   --strip-h: 0px;
   --font: "Schibsted Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -54,6 +61,7 @@
     --line-3: #a78bfa;
     --line-fg: #0b1120;
     --board-bg: #121c33;
+    --paper-dot: rgb(238 240 246 / 0.085);
   }
 }
 
@@ -71,6 +79,7 @@
   --line-3: #a78bfa;
   --line-fg: #0b1120;
   --board-bg: #121c33;
+  --paper-dot: rgb(238 240 246 / 0.085);
 }
 
 @property --p1 { syntax: "<number>"; inherits: true; initial-value: 0; }
@@ -96,7 +105,11 @@ body {
   padding-left: var(--strip-w);
   padding-bottom: var(--strip-h);
   timeline-scope: --s-expertise, --s-further, --s-approach, --s-background, --s-contact;
-  background: var(--bg);
+  /* dotted plan paper: the sheet the network is drawn on */
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, var(--paper-dot) 1px, transparent 1.6px);
+  background-size: 22px 22px;
+  background-position: 11px 11px;
   color: var(--ink);
   font-family: var(--font);
   font-size: 1rem;
@@ -153,10 +166,49 @@ a { color: inherit; }
 
 .board {
   position: relative;
+  isolation: isolate;
+  overflow: hidden;
   background: var(--board-bg);
   color: var(--board-fg);
   border-bottom: 1px solid var(--rule);
 }
+
+/* the board's surface: a map grid, the three line colours bleeding through the dark like
+   backlit signage, and a film grain over all of it; both layers sit under the content */
+.board::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(42% 38% at 66% 24%, color-mix(in srgb, var(--board-line-1) 22%, transparent), transparent 100%),
+    radial-gradient(40% 34% at 70% 52%, color-mix(in srgb, var(--board-line-2) 16%, transparent), transparent 100%),
+    radial-gradient(42% 38% at 66% 80%, color-mix(in srgb, var(--board-line-3) 22%, transparent), transparent 100%),
+    radial-gradient(60% 70% at 18% 30%, color-mix(in srgb, var(--board-fg) 5%, transparent), transparent 100%),
+    linear-gradient(var(--board-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--board-grid) 1px, transparent 1px);
+  background-size: auto, auto, auto, auto, 44px 44px, 44px 44px;
+  background-position: 0 0, 0 0, 0 0, 0 0, 21px 21px, 21px 21px;
+  -webkit-mask-image: radial-gradient(120% 100% at 50% 50%, #000 55%, transparent 100%);
+  mask-image: radial-gradient(120% 100% at 50% 50%, #000 55%, transparent 100%);
+}
+
+/* the film grain, shared by the board and the line panels: plain opacity, no blend mode, so the
+   compositor keeps it as one layer while the trains animate underneath */
+.board::after,
+.line::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-image: var(--grain);
+  background-size: 180px 180px;
+  opacity: 0.11;
+  pointer-events: none;
+}
+.line::before { opacity: 0.07; }
 
 .board__inner {
   display: grid;
@@ -423,21 +475,21 @@ a { color: inherit; }
   .netlist { display: none; }
   .board__text {
     position: absolute;
-    left: 13.2%;
-    top: 15%;
-    width: 26.5%;
+    left: 15.6%;
+    top: 14%;
+    width: 24.2%;
     gap: 1.3cqw;
   }
-  .board__name { font-size: 7.4cqw; }
+  .board__name { font-size: 7cqw; }
   .board__positioning {
     max-width: none;
-    font-size: 1.45cqw;
+    font-size: 1.4cqw;
     line-height: 1.3;
   }
   .board__place { font-size: 0.95cqw; }
   .board__hint {
     max-width: none;
-    font-size: 1.12cqw;
+    font-size: 1.08cqw;
     line-height: 1.4;
   }
 }
@@ -659,11 +711,14 @@ a { color: inherit; }
   --mark-h: 1.75rem;
   --col-gap: 1.25rem;
   position: relative;
+  isolation: isolate;
   display: grid;
   gap: 1.5rem;
   padding: clamp(1.5rem, 4vw, 3.25rem) clamp(1.25rem, 3vw, 3rem);
   border-radius: 1.25rem;
-  background: color-mix(in srgb, var(--line) 7%, var(--bg));
+  background-color: color-mix(in srgb, var(--line) 8%, var(--bg));
+  background-image: radial-gradient(70% 55% at 100% 0%, color-mix(in srgb, var(--line) 14%, transparent), transparent 100%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 18%, transparent);
 }
 .line + .line { margin-top: clamp(1.25rem, 2.5vw, 2rem); }
 .line--1 { --line: var(--line-1); }
@@ -1102,7 +1157,7 @@ a { color: inherit; }
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
-.career__org {
+.career__sector {
   display: block;
   margin-top: 0.2rem;
   font-size: 0.9375rem;
