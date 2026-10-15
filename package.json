@@ -22,30 +22,5 @@
     "css-tree": "3.2.1",
     "parse5": "8.0.1",
     "typescript": "^7.0.2"
-  },
-  "version": "1.0.0",
-  "description": "The personal site of Mario Erazo, published at [marioaer.github.io/personal-website](https://marioaer.github.io/personal-website/).",
-  "main": "index.js",
-  "directories": {
-    "test": "tests"
-  },
-  "dependencies": {
-    "entities": "^8.1.0",
-    "mdn-data": "^2.27.1",
-    "playwright": "^1.63.0",
-    "playwright-core": "^1.63.0",
-    "source-map-js": "^1.2.2",
-    "undici-types": "^7.24.6"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/MarioAer/personal-website.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/MarioAer/personal-website/issues"
-  },
-  "homepage": "https://github.com/MarioAer/personal-website#readme"
+  }
 }
