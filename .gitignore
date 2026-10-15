@@ -9,3 +9,4 @@ playwright-report/
 .lighthouseci/
 .superpowers/
 .agent-work/
+.claude/
