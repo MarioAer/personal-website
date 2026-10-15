@@ -29,7 +29,7 @@ Run with `mise run <task>`. Most tasks wrap an npm script; the npm name is in th
 | `test` | `npm test` | Unit suite, Node's built-in runner, `tests/**/*.test.ts`. |
 | `build` | `npm run build` | Validates everything and writes `dist/`. |
 | `serve` | `npm run serve` | `mise` builds first; `npm` serves the existing `dist/` under `BASE_PATH`. |
-| `e2e` | `npm run test:e2e` | Playwright browser suite, five projects. Runs in CI; not needed locally. |
+| `e2e` | `npm run test:e2e` | Playwright browser suite, Chromium at two widths. Runs in CI; not needed locally. |
 | `check` | none | `typecheck`, `lint`, `test` and `build`. Run before claiming any change works. |
 | `ci` | none | The GitHub workflow's steps in its order: `install`, `typecheck`, `lint`, `test`, `e2e`, `build`. |
 
@@ -37,8 +37,7 @@ Run with `mise run <task>`. Most tasks wrap an npm script; the npm name is in th
 explicitly when running the npm scripts for a deployment-like build.
 
 `mise.toml` matches CI: the same Node major version, the same steps. Change one, change the
-other. CI runs the browser suite in the Playwright container image; its tag and the pinned
-`@playwright/test` version must be upgraded together.
+other.
 
 ## Specification versions
 
@@ -238,10 +237,11 @@ GitHub Actions on push to `main`: install, typecheck, lint, unit and browser sui
 from `actions/configure-pages`, which reads the Pages settings: `/` with a custom domain,
 `/<repository name>/` without one.
 
-CodeQL (`.github/workflows/codeql.yml`) analyses the JavaScript and TypeScript on every pull
-request, on `main` and weekly, with the `security-and-quality` queries. The repository's branch
-ruleset on `main` should require the `Build and deploy / verify` and `CodeQL / analyze` checks and
-block merging while a high code-scanning alert is open; this is a repository setting, not a file.
+CodeQL (`.github/workflows/codeql.yml`) analyses `shell/` and `scripts/` on every pull request, on
+`main` and weekly, with the `security-and-quality` queries; tests and variants are left out. The
+repository's branch ruleset on `main` should require the `Build and deploy / verify` and
+`CodeQL / analyze` checks and block merging while a high code-scanning alert is open; this is a
+repository setting, not a file.
 If the repository's default CodeQL setup is enabled, disable it, since GitHub rejects results
 from a workflow while the default setup is on.
 
@@ -294,7 +294,7 @@ mutation-checked and should stay that way.
 | Layer | Covers |
 | --- | --- |
 | Unit (`tests/`) | Registry rules, each contract rule with a passing and a failing fixture, specification versions, and the build on a fixture repository: layout, shell path for `/` and a subpath, `specVersion` injected, determinism. |
-| Browser (`e2e/`, Chromium, Firefox and WebKit at 1440×900, Chromium and WebKit at 360×780, against `dist/` built for `/personal-website/`; runs in CI in the Playwright container) | Theme toggle persists; selector navigates for default and other ids; "View spec" links the right version; bar works without the registry; LinkedIn and GitHub on every variant and the 404 page; no console errors or third-party requests; one `<h1>` and the landmarks; no horizontal scroll; the bar's 56 px kept clear; no email address, `mailto:` or `tel:`. Nothing that quotes the specification's wording, so a new version does not break the suite. |
+| Browser (`e2e/`, Chromium at 1440×900 and 360×780, against `dist/` built for `/personal-website/`; runs in CI) | Theme toggle persists; selector navigates for default and other ids; "View spec" links the right version; bar works without the registry; LinkedIn and GitHub on every variant and the 404 page; no console errors or third-party requests; one `<h1>` and the landmarks; no horizontal scroll; the bar's 56 px kept clear; no email address, `mailto:` or `tel:`. Nothing that quotes the specification's wording, so a new version does not break the suite. |
 
 Accessibility and performance are checked manually with Lighthouse before a variant is merged.
 Manual review covers everything the specification says: the content inventory, numbers, tone

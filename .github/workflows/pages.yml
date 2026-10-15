@@ -19,17 +19,10 @@ jobs:
     permissions:
       contents: read
       pages: read # configure-pages reads the site's base path from the Pages settings
-    # Tag must match @playwright/test in package.json, which is pinned for that reason.
-    container:
-      image: mcr.microsoft.com/playwright:v1.63.0-noble
-      options: --ipc=host
-    env:
-      HOME: /root # firefox will not start otherwise
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false # nothing in this job pushes
-      # The image ships an older Node; this project needs 24 to run TypeScript directly.
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -38,6 +31,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
+      - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       # Empty with a custom domain, "/<repository name>" otherwise.
       - id: pages
