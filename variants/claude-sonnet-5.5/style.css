@@ -35,6 +35,7 @@
   --stars: 0.55;
   --dial: #ffffff;
   --road-op: 0.12;
+  --slab-mix: 0%;
   --rail-a: #6d5bd9;
   --rail-b: #f8c45e;
   --display: "Avenir Next", "Segoe UI Variable Display", "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
@@ -75,6 +76,7 @@
     --stars: 0;
     --dial: #17143a;
     --road-op: 0.28;
+    --slab-mix: 45%;
     --rail-a: #5b48c8;
     --rail-b: #e0952b;
   }
@@ -112,6 +114,7 @@
   --stars: 0;
   --dial: #17143a;
   --road-op: 0.28;
+  --slab-mix: 45%;
   --rail-a: #5b48c8;
   --rail-b: #e0952b;
 }
@@ -338,8 +341,7 @@ a {
 }
 
 .caption {
-  transform: translateX(-50%);
-  width: auto;
+  text-align: center;
   font-size: max(11px, calc(var(--fs) * 100cqw / 1440));
   font-weight: 600;
   letter-spacing: 0.24em;
@@ -375,7 +377,7 @@ a {
   text-align: center;
   text-decoration: none;
   pointer-events: auto;
-  animation: rise 0.6s ease-out both;
+  animation: rise 0.6s ease-out backwards;
   transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
 }
 
@@ -681,7 +683,7 @@ h2 {
   height: calc(30px - var(--i) * 2.6px);
   margin-top: calc(var(--i) * 1.3px);
   border-radius: 3px;
-  background: var(--c);
+  background: color-mix(in srgb, var(--c), #17143a var(--slab-mix));
   transition: width 0.25s;
 }
 
@@ -961,7 +963,7 @@ h2 {
     font-size: inherit;
   }
 
-  .name { order: 1; font-size: clamp(52px, 17vw, 120px); }
+  .name { order: 1; font-size: clamp(44px, calc((100vw - 2 * var(--gutter)) / 6), 120px); }
   .loc { order: 2; margin-top: 8px; font-size: 14px; }
   .pos-title { order: 3; margin-top: 20px; font-size: clamp(22px, 4vw, 28px); max-width: 28ch; }
   .pos-text { order: 4; margin-top: 8px; font-size: 17px; max-width: 46ch; }
