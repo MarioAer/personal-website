@@ -4,70 +4,31 @@
    made into one stronger whole. Each area of expertise keeps its own strand colour from the
    first screen to the timeline. System fonts only. */
 
+/* Every colour is one light-dark() pair, so the system preference and the shell toggle share one palette. */
 :root {
-  color-scheme: light;
-  --bg: #eef0f2;
-  --panel: #ffffff;
-  --ink: #12161b;
-  --muted: #4b555e;
-  --line: #cdd3d9;
-  --a1: #1d56b0;
-  --a2: #a5460f;
-  --a3: #5b37b5;
-  --g1: #3f4850;
-  --g2: #75808a;
-  --g3: #a7b0b8;
-  --band-bg: #14181d;
+  color-scheme: light dark;
+  --bg: light-dark(#eef0f2, #0f1317);
+  --panel: light-dark(#ffffff, #161b21);
+  --ink: light-dark(#12161b, #e9edf1);
+  --muted: light-dark(#4b555e, #a3adb7);
+  --line: light-dark(#cdd3d9, #2c343c);
+  --a1: light-dark(#1d56b0, #7ea8f4);
+  --a2: light-dark(#a5460f, #f0935a);
+  --a3: light-dark(#5b37b5, #b49cf4);
+  --g1: light-dark(#3f4850, #d0d6dc);
+  --g2: light-dark(#75808a, #8e98a2);
+  --g3: light-dark(#a7b0b8, #5c6670);
+  --band-bg: light-dark(#14181d, #1a2027);
   --band-ink: #edf0f2;
-  --band-muted: #aab3bc;
-  --rope-a: #b9c0c7;
-  --rope-b: #7d8790;
+  --band-muted: light-dark(#aab3bc, #a9b3bd);
+  --rope-a: light-dark(#b9c0c7, #aeb6be);
+  --rope-b: light-dark(#7d8790, #6c767f);
   --display: "Avenir Next Condensed", "Roboto Condensed", "Arial Narrow", "Helvetica Neue", system-ui, sans-serif;
   --body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #0f1317;
-  --panel: #161b21;
-  --ink: #e9edf1;
-  --muted: #a3adb7;
-  --line: #2c343c;
-  --a1: #7ea8f4;
-  --a2: #f0935a;
-  --a3: #b49cf4;
-  --g1: #d0d6dc;
-  --g2: #8e98a2;
-  --g3: #5c6670;
-  --band-bg: #1a2027;
-  --band-ink: #edf0f2;
-  --band-muted: #a9b3bd;
-  --rope-a: #aeb6be;
-  --rope-b: #6c767f;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --bg: #0f1317;
-    --panel: #161b21;
-    --ink: #e9edf1;
-    --muted: #a3adb7;
-    --line: #2c343c;
-    --a1: #7ea8f4;
-    --a2: #f0935a;
-    --a3: #b49cf4;
-    --g1: #d0d6dc;
-    --g2: #8e98a2;
-    --g3: #5c6670;
-    --band-bg: #1a2027;
-    --band-ink: #edf0f2;
-    --band-muted: #a9b3bd;
-    --rope-a: #c4cbd2;
-    --rope-b: #4a535c;
-  }
-}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -207,13 +168,18 @@ h1 {
 .key dt { font-weight: 700; color: var(--ink); }
 .key dt::after { content: " ="; font-weight: 400; color: var(--muted); }
 
-@media (min-width: 760px) {
+@media (min-width: 1100px) {
   .legend { display: none; }
 }
 
-@media (max-width: 759.98px) {
+@media (max-width: 1099.98px) {
   .braid-wide { display: none; }
   .braid-narrow { display: block; padding-inline: 16px; }
+  .braid-narrow .braid-svg { max-width: 560px; }
+}
+
+@media (max-width: 599.98px) {
+  .key { display: none; }
 }
 
 /* ---------- Section heads ---------- */
@@ -254,9 +220,11 @@ main > section { padding-block: clamp(64px, 9vw, 128px); }
 
 .cord { position: relative; color: var(--area); min-height: 320px; }
 .cord-svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
-.cord-svg .cs { fill: none; stroke: color-mix(in oklab, var(--area) 7%, var(--panel)); stroke-width: 9; }
-.cord-svg .st { fill: none; stroke: currentColor; stroke-width: 5; stroke-linecap: round; }
-.cord-svg .k1, .cord-svg .k3 { stroke: color-mix(in oklab, currentColor 50%, var(--panel)); }
+.defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.area { --cord-casing: color-mix(in oklab, var(--area) 7%, var(--panel)); --cord-light: color-mix(in oklab, var(--area) 50%, var(--panel)); }
+.cord-paths .cs { fill: none; stroke: var(--cord-casing); stroke-width: 9; }
+.cord-paths .st { fill: none; stroke: currentColor; stroke-width: 5; stroke-linecap: round; }
+.cord-paths .k1, .cord-paths .k3 { stroke: var(--cord-light); }
 
 .area-body { display: flex; flex-direction: column; min-width: 0; }
 
@@ -314,6 +282,27 @@ main > section { padding-block: clamp(64px, 9vw, 128px); }
   .areas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
+.swipe-hint { display: none; }
+
+@media (max-width: 759.98px) {
+  .expertise .section-head { margin-bottom: 20px; }
+  .expertise .lede { display: none; }
+  .swipe-hint { display: block; margin-bottom: 14px; font: 500 0.8125rem/1.4 var(--mono); color: var(--muted); }
+  .areas {
+    grid-auto-flow: column;
+    grid-auto-columns: 86%;
+    gap: 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: clamp(16px, 4vw, 48px);
+    margin-inline: calc(-1 * clamp(16px, 4vw, 48px));
+    padding-inline: clamp(16px, 4vw, 48px);
+    padding-bottom: 8px;
+  }
+  .area { scroll-snap-align: start; }
+}
+
 @media (max-width: 599.98px) {
   .area { grid-template-columns: 34px minmax(0, 1fr); padding-left: 4px; }
   .evidence li::before { left: -14px; width: 14px; }
@@ -321,7 +310,7 @@ main > section { padding-block: clamp(64px, 9vw, 128px); }
 
 /* ---------- Further evidence: loose threads ---------- */
 
-.threads { padding-top: 0 !important; }
+main > section.threads { padding-top: 0; }
 .thread-list { display: grid; gap: 20px 48px; }
 .thread-list li {
   position: relative;
@@ -383,7 +372,7 @@ main > section { padding-block: clamp(64px, 9vw, 128px); }
   transition: stroke-dashoffset 0.6s ease;
 }
 .knots li:hover .knot { transform: scale(1.18) rotate(-6deg); }
-.knots li:hover .knot path { animation: tie 0.7s ease; }
+.knots li:hover .knot path { animation: tie 0.7s ease; animation-timeline: auto; }
 @keyframes tie { from { stroke-dashoffset: 120; } to { stroke-dashoffset: 0; } }
 
 .knots h3 { font: 800 1.5rem/1.05 var(--display); font-stretch: condensed; }
@@ -469,17 +458,22 @@ main > section { padding-block: clamp(64px, 9vw, 128px); }
 /* ---------- Motion ---------- */
 
 @media (prefers-reduced-motion: no-preference) {
-  .braid-svg { animation: unspool-x 1.8s cubic-bezier(0.55, 0, 0.2, 1) 0.15s both; }
+  .braid-svg { animation: unspool-x 1.8s cubic-bezier(0.55, 0, 0.2, 1) 0.15s backwards; }
 
   @supports (animation-timeline: view()) {
     .cord-svg, .rope-svg {
-      animation: unspool-y linear both;
+      animation: unspool-y linear backwards;
       animation-timeline: view();
       animation-range: entry 10% cover 45%;
     }
+    .knot path {
+      animation: tie linear backwards;
+      animation-timeline: view();
+      animation-range: entry 30% cover 35%;
+    }
     .knots li::before {
       transform-origin: left center;
-      animation: stretch linear both;
+      animation: stretch linear backwards;
       animation-timeline: view();
       animation-range: entry 0% cover 30%;
     }
@@ -491,11 +485,21 @@ main > section { padding-block: clamp(64px, 9vw, 128px); }
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 
-@keyframes unspool-x { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 -10% 0 0); } }
+@keyframes unspool-x { from { clip-path: inset(-20px 100% -20px -20px); } to { clip-path: inset(-20px -20px -20px -20px); } }
 @keyframes unspool-y { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
 @keyframes stretch { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 @media (max-width: 599.98px) {
   .role { grid-template-columns: 52px minmax(0, 1fr); }
   .rope-svg { width: 52px; }
+}
+
+/* Phones: keep each area's first evidence within the second screen. */
+@media (max-width: 759.98px) {
+  .hero { min-height: 0; padding-block: 28px 8px; gap: 24px; }
+  .braid { gap: 14px; }
+  main > section { padding-block: 56px; }
+  .expertise { padding-top: 40px; }
+  .area { padding-top: 20px; }
+  .area .sub { margin-top: 18px; }
 }
