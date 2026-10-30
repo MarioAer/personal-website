@@ -69,7 +69,7 @@ variants/<id>/          one model's implementation: plain HTML, CSS, optional va
 variants.json           registry: default variant, entries, contact links, repository
 shell/shell.js          the shared top bar, injected into every page
 scripts/build.ts        validate, assemble dist/, rewrite the base path
-scripts/lib/            registry validation, variant contract checks, spec versions, HTML, CSS and JS parsing
+scripts/lib/            registry validation, variant contract checks, spec versions, security policy, HTML, CSS and JS parsing
 scripts/serve.ts        static server for dist/, used locally and by Playwright
 tests/                  unit suite
 e2e/                    browser suite
@@ -161,6 +161,9 @@ Variants have full freedom of visual design within these limits:
   `<body>` or equivalent). The bar lives in a shadow root; variant CSS must not restyle it.
 - Plain HTML, CSS and optional vanilla JavaScript; no framework, no build step. A variant is a
   folder a browser can serve directly, at the site root and under `/<id>/`.
+- Scripts are files. The build adds a Content-Security-Policy that allows script only from the
+  site, so an inline `<script>` or an event handler attribute (`onclick`) fails the build. Every
+  fetch stays on the site; inline styles and `style` attributes are allowed.
 - Total transferred weight under 1 MB, images included.
 
 ### Design brief
@@ -221,12 +224,15 @@ Inputs: the repository and `BASE_PATH` (default `/`).
 2. Validate `variants.json` (Registry) and every variant (Variant contract); fail on the first
    violation, print all warnings.
 3. Empty `dist/`, copy the default variant to `dist/` and every variant to `dist/<id>/`.
-4. In every copied HTML file, rewrite the shell script `src` to `${BASE_PATH}shell/shell.js`.
-   Nothing else is rewritten.
+4. In every copied HTML file, rewrite the shell script `src` to `${BASE_PATH}shell/shell.js`,
+   and insert directly after the `<head>` start tag a Content-Security-Policy meta tag (GitHub
+   Pages cannot send headers) and an inline script, allowed by its hash, that applies the theme
+   stored under `theme` before first paint. Nothing else is rewritten; a page whose `<head>` start
+   tag is not written in its source fails the build.
 5. Copy `shell/` and `shell/favicon.ico` to `dist/favicon.ico`, and write `dist/variants.json`
    with the current `specVersion` added.
 6. Write `dist/.nojekyll` and `dist/404.html` (shell, heading, a sentence pointing to the
-   selector).
+   selector), with the same policy and theme script.
 
 Output is deterministic: identical inputs produce byte-identical `dist/`.
 
@@ -294,7 +300,7 @@ mutation-checked and should stay that way.
 | Layer | Covers |
 | --- | --- |
 | Unit (`tests/`) | Registry rules, each contract rule with a passing and a failing fixture, specification versions, and the build on a fixture repository: layout, shell path for `/` and a subpath, `specVersion` injected, determinism. |
-| Browser (`e2e/`, Chromium at 1440×900 and 360×780, against `dist/` built for `/personal-website/`; runs in CI) | Theme toggle persists; selector navigates for default and other ids; "View spec" links the right version; bar works without the registry; LinkedIn and GitHub on every variant and the 404 page; no console errors or third-party requests; one `<h1>` and the landmarks; no horizontal scroll; the bar's 56 px kept clear; no email address, `mailto:` or `tel:`. Nothing that quotes the specification's wording, so a new version does not break the suite. |
+| Browser (`e2e/`, Chromium at 1440×900 and 360×780, against `dist/` built for `/personal-website/`; runs in CI) | Theme toggle persists; selector navigates for default and other ids; "View spec" links the right version; bar works without the registry; LinkedIn and GitHub on every variant and the 404 page; no console errors or third-party requests; the security policy blocks injected script; a stored theme applies before the shell loads; one `<h1>` and the landmarks; no horizontal scroll; the bar's 56 px kept clear; no email address, `mailto:` or `tel:`. Nothing that quotes the specification's wording, so a new version does not break the suite. |
 
 Accessibility and performance are checked manually with Lighthouse before a variant is merged.
 Manual review covers everything the specification says: the content inventory, numbers, tone
