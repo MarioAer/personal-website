@@ -23,7 +23,7 @@ Run with `mise run <task>`. Most tasks wrap an npm script; the npm name is in th
 
 | Task | npm | What it does |
 | --- | --- | --- |
-| `install` | `npm ci` | Installs the pinned dependencies. |
+| `install` | `npm ci --ignore-scripts` | Installs the pinned dependencies without running their install scripts. |
 | `typecheck` | `npm run typecheck` | `tsc --noEmit`. The type checker is the only thing TypeScript does here. |
 | `lint` | `npm run lint` | Biome with one custom rule: no regular expression may match HTML or CSS (see Conventions). |
 | `test` | `npm test` | Unit suite, Node's built-in runner, `tests/**/*.test.ts`. |
@@ -250,6 +250,10 @@ GitHub Actions on push to `main`: install, typecheck, lint, unit and browser sui
 `dist/`, deploy to Pages. Pull requests run everything except the deployment. `BASE_PATH` comes
 from `actions/configure-pages`, which reads the Pages settings: `/` with a custom domain,
 `/<repository name>/` without one.
+
+Every action is pinned to a commit SHA with its version in a comment, and dependencies install
+with `--ignore-scripts`. Dependabot updates the pins and proposes a release only once it is seven
+days old, since minor and patch updates are merged and deployed without a person.
 
 CodeQL (`.github/workflows/codeql.yml`) analyses `shell/` and `scripts/` on every pull request, on
 `main` and weekly, with the `security-and-quality` queries; tests and variants are left out. The
