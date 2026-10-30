@@ -88,3 +88,18 @@ export function rewriteScriptSrc(html: string, from: string, to: string): string
   for (const { range, replacement } of edits.reverse()) result = result.slice(0, range.start) + replacement + result.slice(range.end)
   return result
 }
+
+/**
+ * Inserts `markup` directly after the document's `<head>` start tag and changes nothing else in the
+ * text. Throws when the start tag is not written in the source, as when the parser implies the head.
+ */
+export function insertAtHeadStart(html: string, markup: string): string {
+  const document = parse(html, { sourceCodeLocationInfo: true })
+  const root = document.childNodes.find((node) => defaultTreeAdapter.isElementNode(node) && node.tagName === 'html')
+  const head = root && 'childNodes' in root
+    ? root.childNodes.find((node) => defaultTreeAdapter.isElementNode(node) && node.tagName === 'head')
+    : undefined
+  const end = head && defaultTreeAdapter.isElementNode(head) ? head.sourceCodeLocation?.startTag?.endOffset : undefined
+  if (end === undefined) throw new Error('the head start tag of the page is not written in the source, so the security policy cannot be inserted')
+  return html.slice(0, end) + markup + html.slice(end)
+}

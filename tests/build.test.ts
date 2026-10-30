@@ -7,6 +7,7 @@ import { join } from 'node:path'
 import { build, normaliseBasePath } from '../scripts/build.ts'
 import type { BuildOptions, BuildResult } from '../scripts/build.ts'
 import { isRegistry } from '../scripts/lib/registry.ts'
+import { HEAD_MARKUP } from '../scripts/lib/policy.ts'
 
 /** Pieces of the fixture repository a single test wants to differ from the valid default. */
 interface FixtureOverrides {
@@ -104,7 +105,7 @@ test('the shell path is rewritten when an earlier attribute contains a greater-t
   await writeFile(join(root, 'variants', 'alpha', 'index.html'), html('/shell/shell.js'))
   await run(root, { basePath: '/personal-website' })
   const page = await readFile(join(root, 'dist', 'alpha', 'index.html'), 'utf8')
-  assert.equal(page, html('/personal-website/shell/shell.js'))
+  assert.equal(page, html('/personal-website/shell/shell.js').replace('<head>', `<head>${HEAD_MARKUP}`))
 })
 
 test('a variant built from a specification version that has no file fails the build', async (t) => {
@@ -181,4 +182,24 @@ test('a contract warning is returned, not thrown', async (t) => {
   await writeFile(join(root, 'variants', 'beta', 'app.js'), 'fetch("/data.json")')
   const result = await run(root)
   assert.ok(result.warnings.some((w: string) => /data\.json/.test(w)))
+})
+
+test('every published page starts its head with the security policy and the theme script', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await mkdir(join(root, 'variants', 'beta', 'more'))
+  await writeFile(join(root, 'variants', 'beta', 'more', 'page.html'), '<!doctype html><html><head><title>x</title></head><body></body></html>')
+  await run(root)
+  for (const path of ['index.html', 'alpha/index.html', 'beta/index.html', 'beta/more/page.html', '404.html']) {
+    const page = await readFile(join(root, 'dist', path), 'utf8')
+    assert.ok(page.includes(`<head>${HEAD_MARKUP}`), `${path} should start its head with the policy`)
+    assert.equal(page.split(HEAD_MARKUP).length, 2, `${path} should carry the policy once`)
+  }
+})
+
+test('a variant page without a written head start tag fails the build naming the file', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await writeFile(join(root, 'variants', 'beta', 'index.html'), `<!doctype html><meta name="variant" content="beta">${SHELL}<h1>beta</h1>`)
+  await assert.rejects(run(root), /beta\/index\.html.*head start tag/s)
 })
