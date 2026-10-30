@@ -1,12 +1,13 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, mkdir, writeFile, readFile, readdir, rm } from 'node:fs/promises'
+import { mkdtemp, mkdir, writeFile, readFile, readdir, rm, symlink } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { build, normaliseBasePath } from '../scripts/build.ts'
 import type { BuildOptions, BuildResult } from '../scripts/build.ts'
 import { isRegistry } from '../scripts/lib/registry.ts'
+import { HEAD_MARKUP } from '../scripts/lib/policy.ts'
 
 /** Pieces of the fixture repository a single test wants to differ from the valid default. */
 interface FixtureOverrides {
@@ -104,7 +105,7 @@ test('the shell path is rewritten when an earlier attribute contains a greater-t
   await writeFile(join(root, 'variants', 'alpha', 'index.html'), html('/shell/shell.js'))
   await run(root, { basePath: '/personal-website' })
   const page = await readFile(join(root, 'dist', 'alpha', 'index.html'), 'utf8')
-  assert.equal(page, html('/personal-website/shell/shell.js'))
+  assert.equal(page, html('/personal-website/shell/shell.js').replace('<head>', `<head>${HEAD_MARKUP}`))
 })
 
 test('a variant built from a specification version that has no file fails the build', async (t) => {
@@ -181,4 +182,61 @@ test('a contract warning is returned, not thrown', async (t) => {
   await writeFile(join(root, 'variants', 'beta', 'app.js'), 'fetch("/data.json")')
   const result = await run(root)
   assert.ok(result.warnings.some((w: string) => /data\.json/.test(w)))
+})
+
+test('a symbolic link in a variant fails the build naming the variant, and nothing is published', async (t) => {
+  const root = await fixture()
+  const outside = await mkdtemp(join(tmpdir(), 'pw-outside-'))
+  t.after(() => Promise.all([rm(root, { recursive: true, force: true }), rm(outside, { recursive: true, force: true })]))
+  await writeFile(join(outside, 'secret.txt'), 'TOP-SECRET')
+  await symlink(join(outside, 'secret.txt'), join(root, 'variants', 'beta', 'notes.txt'))
+  await assert.rejects(run(root), /beta.*notes\.txt.*symbolic link/s)
+  await assert.rejects(readdir(join(root, 'dist')))
+})
+
+test('a symbolic link to a directory in a variant fails the build', async (t) => {
+  const root = await fixture()
+  const outside = await mkdtemp(join(tmpdir(), 'pw-outside-'))
+  t.after(() => Promise.all([rm(root, { recursive: true, force: true }), rm(outside, { recursive: true, force: true })]))
+  await mkdir(join(root, 'variants', 'alpha', 'assets'))
+  await symlink(outside, join(root, 'variants', 'alpha', 'assets', 'linked'))
+  await assert.rejects(run(root), /alpha.*assets\/linked.*symbolic link/s)
+})
+
+test('dot entries in a variant are not published, and the build warns about each', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await mkdir(join(root, 'variants', 'alpha', '.claude', '.cc-writes'), { recursive: true })
+  await mkdir(join(root, 'variants', 'beta', 'fonts'))
+  await writeFile(join(root, 'variants', 'beta', 'fonts', '.DS_Store'), 'x')
+  await writeFile(join(root, 'variants', 'beta', 'fonts', 'a.woff2'), 'font')
+  const result = await run(root)
+  const dist = join(root, 'dist')
+  for (const path of ['.claude', 'alpha/.claude', 'beta/fonts/.DS_Store']) {
+    await assert.rejects(readFile(join(dist, path)), `${path} should not be published`)
+  }
+  await assert.doesNotReject(readFile(join(dist, 'beta', 'fonts', 'a.woff2')))
+  await assert.doesNotReject(readFile(join(dist, '.nojekyll')), 'the build still writes its own dot file')
+  assert.ok(result.warnings.some((w: string) => /variants\/alpha\/\.claude/.test(w)))
+  assert.ok(result.warnings.some((w: string) => /variants\/beta\/fonts\/\.DS_Store/.test(w)))
+})
+
+test('every published page starts its head with the security policy and the theme script', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await mkdir(join(root, 'variants', 'beta', 'more'))
+  await writeFile(join(root, 'variants', 'beta', 'more', 'page.html'), '<!doctype html><html><head><title>x</title></head><body></body></html>')
+  await run(root)
+  for (const path of ['index.html', 'alpha/index.html', 'beta/index.html', 'beta/more/page.html', '404.html']) {
+    const page = await readFile(join(root, 'dist', path), 'utf8')
+    assert.ok(page.includes(`<head>${HEAD_MARKUP}`), `${path} should start its head with the policy`)
+    assert.equal(page.split(HEAD_MARKUP).length, 2, `${path} should carry the policy once`)
+  }
+})
+
+test('a variant page without a written head start tag fails the build naming the file', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await writeFile(join(root, 'variants', 'beta', 'index.html'), `<!doctype html><meta name="variant" content="beta">${SHELL}<h1>beta</h1>`)
+  await assert.rejects(run(root), /beta\/index\.html.*head start tag/s)
 })

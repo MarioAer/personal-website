@@ -180,10 +180,10 @@ test('a fake tag inside an attribute value does not grant the anchor exception',
   assert.ok(run({ 'index.html': page(body) }).errors.some((e: string) => /evil\.example/.test(e)))
 })
 
-test('an absolute path in an inline script is a warning, not an error', () => {
+test('an absolute path in an inline script is warned about, not reported as a reference error', () => {
   const html = page('', SHELL + '<script>const src = "/images/logo.png"</script>')
   const result = run({ 'index.html': html })
-  assert.deepEqual(result.errors, [])
+  assert.ok(!result.errors.some((e: string) => /logo\.png/.test(e)))
   assert.ok(result.warnings.some((w: string) => /logo\.png/.test(w)))
 })
 
@@ -203,7 +203,7 @@ test('a comment marker inside a script body does not swallow later markup', () =
 
 test('a comment marker inside a script body does not hide the shell tag', () => {
   const head = '<script>const s = "<!--"</script>' + SHELL + '<!-- unrelated -->'
-  assert.deepEqual(run({ 'index.html': page('', head) }).errors, [])
+  assert.ok(!run({ 'index.html': page('', head) }).errors.some((e: string) => /exactly one/.test(e)))
 })
 
 const EVIL = '<img src="https://evil.example/x.png" alt="x">'
@@ -321,4 +321,17 @@ test('javascript that cannot be parsed is reported for review, not scanned', () 
   const result = run({ 'index.html': page(), 'app.js': 'const = ;' })
   assert.deepEqual(result.errors, [])
   assert.ok(result.warnings.some((w) => /could not be parsed/.test(w)))
+})
+
+test('an event handler attribute is an error, because the security policy blocks inline script', () => {
+  assert.ok(run({ 'index.html': page('<button onclick="go()">x</button>') }).errors.some((e: string) => /onclick/.test(e)))
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg"><circle onload="x()" r="1"/></svg>'
+  assert.ok(run({ 'index.html': page(), 'a.svg': svg }).errors.some((e: string) => /onload/.test(e)))
+  assert.deepEqual(run({ 'index.html': page('<p data-onclick="x">x</p>') }).errors, [])
+})
+
+test('an inline script is an error, because the security policy blocks it', () => {
+  assert.ok(run({ 'index.html': page('<script>document.title = "x"</script>') }).errors.some((e: string) => /inline script/.test(e)))
+  assert.ok(run({ 'index.html': page('<script type="module">import "./a.js"</script>') }).errors.some((e: string) => /inline script/.test(e)))
+  assert.deepEqual(run({ 'index.html': page('<script type="module" src="./a.js"></script><script type="application/ld+json">{}</script>') }).errors, [])
 })
