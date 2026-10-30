@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, mkdir, writeFile, readFile, readdir, rm } from 'node:fs/promises'
+import { mkdtemp, mkdir, writeFile, readFile, readdir, rm, symlink } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -181,4 +181,41 @@ test('a contract warning is returned, not thrown', async (t) => {
   await writeFile(join(root, 'variants', 'beta', 'app.js'), 'fetch("/data.json")')
   const result = await run(root)
   assert.ok(result.warnings.some((w: string) => /data\.json/.test(w)))
+})
+
+test('a symbolic link in a variant fails the build naming the variant, and nothing is published', async (t) => {
+  const root = await fixture()
+  const outside = await mkdtemp(join(tmpdir(), 'pw-outside-'))
+  t.after(() => Promise.all([rm(root, { recursive: true, force: true }), rm(outside, { recursive: true, force: true })]))
+  await writeFile(join(outside, 'secret.txt'), 'TOP-SECRET')
+  await symlink(join(outside, 'secret.txt'), join(root, 'variants', 'beta', 'notes.txt'))
+  await assert.rejects(run(root), /beta.*notes\.txt.*symbolic link/s)
+  await assert.rejects(readdir(join(root, 'dist')))
+})
+
+test('a symbolic link to a directory in a variant fails the build', async (t) => {
+  const root = await fixture()
+  const outside = await mkdtemp(join(tmpdir(), 'pw-outside-'))
+  t.after(() => Promise.all([rm(root, { recursive: true, force: true }), rm(outside, { recursive: true, force: true })]))
+  await mkdir(join(root, 'variants', 'alpha', 'assets'))
+  await symlink(outside, join(root, 'variants', 'alpha', 'assets', 'linked'))
+  await assert.rejects(run(root), /alpha.*assets\/linked.*symbolic link/s)
+})
+
+test('dot entries in a variant are not published, and the build warns about each', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await mkdir(join(root, 'variants', 'alpha', '.claude', '.cc-writes'), { recursive: true })
+  await mkdir(join(root, 'variants', 'beta', 'fonts'))
+  await writeFile(join(root, 'variants', 'beta', 'fonts', '.DS_Store'), 'x')
+  await writeFile(join(root, 'variants', 'beta', 'fonts', 'a.woff2'), 'font')
+  const result = await run(root)
+  const dist = join(root, 'dist')
+  for (const path of ['.claude', 'alpha/.claude', 'beta/fonts/.DS_Store']) {
+    await assert.rejects(readFile(join(dist, path)), `${path} should not be published`)
+  }
+  await assert.doesNotReject(readFile(join(dist, 'beta', 'fonts', 'a.woff2')))
+  await assert.doesNotReject(readFile(join(dist, '.nojekyll')), 'the build still writes its own dot file')
+  assert.ok(result.warnings.some((w: string) => /variants\/alpha\/\.claude/.test(w)))
+  assert.ok(result.warnings.some((w: string) => /variants\/beta\/fonts\/\.DS_Store/.test(w)))
 })

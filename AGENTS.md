@@ -145,9 +145,13 @@ A folder under `variants/<id>/` is valid when:
    `document.baseURI`. The build warns on a string literal starting with a single `/`, and on one
    that is an `http(s):`, `ws(s):` or protocol-relative URL; the reviewer decides.
 5. No top-level entry is a reserved name (see Registry).
-6. The content satisfies the content inventory of the specification (checked by review).
+6. Every entry is a regular file or a directory. A symbolic link could name any file on the
+   machine that runs the build and publish its contents, so it fails the build. Dot entries
+   (`.claude/`, `.DS_Store`) are tool and system state: the build warns about them and does not
+   publish them.
+7. The content satisfies the content inventory of the specification (checked by review).
 
-The build enforces 1 to 3 and 5, warns on 4, and fails naming the variant and the rule.
+The build enforces 1 to 3, 5 and 6, warns on 4, and fails naming the variant and the rule.
 
 ## Design constraints for variants
 
@@ -223,7 +227,8 @@ Inputs: the repository and `BASE_PATH` (default `/`).
 1. Read the specification versions from `spec/`; fail when there is none.
 2. Validate `variants.json` (Registry) and every variant (Variant contract); fail on the first
    violation, print all warnings.
-3. Empty `dist/`, copy the default variant to `dist/` and every variant to `dist/<id>/`.
+3. Empty `dist/`, copy the default variant to `dist/` and every variant to `dist/<id>/`, leaving
+   out dot entries.
 4. In every copied HTML file, rewrite the shell script `src` to `${BASE_PATH}shell/shell.js`.
    Nothing else is rewritten.
 5. Copy `shell/` and `shell/favicon.ico` to `dist/favicon.ico`, and write `dist/variants.json`
