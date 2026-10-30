@@ -257,8 +257,15 @@ a {
 .lane path {
   stroke-width: 2.5;
   stroke-dasharray: 14 18;
-  animation: flow 1.4s linear infinite;
+  will-change: transform;
+  animation: slide 1.4s linear infinite;
 }
+
+/* The dashes travel by translating the whole path along its own axis by a
+   multiple of the dash period (64 = 2 x 32); a clip path hides the overshoot. */
+.lane .r1 { --tx: -52.02px; --ty: 37.281px; }
+.lane .r2 { --tx: 0px; --ty: 64px; }
+.lane .r3 { --tx: 52.02px; --ty: 37.281px; }
 
 .slab {
   cursor: pointer;
@@ -480,7 +487,19 @@ h2 {
   stroke: var(--cc);
   stroke-width: 2;
   stroke-dasharray: 5 6;
-  animation: flow 1.4s linear infinite;
+  will-change: transform;
+  animation: slide 1.4s linear infinite;
+}
+
+/* Translation of 66 = 6 x 11, a whole number of dash periods. */
+.c1 .mline { --tx: -44.152px; --ty: 49.057px; }
+.c2 .mline { --tx: 0px; --ty: 66px; }
+.c3 .mline { --tx: 44.152px; --ty: 49.057px; }
+
+/* motion.js marks an SVG that is scrolled out of view; its loop pauses. */
+svg[data-offscreen] .lane path,
+svg[data-offscreen] .mline {
+  animation-play-state: paused;
 }
 
 .mini circle {
@@ -891,8 +910,8 @@ h2 {
 
 /* ---------- Motion ---------- */
 
-@keyframes flow {
-  to { stroke-dashoffset: -64; }
+@keyframes slide {
+  to { transform: translate(var(--tx), var(--ty)); }
 }
 
 @keyframes rise {

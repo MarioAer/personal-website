@@ -8,6 +8,7 @@
 <title>Mario Erazo · Engineering Manager and Solution Architect</title>
 <link rel="stylesheet" href="./style.css">
 <script type="module" src="/shell/shell.js"></script>
+<script src="./motion.js" defer></script>
 </head>
 <body>
 
@@ -29,6 +30,7 @@
             <stop offset="0" class="halo-stop" stop-opacity="0.5"/><stop offset="1" class="halo-stop" stop-opacity="0"/>
           </radialGradient>
           <clipPath id="disc"><circle cx="720" cy="470" r="170"/></clipPath>
+          <clipPath id="roads"><path d="M720 470L40 900H200Z"/><path d="M720 470L640 900H800Z"/><path d="M720 470L1240 900H1400Z"/></clipPath>
         </defs>
 
         <g aria-hidden="true">
@@ -74,10 +76,10 @@
             <path class="r2" d="M720 470L640 900M720 470L800 900"/>
             <path class="r3" d="M720 470L1240 900M720 470L1400 900"/>
           </g>
-          <g class="lane">
-            <path class="flow r1" d="M720 470L120 900"/>
-            <path class="flow r2" d="M720 470L720 900"/>
-            <path class="flow r3" d="M720 470L1320 900"/>
+          <g class="lane" clip-path="url(#roads)">
+            <path class="flow r1" d="M772.02 432.719L120 900"/>
+            <path class="flow r2" d="M720 406L720 900"/>
+            <path class="flow r3" d="M667.98 432.719L1320 900"/>
           </g>
         </g>
       </svg>
@@ -124,9 +126,10 @@
     <article class="area c1" id="architecture" aria-labelledby="architecture-title">
       <div class="area-head">
         <svg class="mini" viewBox="0 0 200 120" aria-hidden="true">
+          <defs><clipPath id="mclip"><rect x="0" y="20" width="200" height="100"/></clipPath></defs>
           <path class="mgrid" d="M0 20H200M100 20L-60 120M100 20L-10 120M100 20L45 120M100 20L155 120M100 20L210 120M100 20L260 120"/>
           <path class="mroad" d="M100 20L-4 120H24Z"/>
-          <path class="mline" d="M100 20L10 120"/>
+          <g clip-path="url(#mclip)"><path class="mline" d="M144.152 -29.057L10 120"/></g>
           <circle cx="73" cy="50" r="4"/><circle cx="55" cy="70" r="4"/><circle cx="37" cy="90" r="4"/><circle cx="19" cy="110" r="4"/>
         </svg>
         <p class="num">01</p>
@@ -156,7 +159,7 @@
         <svg class="mini" viewBox="0 0 200 120" aria-hidden="true">
           <path class="mgrid" d="M0 20H200M100 20L-60 120M100 20L-10 120M100 20L45 120M100 20L155 120M100 20L210 120M100 20L260 120"/>
           <path class="mroad" d="M100 20L86 120H114Z"/>
-          <path class="mline" d="M100 20L100 120"/>
+          <g clip-path="url(#mclip)"><path class="mline" d="M100 -46L100 120"/></g>
           <circle cx="100" cy="50" r="4"/><circle cx="100" cy="70" r="4"/><circle cx="100" cy="90" r="4"/><circle cx="100" cy="110" r="4"/>
         </svg>
         <p class="num">02</p>
@@ -186,7 +189,7 @@
         <svg class="mini" viewBox="0 0 200 120" aria-hidden="true">
           <path class="mgrid" d="M0 20H200M100 20L-60 120M100 20L-10 120M100 20L45 120M100 20L155 120M100 20L210 120M100 20L260 120"/>
           <path class="mroad" d="M100 20L176 120H204Z"/>
-          <path class="mline" d="M100 20L190 120"/>
+          <g clip-path="url(#mclip)"><path class="mline" d="M55.848 -29.057L190 120"/></g>
           <circle cx="127" cy="50" r="4"/><circle cx="145" cy="70" r="4"/><circle cx="163" cy="90" r="4"/><circle cx="181" cy="110" r="4"/>
         </svg>
         <p class="num">03</p>
