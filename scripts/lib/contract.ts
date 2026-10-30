@@ -55,6 +55,22 @@ function scriptWarnings(element: HtmlElement, where: string): string[] {
   return []
 }
 
+/**
+ * The build's Content-Security-Policy allows only script files from the site, so inline script and
+ * event handler attributes would not run; they are reported here instead of failing in the browser.
+ */
+function inlineScriptErrors(element: HtmlElement, where: string): string[] {
+  const errors: string[] = []
+  for (const name of element.attrs.keys()) {
+    if (name.startsWith('on')) errors.push(`${where}: the event handler attribute "${name}" is blocked by the security policy; attach listeners from a script file`)
+  }
+  const type = (element.attrs.get('type') ?? '').trim().toLowerCase()
+  if (element.tag === 'script' && JAVASCRIPT_TYPES.has(type) && element.text.trim() !== '') {
+    errors.push(`${where}: an inline script is blocked by the security policy; move it to a .js file in the variant`)
+  }
+  return errors
+}
+
 function classify(value: string): ReferenceKind {
   const v = value.trim()
   if (v === '') return 'ok'
@@ -142,6 +158,7 @@ export function checkVariant({ id, files }: VariantToCheck): ContractResult {
         if (style !== undefined) checkCss(style, where, errors, 'declarationList')
         if (element.tag === 'style') checkCss(element.text, where, errors)
         if (element.tag === 'script') warnings.push(...scriptWarnings(element, where))
+        errors.push(...inlineScriptErrors(element, where))
       }
     }
     if (path.endsWith('.css')) checkCss(text, where, errors)
