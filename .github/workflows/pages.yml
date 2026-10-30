@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
+      - run: npm ci --ignore-scripts # no dependency needs one; a compromised release cannot run code on install
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
