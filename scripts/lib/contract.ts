@@ -83,6 +83,22 @@ function scriptWarnings(element: HtmlElement, where: string): string[] {
 }
 
 /**
+ * The build's Content-Security-Policy allows only script files from the site, so inline script and
+ * event handler attributes would not run; they are reported here instead of failing in the browser.
+ */
+function inlineScriptErrors(element: HtmlElement, where: string): string[] {
+  const errors: string[] = []
+  for (const name of element.attrs.keys()) {
+    if (name.startsWith('on')) errors.push(`${where}: the event handler attribute "${name}" is blocked by the security policy; attach listeners from a script file`)
+  }
+  const type = (element.attrs.get('type') ?? '').trim().toLowerCase()
+  if (element.tag === 'script' && JAVASCRIPT_TYPES.has(type) && element.text.trim() !== '') {
+    errors.push(`${where}: an inline script is blocked by the security policy; move it to a .js file in the variant`)
+  }
+  return errors
+}
+
+/**
  * Resolves the reference as a browser does, which strips tabs, newlines and surrounding control
  * characters, reads a backslash as a slash and decodes `%2e` path segments, and classifies the result.
  */
@@ -192,6 +208,7 @@ export function checkVariant({ id, files }: VariantToCheck): ContractResult {
       for (const element of elementsOf(path, text)) {
         checkElement(element, where, folder, errors)
         if (element.tag === 'script') warnings.push(...scriptWarnings(element, where))
+        errors.push(...inlineScriptErrors(element, where))
       }
     }
     if (path.endsWith('.css')) checkCss(text, where, folder, errors)

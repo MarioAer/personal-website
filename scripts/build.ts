@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url'
 import { isRecord, isRegistry, validateRegistry } from './lib/registry.ts'
 import type { Registry } from './lib/registry.ts'
 import { checkVariant } from './lib/contract.ts'
-import { rewriteScriptSrc } from './lib/html.ts'
+import { insertAtHeadStart, rewriteScriptSrc } from './lib/html.ts'
+import { HEAD_MARKUP } from './lib/policy.ts'
 import type { VariantFiles } from './lib/contract.ts'
 import { specVersions } from './lib/spec.ts'
 
@@ -108,6 +109,15 @@ function rewriteShellPath(html: string, basePath: string): string {
   return rewriteScriptSrc(html, '/shell/shell.js', `${basePath}shell/shell.js`)
 }
 
+/** Places the security policy and the theme script at the start of the page's head. */
+function withPolicy(html: string, path: string): string {
+  try {
+    return insertAtHeadStart(html, HEAD_MARKUP)
+  } catch (cause) {
+    throw new Error(`${path}: ${cause instanceof Error ? cause.message : String(cause)}`)
+  }
+}
+
 async function listSpecVersions(root: string): Promise<string[]> {
   try {
     return specVersions(await readdir(join(root, 'spec')))
@@ -171,8 +181,7 @@ export async function build({ root, outDir, basePath }: BuildOptions): Promise<B
   for (const file of await listFiles(outDir)) {
     if (!file.relative.endsWith('.html')) continue
     const html = await readFile(file.absolute, 'utf8')
-    const rewritten = rewriteShellPath(html, base)
-    if (rewritten !== html) await writeFile(file.absolute, rewritten)
+    await writeFile(file.absolute, withPolicy(rewriteShellPath(html, base), file.relative))
   }
 
   await cp(join(root, 'shell'), join(outDir, 'shell'), { recursive: true })
@@ -182,7 +191,7 @@ export async function build({ root, outDir, basePath }: BuildOptions): Promise<B
   await writeFile(join(outDir, 'variants.json'), `${JSON.stringify({ ...registry, specVersion }, null, 2)}\n`)
 
   await writeFile(join(outDir, '.nojekyll'), '')
-  await writeFile(join(outDir, '404.html'), `<!doctype html>
+  await writeFile(join(outDir, '404.html'), withPolicy(`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -204,7 +213,7 @@ main{max-width:40rem;margin:0 auto;padding:3rem 1rem}
 </main>
 </body>
 </html>
-`)
+`, '404.html'))
 
   return { warnings }
 }
