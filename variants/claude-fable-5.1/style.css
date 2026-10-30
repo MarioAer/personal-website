@@ -513,11 +513,21 @@ a { color: inherit; }
   position: relative;
   display: flex;
   justify-content: space-between;
+  /* the track, drawn as a background so both pseudo-elements are free for the carriage */
+  background-image: linear-gradient(var(--ink), var(--ink));
+  background-repeat: no-repeat;
 }
+/* the beacon: a ring that grows out of the carriage and fades, transform and opacity only */
 .strip__stations::before {
   content: "";
   position: absolute;
-  background: var(--ink);
+  z-index: 1;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
 }
 .strip__station {
   position: relative;
@@ -573,13 +583,8 @@ a { color: inherit; }
     height: 100%;
     align-items: flex-start;
     padding-top: 1.4rem;
-  }
-  .strip__stations::before {
-    left: 0.375rem;
-    right: 0.375rem;
-    top: 1.4rem;
-    translate: 0 -50%;
-    height: 3px;
+    background-size: calc(100% - 0.75rem) 3px;
+    background-position: 0.375rem calc(1.4rem - 1.5px);
   }
   .strip__stations li { position: relative; width: 0.75rem; height: 0.75rem; }
   .strip__station {
@@ -602,6 +607,7 @@ a { color: inherit; }
   .strip__station[aria-current]::before { top: 1.3rem; left: 0; bottom: auto; }
   .strip__stations li:nth-child(n + 4) .strip__station[aria-current] { right: 0; text-align: right; }
   .strip__stations li:nth-child(n + 4) .strip__station[aria-current]::before { left: auto; right: 0; }
+  .strip__stations::before,
   .strip__stations::after {
     top: 1.4rem;
     left: calc(0.375rem + (var(--p1) + var(--p2) + var(--p3) + var(--p4) + var(--p5)) * (100% - 0.75rem) / 5);
@@ -626,22 +632,19 @@ a { color: inherit; }
     flex: 1 1 auto;
     flex-direction: column;
     padding-left: 1.75rem;
-  }
-  .strip__stations::before {
-    left: calc(0.375rem - 1.5px);
-    top: 0.375rem;
-    bottom: 0.375rem;
-    width: 3px;
+    background-size: 3px calc(100% - 0.75rem);
+    background-position: calc(0.375rem - 1.5px) 0.375rem;
   }
   .strip__station::before {
     left: -1.75rem;
     top: 0.5em;
     translate: 0 -50%;
   }
+  .strip__stations::before,
   .strip__stations::after {
-    left: calc(0.375rem - 0.5625rem);
+    left: 0.375rem;
     top: calc(0.375rem + (var(--p1) + var(--p2) + var(--p3) + var(--p4) + var(--p5)) * (100% - 0.75rem) / 5);
-    translate: 0 -50%;
+    translate: -50% -50%;
   }
 }
 
@@ -1382,8 +1385,8 @@ a { color: inherit; }
 }
 @keyframes march { to { stroke-dashoffset: -38; } }
 @keyframes beacon {
-  0% { box-shadow: 0 0 0 3px var(--bg), 0 0 0 3px var(--accent); }
-  100% { box-shadow: 0 0 0 3px var(--bg), 0 0 0 14px transparent; }
+  0% { transform: scale(0.6); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 0; }
 }
 @keyframes fill-mark {
   from { background-color: var(--bg); border-color: var(--ink); transform: scale(0.85); }
@@ -1405,8 +1408,9 @@ a { color: inherit; }
   .net__plate { animation: rise 600ms ease-out both; }
   .net__ringpt,
   .net__ringlbl { animation: fade-in 600ms ease-out both; }
-  .net__ringtrack { animation: march 1.6s linear infinite; }
-  .strip__stations::after { animation: beacon 2.6s ease-out infinite; }
+  /* the dashes march while the map is being drawn, then settle: six periods, ending where they began */
+  .net__ringtrack { animation: march 1.6s linear 6; }
+  .strip__stations::before { animation: beacon 2.6s ease-out infinite; }
 
   @supports (animation-timeline: view()) {
     .career__stop--now::before {
@@ -1440,3 +1444,7 @@ a { color: inherit; }
     .net__train--ring { animation: loop 26s linear infinite both; }
   }
 }
+
+/* main.js parks the map while it is off screen; the endless loops wait rather than repaint unseen */
+.net--parked .net__ringtrack,
+.net--parked .net__train { animation-play-state: paused; }

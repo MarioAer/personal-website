@@ -1,8 +1,11 @@
-// Variant claude-fable-5.1. One enhancement; the page reads the same without this script.
+// Variant claude-fable-5.1. Two enhancements; the page reads the same without this script.
 //
 // The strip map. CSS scroll-driven animations move the carriage; this script marks the current
 // station for assistive technology and, in browsers without scroll timelines, moves the carriage
 // itself by writing the same custom properties the CSS animates.
+//
+// The network map. Its trains loop endlessly; while the map is scrolled out of view the script
+// parks it (class `net--parked`, which pauses the animations in CSS) so nothing repaints unseen.
 
 const strip = document.querySelector('.strip')
 const stations = strip ? [...strip.querySelectorAll('.strip__station')] : []
@@ -51,4 +54,12 @@ if (strip && stations.length > 1) {
   window.addEventListener('scroll', schedule, { passive: true })
   window.addEventListener('resize', schedule)
   update()
+}
+
+const net = document.querySelector('.net')
+if (net && 'IntersectionObserver' in window) {
+  const parking = new IntersectionObserver((entries) => {
+    for (const entry of entries) net.classList.toggle('net--parked', !entry.isIntersecting)
+  })
+  parking.observe(net)
 }
