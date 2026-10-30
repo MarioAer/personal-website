@@ -94,8 +94,80 @@ test('an absolute path in a template literal is a warning, not an error', () => 
   assert.ok(result.warnings.some((w: string) => /data\.json/.test(w)))
 })
 
-test('a protocol-relative url in javascript is not warned about', () => {
-  assert.deepEqual(run({ 'index.html': page(), 'app.js': 'const u = "//example.com/a"' }).warnings, [])
+test('a protocol-relative url in javascript is warned about as external, not as an absolute path', () => {
+  const warnings = run({ 'index.html': page(), 'app.js': 'const u = "//example.com/a"' }).warnings
+  assert.equal(warnings.length, 1)
+  assert.ok(warnings.every((w: string) => /external/.test(w) && !/absolute path/.test(w)))
+})
+
+test('an external url in variant javascript is a warning, not an error', () => {
+  const result = run({ 'index.html': page(), 'app.js': 'fetch("https://tracker.example/" + location); new Image().src = "http://x.example/p"' })
+  assert.deepEqual(result.errors, [])
+  assert.ok(result.warnings.some((w: string) => /tracker\.example/.test(w)))
+  assert.ok(result.warnings.some((w: string) => /x\.example/.test(w)))
+})
+
+test('a relative string in variant javascript is not warned about', () => {
+  assert.deepEqual(run({ 'index.html': page(), 'app.js': 'fetch(new URL("data.json", document.baseURI))' }).warnings, [])
+})
+
+test('a url the browser repairs is judged by where it resolves, not by how it is spelled', () => {
+  const repaired = [
+    'ht&#10;tps://evil.example/a.png',
+    'ht&#9;tps://evil.example/a.png',
+    '&#1;https://evil.example/a.png',
+    '\\\\evil.example/a.png',
+    '\\/evil.example/a.png',
+  ]
+  for (const src of repaired) {
+    const errors = run({ 'index.html': page(`<img loading="lazy" src="${src}" alt="x">`) }).errors
+    assert.ok(errors.some((e: string) => /evil\.example/.test(e)), src)
+  }
+})
+
+test('a script url split by a newline is not a link', () => {
+  assert.ok(run({ 'index.html': page('<a href="java&#10;script:alert(1)">x</a>') }).errors.some((e: string) => /forbidden scheme/.test(e)))
+})
+
+test('a percent-encoded or backslash parent path is an error', () => {
+  for (const src of ['%2e%2e/other/x.png', '..\\shell/x.js', 'a/%2E%2E/%2e%2e/x.png']) {
+    assert.ok(run({ 'index.html': page(`<img src="${src}" alt="x">`) }).errors.some((e: string) => /outside the variant folder/.test(e)), src)
+  }
+})
+
+test('a relative path that resolves inside the variant folder is accepted', () => {
+  const body = '<img src="sub/../a.png" alt="a"><img src="./a%20b.png?v=1#x" alt="b"><a href="?q=1">q</a>'
+  assert.deepEqual(run({ 'index.html': page(body) }).errors, [])
+})
+
+test('a css url the browser repairs is judged by where it resolves', () => {
+  assert.ok(cssErrors('a { background: url("\\\\\\\\evil.example/x.png") }').some((e) => /evil\.example/.test(e)))
+  const html = page('<p style="background:url(&quot;ht\\a tps://evil.example/x.png&quot;)">x</p>')
+  assert.ok(run({ 'index.html': html }).errors.some((e) => /evil\.example/.test(e)))
+})
+
+test('ping, imagesrcset, action, formaction and background are checked', () => {
+  const cases = [
+    '<a href="https://ok.example" ping="https://evil.example/p">x</a>',
+    '<a href="./a.html" ping="./ok https://evil.example/p">x</a>',
+    '<link rel="preload" as="image" imagesrcset="./a.png 1x, https://evil.example/b.png 2x">',
+    '<form action="https://evil.example/collect"><button>x</button></form>',
+    '<form><button formaction="https://evil.example/collect">x</button></form>',
+    '<table background="https://evil.example/bg.png"><tr><td>x</td></tr></table>',
+  ]
+  for (const body of cases) {
+    assert.ok(run({ 'index.html': page(body) }).errors.some((e: string) => /evil\.example/.test(e)), body)
+  }
+  assert.deepEqual(run({ 'index.html': page('<a href="./a.html" ping="./p">x</a>') }).errors, [])
+})
+
+test('a reference that is not a valid URL is an error', () => {
+  assert.ok(run({ 'index.html': page('<img src="https://[evil.example/a.png" alt="x">') }).errors.some((e: string) => /not a valid URL/.test(e)))
+})
+
+test('a meta refresh is an error', () => {
+  const head = SHELL + '<meta http-equiv="Refresh" content="0; url=https://evil.example">'
+  assert.ok(run({ 'index.html': page('', head) }).errors.some((e: string) => /refresh/.test(e)))
 })
 
 test('a reserved top-level entry is an error', () => {
