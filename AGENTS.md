@@ -131,20 +131,27 @@ A folder under `variants/<id>/` is valid when:
 2. `index.html` contains exactly one `<script type="module" src="/shell/shell.js"></script>`, in
    `<head>`. This is the only absolute path a variant may contain; the build rewrites it to the
    deployment base path.
-3. Every other resource reference is relative (`./style.css`, `fonts/inter.woff2`; `../` is
-   forbidden), a `data:` or `blob:` URI, or a fragment. The build checks `src`, `href`, `srcset`,
-   `poster`, `data` and `xlink:href` on every element in `index.html` and `.svg` files, and
-   `url()` and `@import` in `<style>`, `style` attributes and `.css` files. The one exception is
-   `<a href>`, which may be `https://`; `mailto:`, `tel:` and every other scheme are forbidden.
-   The check is syntactic, not a guarantee about computed URLs.
+3. Every other resource reference resolves inside the variant folder (`./style.css`,
+   `fonts/inter.woff2`), or is a `data:` or `blob:` URI or a fragment. A reference is judged by
+   where a browser resolves it, not by how it is spelled: tabs, newlines, backslashes and `%2e`
+   segments are resolved first. The build checks `src`, `href`, `srcset`, `imagesrcset`, `poster`,
+   `data`, `xlink:href`, `action`, `formaction`, `background` and `ping` on every element in
+   `index.html` and `.svg` files, and `url()` and `@import` in `<style>`, `style` attributes and
+   `.css` files. `<meta http-equiv="refresh">` is forbidden. The one exception is `<a href>`,
+   which may resolve to `https:`; `mailto:`, `tel:` and every other scheme are forbidden. The
+   check covers markup and stylesheets, not URLs computed by scripts.
 4. Variant JavaScript does not request absolute paths (`fetch('/x')`), because the default
-   variant is served both at the root and under `/<id>/`. Resolve assets against
-   `document.baseURI`. The build warns on a string literal starting with a single `/`; the
-   reviewer decides.
+   variant is served both at the root and under `/<id>/`, nor other sites. Resolve assets against
+   `document.baseURI`. The build warns on a string literal starting with a single `/`, and on one
+   that is an `http(s):`, `ws(s):` or protocol-relative URL; the reviewer decides.
 5. No top-level entry is a reserved name (see Registry).
-6. The content satisfies the content inventory of the specification (checked by review).
+6. Every entry is a regular file or a directory. A symbolic link could name any file on the
+   machine that runs the build and publish its contents, so it fails the build. Dot entries
+   (`.claude/`, `.DS_Store`) are tool and system state: the build warns about them and does not
+   publish them.
+7. The content satisfies the content inventory of the specification (checked by review).
 
-The build enforces 1 to 3 and 5, warns on 4, and fails naming the variant and the rule.
+The build enforces 1 to 3, 5 and 6, warns on 4, and fails naming the variant and the rule.
 
 ## Design constraints for variants
 
@@ -223,7 +230,8 @@ Inputs: the repository and `BASE_PATH` (default `/`).
 1. Read the specification versions from `spec/`; fail when there is none.
 2. Validate `variants.json` (Registry) and every variant (Variant contract); fail on the first
    violation, print all warnings.
-3. Empty `dist/`, copy the default variant to `dist/` and every variant to `dist/<id>/`.
+3. Empty `dist/`, copy the default variant to `dist/` and every variant to `dist/<id>/`, leaving
+   out dot entries.
 4. In every copied HTML file, rewrite the shell script `src` to `${BASE_PATH}shell/shell.js`,
    and insert directly after the `<head>` start tag a Content-Security-Policy meta tag (GitHub
    Pages cannot send headers) and an inline script, allowed by its hash, that applies the theme
