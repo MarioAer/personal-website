@@ -113,6 +113,16 @@ test('the theme toggle still works when storage throws', async ({ page }) => {
   expect(errors).toEqual([])
 })
 
+for (const stored of ['light', 'dark'] as const) {
+  test(`a stored ${stored} theme is applied before the shell loads`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: stored === 'dark' ? 'light' : 'dark' })
+    await page.addInitScript((theme) => window.localStorage.setItem('theme', theme), stored)
+    await page.route('**/shell/shell.js', (route) => route.abort())
+    await page.goto('./')
+    await expect(page.locator('html')).toHaveAttribute('data-theme', stored)
+  })
+}
+
 const specUrl = (version: string): string => `${registry.repository}/blob/main/spec/${version}.md`
 
 test('the specification link opens the version the variant was built from', async ({ page }) => {

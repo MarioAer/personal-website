@@ -3,7 +3,7 @@ node = "24"
 
 [tasks.install]
 description = "Install the pinned dependencies"
-run = "npm ci"
+run = "npm ci --ignore-scripts"
 
 [tasks.typecheck]
 description = "Type-check the TypeScript; never emits"
