@@ -161,7 +161,7 @@ strong {
 	border-radius: 12px;
 	padding: 2rem;
 	background: var(--bg-primary);
-	transition: all 0.3s ease;
+	transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .expertise-card:hover {
@@ -256,7 +256,7 @@ strong {
 	background: var(--bg-primary);
 	border-radius: 8px;
 	border: 1px solid var(--border);
-	transition: all 0.3s ease;
+	transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .principle:hover {
@@ -339,7 +339,7 @@ strong {
 	background: var(--accent);
 	border: 2px solid var(--bg-primary);
 	box-shadow: 0 0 0 2px var(--border);
-	transition: all 0.3s ease;
+	transition: width 0.3s ease, height 0.3s ease, top 0.3s ease, box-shadow 0.3s ease;
 }
 
 .timeline-item:hover .timeline-marker::after {
