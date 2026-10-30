@@ -131,16 +131,19 @@ A folder under `variants/<id>/` is valid when:
 2. `index.html` contains exactly one `<script type="module" src="/shell/shell.js"></script>`, in
    `<head>`. This is the only absolute path a variant may contain; the build rewrites it to the
    deployment base path.
-3. Every other resource reference is relative (`./style.css`, `fonts/inter.woff2`; `../` is
-   forbidden), a `data:` or `blob:` URI, or a fragment. The build checks `src`, `href`, `srcset`,
-   `poster`, `data` and `xlink:href` on every element in `index.html` and `.svg` files, and
-   `url()` and `@import` in `<style>`, `style` attributes and `.css` files. The one exception is
-   `<a href>`, which may be `https://`; `mailto:`, `tel:` and every other scheme are forbidden.
-   The check is syntactic, not a guarantee about computed URLs.
+3. Every other resource reference resolves inside the variant folder (`./style.css`,
+   `fonts/inter.woff2`), or is a `data:` or `blob:` URI or a fragment. A reference is judged by
+   where a browser resolves it, not by how it is spelled: tabs, newlines, backslashes and `%2e`
+   segments are resolved first. The build checks `src`, `href`, `srcset`, `imagesrcset`, `poster`,
+   `data`, `xlink:href`, `action`, `formaction`, `background` and `ping` on every element in
+   `index.html` and `.svg` files, and `url()` and `@import` in `<style>`, `style` attributes and
+   `.css` files. `<meta http-equiv="refresh">` is forbidden. The one exception is `<a href>`,
+   which may resolve to `https:`; `mailto:`, `tel:` and every other scheme are forbidden. The
+   check covers markup and stylesheets, not URLs computed by scripts.
 4. Variant JavaScript does not request absolute paths (`fetch('/x')`), because the default
-   variant is served both at the root and under `/<id>/`. Resolve assets against
-   `document.baseURI`. The build warns on a string literal starting with a single `/`; the
-   reviewer decides.
+   variant is served both at the root and under `/<id>/`, nor other sites. Resolve assets against
+   `document.baseURI`. The build warns on a string literal starting with a single `/`, and on one
+   that is an `http(s):`, `ws(s):` or protocol-relative URL; the reviewer decides.
 5. No top-level entry is a reserved name (see Registry).
 6. Every entry is a regular file or a directory. A symbolic link could name any file on the
    machine that runs the build and publish its contents, so it fails the build. Dot entries
