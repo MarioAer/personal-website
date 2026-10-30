@@ -10,6 +10,14 @@ const EMAIL = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i
 
 const flatten = (value: string): string => value.replace(/\s+/g, ' ').trim()
 
+/** Appends an inline script and reports whether it ran; the build's security policy must block it. */
+const injectedScriptRuns = (): boolean => {
+  const script = document.createElement('script')
+  script.textContent = 'document.documentElement.dataset.injected = "ran"'
+  document.head.append(script)
+  return document.documentElement.dataset.injected === 'ran'
+}
+
 for (const path of paths) {
   test.describe(`variant at ${path}`, () => {
     test('has one h1 and the landmarks', async ({ page }) => {
@@ -58,12 +66,23 @@ for (const path of paths) {
       await page.waitForLoadState('networkidle')
       expect(problems).toEqual([])
     })
+
+    test('enforces a content security policy that blocks injected script', async ({ page }) => {
+      await page.goto(path)
+      await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveCount(1)
+      expect(await page.evaluate(injectedScriptRuns)).toBe(false)
+    })
   })
 }
 
 // The specification requires LinkedIn and GitHub to be visible from every page, including the 404
 // page, which is not a variant and so is outside the `paths` loop above.
 test.describe('the 404 page', () => {
+  test('enforces a content security policy that blocks injected script', async ({ page }) => {
+    await page.goto('no-such-page')
+    expect(await page.evaluate(injectedScriptRuns)).toBe(false)
+  })
+
   test('reaches LinkedIn and GitHub in one click', async ({ page }) => {
     await page.goto('no-such-page')
     const shell = page.locator('site-shell')

@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url'
 import { isRecord, isRegistry, validateRegistry } from './lib/registry.ts'
 import type { Registry } from './lib/registry.ts'
 import { checkVariant } from './lib/contract.ts'
-import { rewriteScriptSrc } from './lib/html.ts'
+import { insertAtHeadStart, rewriteScriptSrc } from './lib/html.ts'
+import { HEAD_MARKUP } from './lib/policy.ts'
 import type { VariantFiles } from './lib/contract.ts'
 import { specVersions } from './lib/spec.ts'
 
@@ -47,14 +48,53 @@ async function listFiles(dir: string, prefix = ''): Promise<FoundFile[]> {
   return files
 }
 
-async function readVariantFiles(dir: string): Promise<VariantFiles> {
+/** The entries of a variant folder, sorted, split by how the build treats them. */
+interface VariantTree {
+  /** Regular files, which are checked and published. */
+  files: FoundFile[]
+  /** Dot entries (`.claude/`, `.DS_Store`), which are neither checked nor published. */
+  skipped: string[]
+  /** Symbolic links and other entries that are not a regular file or directory; each fails the build. */
+  unsupported: string[]
+}
+
+/** True for an entry the build does not publish: tool state and system files such as `.DS_Store`. */
+const isDotEntry = (name: string): boolean => name.startsWith('.')
+
+/**
+ * Walks a variant folder without following links. A link could name any file on the machine that
+ * runs the build, and copying it would publish that file's contents.
+ */
+async function readVariantTree(dir: string, prefix = ''): Promise<VariantTree> {
+  const tree: VariantTree = { files: [], skipped: [], unsupported: [] }
+  const entries = (await readdir(dir, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))
+  for (const entry of entries) {
+    const path = join(dir, entry.name)
+    const relativePath = `${prefix}${entry.name}`
+    if (isDotEntry(entry.name)) tree.skipped.push(relativePath)
+    else if (entry.isDirectory()) {
+      const inner = await readVariantTree(path, `${relativePath}/`)
+      tree.files.push(...inner.files)
+      tree.skipped.push(...inner.skipped)
+      tree.unsupported.push(...inner.unsupported)
+    } else if (entry.isFile()) tree.files.push({ absolute: path, relative: relativePath })
+    else tree.unsupported.push(relativePath)
+  }
+  return tree
+}
+
+async function readVariantFiles(found: FoundFile[]): Promise<VariantFiles> {
   const files: VariantFiles = new Map()
-  for (const file of await listFiles(dir)) {
+  for (const file of found) {
     const extension = file.relative.slice(file.relative.lastIndexOf('.'))
     files.set(file.relative, TEXT_EXTENSIONS.has(extension) ? await readFile(file.absolute, 'utf8') : null)
   }
   return files
 }
+
+/** Copies a variant folder, leaving out the dot entries that readVariantTree skipped. */
+const copyVariant = (from: string, to: string): Promise<void> =>
+  cp(from, to, { recursive: true, filter: (source) => source === from || !isDotEntry(basename(source)) })
 
 async function listVariantFolders(root: string): Promise<string[]> {
   try {
@@ -67,6 +107,15 @@ async function listVariantFolders(root: string): Promise<string[]> {
 
 function rewriteShellPath(html: string, basePath: string): string {
   return rewriteScriptSrc(html, '/shell/shell.js', `${basePath}shell/shell.js`)
+}
+
+/** Places the security policy and the theme script at the start of the page's head. */
+function withPolicy(html: string, path: string): string {
+  try {
+    return insertAtHeadStart(html, HEAD_MARKUP)
+  } catch (cause) {
+    throw new Error(`${path}: ${cause instanceof Error ? cause.message : String(cause)}`)
+  }
 }
 
 async function listSpecVersions(root: string): Promise<string[]> {
@@ -106,7 +155,13 @@ export async function build({ root, outDir, basePath }: BuildOptions): Promise<B
 
   const warnings: string[] = []
   for (const variant of registry.variants) {
-    const files = await readVariantFiles(join(root, 'variants', variant.id))
+    const tree = await readVariantTree(join(root, 'variants', variant.id))
+    if (tree.unsupported.length > 0) {
+      const errors = tree.unsupported.map((path) => `variants/${variant.id}/${path}: a symbolic link or special file is not allowed; variants hold regular files only`)
+      throw new Error(`Variant "${variant.id}" breaks the contract:\n  ${errors.join('\n  ')}`)
+    }
+    warnings.push(...tree.skipped.map((path) => `variants/${variant.id}/${path}: dot entries are not published`))
+    const files = await readVariantFiles(tree.files)
     const result = checkVariant({ id: variant.id, files })
     if (result.errors.length > 0) throw new Error(`Variant "${variant.id}" breaks the contract:\n  ${result.errors.join('\n  ')}`)
     warnings.push(...result.warnings)
@@ -118,16 +173,15 @@ export async function build({ root, outDir, basePath }: BuildOptions): Promise<B
   await rm(outDir, { recursive: true, force: true })
   await mkdir(outDir, { recursive: true })
 
-  await cp(join(root, 'variants', registry.default), outDir, { recursive: true })
+  await copyVariant(join(root, 'variants', registry.default), outDir)
   for (const variant of registry.variants) {
-    await cp(join(root, 'variants', variant.id), join(outDir, variant.id), { recursive: true })
+    await copyVariant(join(root, 'variants', variant.id), join(outDir, variant.id))
   }
 
   for (const file of await listFiles(outDir)) {
     if (!file.relative.endsWith('.html')) continue
     const html = await readFile(file.absolute, 'utf8')
-    const rewritten = rewriteShellPath(html, base)
-    if (rewritten !== html) await writeFile(file.absolute, rewritten)
+    await writeFile(file.absolute, withPolicy(rewriteShellPath(html, base), file.relative))
   }
 
   await cp(join(root, 'shell'), join(outDir, 'shell'), { recursive: true })
@@ -137,7 +191,7 @@ export async function build({ root, outDir, basePath }: BuildOptions): Promise<B
   await writeFile(join(outDir, 'variants.json'), `${JSON.stringify({ ...registry, specVersion }, null, 2)}\n`)
 
   await writeFile(join(outDir, '.nojekyll'), '')
-  await writeFile(join(outDir, '404.html'), `<!doctype html>
+  await writeFile(join(outDir, '404.html'), withPolicy(`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -159,7 +213,7 @@ main{max-width:40rem;margin:0 auto;padding:3rem 1rem}
 </main>
 </body>
 </html>
-`)
+`, '404.html'))
 
   return { warnings }
 }
