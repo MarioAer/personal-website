@@ -27,19 +27,28 @@ function escapeHtml(text: string): string {
 /** Writes every code point as a numeric character reference. */
 const encode = (text: string): string => Array.from(text, (character) => `&#${character.codePointAt(0)};`).join('')
 
+/** How many real characters stand between two decoys. */
+const RUN = 3
+
 /**
- * The address as markup: each character a numeric character reference, and after every character
- * but the last a hidden decoy fragment. A browser, a screen reader and copy-paste skip hidden
- * elements and get the address; a scraper that strips the tags gets the fragments mixed in.
+ * The address as markup: each character a numeric character reference, and after every third
+ * character, but never after the last, a hidden decoy fragment. A browser, a screen reader and
+ * copy-paste skip hidden elements and get the address; a scraper that strips the tags gets the
+ * fragments mixed in. Runs of real characters are written together, so a reader that moves by text
+ * node gets three characters at a time.
  */
 function obscureEmail(email: string): string {
   const characters = Array.from(email)
-  return characters
-    .map((character, index) => {
-      const decoy = index < characters.length - 1 ? `<span hidden>${encode(DECOYS[index % DECOYS.length] ?? '')}</span>` : ''
-      return `${encode(character)}${decoy}`
-    })
-    .join('')
+  let markup = ''
+  let decoys = 0
+  for (let start = 0; start < characters.length; start += RUN) {
+    markup += encode(characters.slice(start, start + RUN).join(''))
+    if (start + RUN < characters.length) {
+      markup += `<span hidden>${encode(DECOYS[decoys % DECOYS.length] ?? '')}</span>`
+      decoys += 1
+    }
+  }
+  return markup
 }
 
 /** The legal notice and privacy page as a complete HTML document, without the security policy. `email` is the address to show. */

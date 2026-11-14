@@ -149,7 +149,7 @@ test.describe('the legal page', () => {
     await page.goto('legal.html')
     await expect(page.locator('a[href^="mailto:"], a[href^="tel:"]')).toHaveCount(0)
     // innerText skips the hidden decoy fragments between the characters, as a reader and copy-paste do.
-    await expect(page.locator('#privacy')).toContainText(expected, { useInnerText: true })
+    expect((await page.locator('#privacy').innerText()).includes(expected), 'the legal address is not shown as text').toBe(true)
   })
 
   test('asks search engines not to index it', async ({ page }) => {

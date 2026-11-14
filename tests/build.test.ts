@@ -9,8 +9,8 @@ import type { BuildOptions, BuildResult } from '../scripts/build.ts'
 import { isRecord } from '../scripts/lib/registry.ts'
 import { HEAD_MARKUP } from '../scripts/lib/policy.ts'
 import { PLACEHOLDER_LEGAL_EMAIL } from '../scripts/lib/legal.ts'
-import { parse, defaultTreeAdapter } from 'parse5'
-import type { DefaultTreeAdapterMap } from 'parse5'
+import { parse } from 'parse5'
+import { visibleText } from './helpers/visible-text.ts'
 
 /** Pieces of the fixture repository a single test wants to differ from the valid default. */
 interface FixtureOverrides {
@@ -50,13 +50,6 @@ async function fixture(overrides: FixtureOverrides = {}): Promise<string> {
 }
 
 const EMAIL = 'ada@example.org'
-
-/** The text a reader gets from a page: hidden elements are skipped, as a browser, a screen reader and copy-paste do. */
-function visibleText(node: DefaultTreeAdapterMap['node']): string {
-  if (defaultTreeAdapter.isTextNode(node)) return defaultTreeAdapter.getTextNodeContent(node)
-  if (defaultTreeAdapter.isElementNode(node) && node.attrs.some((attr) => attr.name === 'hidden')) return ''
-  return 'childNodes' in node ? node.childNodes.map(visibleText).join('') : ''
-}
 
 const legalText = async (root: string): Promise<string> => visibleText(parse(await readFile(join(root, 'dist', 'legal.html'), 'utf8')))
 

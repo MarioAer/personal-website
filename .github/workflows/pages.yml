@@ -15,10 +15,6 @@ jobs:
     permissions:
       contents: read
       pages: read # configure-pages reads the site's base path from the Pages settings
-    # Pull requests from Dependabot and forks cannot read the secret and build with a placeholder; a build on main fails without it.
-    env:
-      LEGAL_EMAIL: ${{ secrets.LEGAL_EMAIL }}
-      REQUIRE_LEGAL_EMAIL: ${{ github.ref == 'refs/heads/main' && '1' || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -32,13 +28,19 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npx playwright install --with-deps chromium
+      # Pull requests from Dependabot and forks cannot read the secret and build with a placeholder; a build on main fails without it.
       - run: npm run test:e2e
+        env:
+          LEGAL_EMAIL: ${{ secrets.LEGAL_EMAIL }}
+          REQUIRE_LEGAL_EMAIL: ${{ github.ref == 'refs/heads/main' && '1' || '' }}
       # Empty with a custom domain, "/<repository name>" otherwise.
       - id: pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - name: Build the site
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+          LEGAL_EMAIL: ${{ secrets.LEGAL_EMAIL }}
+          REQUIRE_LEGAL_EMAIL: ${{ github.ref == 'refs/heads/main' && '1' || '' }}
         run: npm run build
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         if: github.ref == 'refs/heads/main'

@@ -65,9 +65,13 @@ export function isArray(value: unknown): value is unknown[] {
   return Array.isArray(value)
 }
 
-/** An address has no whitespace, exactly one `@`, a local part, and a domain with a dot inside it. */
+/** An address has no whitespace or control character, exactly one `@`, a local part, and a domain with a dot inside it. */
 export function isEmail(value: string): boolean {
   if (/\s/.test(value)) return false
+  for (const character of value) {
+    const code = character.codePointAt(0) ?? 0
+    if (code < 0x20 || (code >= 0x7f && code <= 0x9f)) return false
+  }
   const parts = value.split('@')
   if (parts.length !== 2) return false
   const [local, domain] = parts

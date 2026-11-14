@@ -117,7 +117,7 @@ test('a legal address is optional, but when present it is a list of non-empty li
 
 test('isEmail accepts an address with a dotted domain and nothing else', () => {
   assert.equal(isEmail('ada@example.org'), true)
-  for (const value of ['', 'ada', 'ada@', '@example.org', 'ada@example', 'a da@example.org', 'a@b@example.org', 'ada@.org', 'ada@example.']) {
+  for (const value of ['', 'ada', 'ada@', '@example.org', 'ada@example', 'a da@example.org', 'a@b@example.org', 'ada@.org', 'ada@example.', 'ada\u0007@example.org', 'ada@example.org\u0000', 'ada\u007f@example.org', 'ada@exam\u0085ple.org', 'ada@example\u009f.org']) {
     assert.equal(isEmail(value), false, `"${value}" should be rejected`)
   }
 })

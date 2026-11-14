@@ -15,8 +15,8 @@
 Mine, each open to correction before implementation:
 
 1. One page, `legal.html`, with three sections: `#legal-notice` (rendered only when `legal.address` is present), `#privacy` (always) and `#sources` (always).
-2. The owner's data lives in `variants.json` under `legal`: `name` and `email` required, `address` optional. The owner decides whether an Impressum is published by supplying the address or not.
-3. The owner kept the email off the site to avoid bots; the postal address is not a concern, so the Impressum is published. The email is therefore a dedicated alias used only for this page (the owner creates it; it can be filtered or replaced), shown as text with no `mailto:` link and written in the page source as numeric character references, so a visitor reads it normally and a scraper matching address patterns in the source does not. It is not hidden behind an image or a script: a legal notice has to show the address directly.
+2. The owner's data lives in `variants.json` under `legal`: `name` and `email` required, `address` optional. The owner decides whether an Impressum is published by supplying the address or not. (Superseded by 8.)
+3. The owner kept the email off the site to avoid bots; the postal address is not a concern, so the Impressum is published. The email is therefore a dedicated alias used only for this page (the owner creates it; it can be filtered or replaced), shown as text with no `mailto:` link and written in the page source as numeric character references, so a visitor reads it normally and a scraper matching address patterns in the source does not. It is not hidden behind an image or a script: a legal notice has to show the address directly. (Superseded by 8.)
 4. Bar link text is `Legal`, accessible name `Legal notice and privacy`. `Impressum` is the more recognisable word in Germany; say so if you prefer it.
 5. The page is in English, like the site.
 6. The privacy copy in Task 3 is a draft. It is not legal advice and should be read by the owner, ideally a lawyer, before merge.

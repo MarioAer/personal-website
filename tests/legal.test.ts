@@ -4,6 +4,8 @@ import { parse, defaultTreeAdapter } from 'parse5'
 import type { DefaultTreeAdapterMap } from 'parse5'
 import { legalPage, PLACEHOLDER_LEGAL_EMAIL } from '../scripts/lib/legal.ts'
 import { parseHtml } from '../scripts/lib/html.ts'
+import { declaredProperties } from '../scripts/lib/css.ts'
+import { visibleText as textOf } from './helpers/visible-text.ts'
 import { isEmail } from '../scripts/lib/registry.ts'
 import type { Contact, Legal } from '../scripts/lib/registry.ts'
 
@@ -29,13 +31,6 @@ function findById(node: Node, id: string): Element | undefined {
 }
 
 const isHidden = (node: Node): boolean => defaultTreeAdapter.isElementNode(node) && node.attrs.some((attr) => attr.name === 'hidden')
-
-/** The text of an element and everything below it, leaving out elements that carry the `hidden` attribute. */
-function textOf(node: Node): string {
-  if (defaultTreeAdapter.isTextNode(node)) return defaultTreeAdapter.getTextNodeContent(node)
-  if (isHidden(node)) return ''
-  return 'childNodes' in node ? node.childNodes.map(textOf).join('') : ''
-}
 
 /** The text with the tags stripped and nothing skipped, as a scraper reading the source would see it. */
 function strippedText(node: Node): string {
@@ -134,8 +129,8 @@ test('the raw source holds neither the address nor its domain', () => {
 test('every decoy is a span with the hidden attribute and no other attribute', () => {
   const html = page()
   const hidden = parseHtml(html).filter((element) => element.attrs.has('hidden'))
-  // One decoy after every character but the last, in each of the two places the address appears.
-  assert.equal(hidden.length, 2 * (email.length - 1))
+  // Four decoys per address (after characters 3, 6, 9 and 12), in each of the two places it appears.
+  assert.equal(hidden.length, 2 * 4)
   for (const decoy of hidden) {
     assert.equal(decoy.tag, 'span')
     assert.deepEqual([...decoy.attrs.keys()], ['hidden'])
@@ -156,12 +151,12 @@ test('the decoys come from the fixed list, in order, cycling', () => {
   }
   collect(section)
   const list = ['q@', '.z', 'x', '@n.', 'k', '.co']
-  assert.deepEqual(decoys, Array.from({ length: email.length - 1 }, (_, index) => list[index % list.length]))
+  assert.deepEqual(decoys, Array.from({ length: 4 }, (_, index) => list[index % list.length]))
 })
 
 test('without an address only the privacy section carries the email and its decoys', () => {
   const html = page(withoutAddress)
-  assert.equal(parseHtml(html).filter((element) => element.attrs.has('hidden')).length, email.length - 1)
+  assert.equal(parseHtml(html).filter((element) => element.attrs.has('hidden')).length, 4)
   assert.ok(sectionText(html, 'privacy')?.includes(email))
 })
 
@@ -172,11 +167,38 @@ test('the page asks search engines not to index it', () => {
   assert.ok(robots[0]?.inHead)
 })
 
-test('the page style does not override the hidden attribute', () => {
+/** The text of the privacy section with each hidden decoy replaced by a bar. */
+function marked(html: string): string {
+  const section = findById(parse(html), 'privacy')
+  assert.ok(section)
+  const collect = (node: Node): string => {
+    if (isHidden(node)) return '|'
+    if (defaultTreeAdapter.isTextNode(node)) return defaultTreeAdapter.getTextNodeContent(node)
+    return 'childNodes' in node ? node.childNodes.map(collect).join('') : ''
+  }
+  return collect(section)
+}
+
+test('a decoy follows characters 3, 6, 9 and 12 of the example address', () => {
+  assert.ok(marked(page(withoutAddress)).includes('Contact: ada|@ex|amp|le.|org.'))
+})
+
+test('no decoy follows the last character, even when the length is a multiple of three', () => {
+  assert.ok(marked(page(withoutAddress, 'ab@cd.ef')).includes('Contact: ab@|cd.|ef.'))
+  assert.ok(marked(page(withoutAddress, 'a@bc.de')).includes('Contact: a@b|c.d|e.'))
+})
+
+test('the page style declares no display property, so nothing can show the hidden decoys', () => {
   const styles = parseHtml(page()).filter((element) => element.tag === 'style')
   assert.equal(styles.length, 1)
-  assert.ok(!/(^|[}\s,])span\s*[{,]/.test(styles[0]?.text ?? ''), 'a span rule could show the decoys')
-  assert.ok(!(styles[0]?.text ?? '').includes('[hidden]'))
+  const properties = declaredProperties(styles[0]?.text ?? '')
+  assert.ok(properties.length > 0, 'the stylesheet was not read')
+  assert.ok(!properties.includes('display'))
+})
+
+test('declaredProperties reads rules, nested at-rules and ignores comments and strings', () => {
+  const css = '/* display:none */ a{color:red;DISPLAY:block} @media (min-width:1px){b{margin:0}} c::after{content:"display:none"}'
+  assert.deepEqual(declaredProperties(css), ['color', 'display', 'margin', 'content'])
 })
 
 test('a different email gives that email, and the placeholder is a valid address', () => {

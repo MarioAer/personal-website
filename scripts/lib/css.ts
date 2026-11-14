@@ -25,3 +25,12 @@ export function cssReferences(text: string, context: CssContext = 'stylesheet'):
   })
   return found
 }
+
+/** The name of every property declared anywhere in the stylesheet, lower-cased, nested rules and at-rules included. */
+export function declaredProperties(text: string): string[] {
+  const found: string[] = []
+  walk(parse(text, { context: 'stylesheet' }), function (node) {
+    if (node.type === 'Declaration') found.push(node.property.toLowerCase())
+  })
+  return found
+}

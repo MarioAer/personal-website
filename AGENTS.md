@@ -259,8 +259,8 @@ deployment build. The build never prints or logs the address.
    selector), with the same policy and theme script. Also write `dist/legal.html` from the
    registry's `legal` block and `LEGAL_EMAIL`, with the same policy and theme script. The page is
    `noindex`. The address is written as character references with a hidden decoy fragment after
-   every character but the last, so a reader, a screen reader and copy-paste get the address while
-   the markup with its tags stripped does not. A `LEGAL_EMAIL` that is set but not an email
+   every third character but never the last, so a reader, a screen reader and copy-paste get the
+   address while the markup with its tags stripped does not. A `LEGAL_EMAIL` that is set but not an email
    address fails the build, and the message does not repeat it. When it is empty or unset the
    page shows a placeholder address (`not-configured@example.invalid`) and the build warns; with
    `REQUIRE_LEGAL_EMAIL=1` the build fails instead.
@@ -274,9 +274,10 @@ GitHub Actions on push to `main`: install, typecheck, lint, unit and browser sui
 from `actions/configure-pages`, which reads the Pages settings: `/` with a custom domain,
 `/<repository name>/` without one.
 
-The address on the legal page is the repository secret `LEGAL_EMAIL`, passed to the job's steps
-as an environment variable; on `main` the job also sets `REQUIRE_LEGAL_EMAIL=1`, so a deployment
-without the secret fails. Builds that cannot read secrets (pull requests from Dependabot and forks)
+The address on the legal page is the repository secret `LEGAL_EMAIL`, passed as an environment
+variable to the two steps that build the site (the browser suite and "Build the site"), not to the
+whole job; store the secret without surrounding whitespace. On `main` those steps also set
+`REQUIRE_LEGAL_EMAIL=1`, so a deployment without the secret fails. Builds that cannot read secrets (pull requests from Dependabot and forks)
 use the placeholder address.
 
 Every action is pinned to a commit SHA with its version in a comment, and dependencies install
