@@ -175,6 +175,7 @@ test('the bar works when the registry cannot be loaded', async ({ page }) => {
   await page.goto('./')
   await expect(control(page, 'shell-select')).toHaveCount(0)
   await expect(control(page, 'shell-spec')).toHaveCount(0)
+  await expect(control(page, 'shell-legal')).toBeVisible()
   await expect(control(page, 'shell-theme')).toBeVisible()
   await expect(control(page, 'shell-github')).toBeVisible()
   expect(errors).toEqual([])
@@ -211,6 +212,26 @@ test.describe('with a two-entry registry served from the network', () => {
     await expect(control(page, 'shell-colophon')).toContainText('older specification')
     await expect(control(page, 'shell-spec')).toHaveAttribute('href', specUrl('2026-09-01'))
   })
+})
+
+test('the legal link opens the legal page from a variant', async ({ page }) => {
+  test.skip(!otherEntry, 'the registry holds a single variant')
+  if (!otherEntry) return // unreachable: test.skip above has already ended the test
+  await page.goto(`${otherEntry.id}/`)
+  await control(page, 'shell-legal').click()
+  await expect(page).toHaveURL(/\/personal-website\/legal\.html$/)
+  await expect(page.locator('h1')).toHaveText('Legal notice and privacy')
+  await expect(page.locator('#privacy')).toHaveCount(1)
+  await expect(page.locator('#legal-notice')).toHaveCount(registry.legal.address ? 1 : 0)
+})
+
+test('the legal link lies inside the viewport', async ({ page }) => {
+  await page.goto('./')
+  const box = await control(page, 'shell-legal').boundingBox()
+  const width = page.viewportSize()?.width
+  if (!box || !width) throw new Error('the legal link or the viewport has no size')
+  expect(box.x).toBeGreaterThanOrEqual(0)
+  expect(box.x + box.width).toBeLessThanOrEqual(width)
 })
 
 test('the 404 page carries the bar', async ({ page }) => {

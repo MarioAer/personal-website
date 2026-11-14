@@ -101,6 +101,7 @@ function mount() {
     <select id="variant-select" data-testid="shell-select"></select>
   </span>
   <button type="button" data-testid="shell-theme" aria-label="Switch colour theme">Theme</button>
+  <a class="link" data-testid="shell-legal" href="${BASE.pathname}legal.html" aria-label="Legal notice and privacy">Legal</a>
   <a class="link" data-testid="shell-spec" hidden>View spec</a>
   <span class="group contact"></span>
 </nav>`

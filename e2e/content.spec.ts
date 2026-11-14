@@ -90,3 +90,57 @@ test.describe('the 404 page', () => {
     await expect(shell.locator('[data-testid="shell-github"]')).toBeVisible()
   })
 })
+
+// The legal page is not a variant and has no footer, and it states the owner's email address as text,
+// so it has its own tests instead of joining the `paths` loop above.
+test.describe('the legal page', () => {
+  test('has one h1 and a main landmark', async ({ page }) => {
+    await page.goto('legal.html')
+    await expect(page.locator('h1')).toHaveCount(1)
+    await expect(page.locator('main')).toHaveCount(1)
+  })
+
+  test('reaches LinkedIn and GitHub in one click', async ({ page }) => {
+    await page.goto('legal.html')
+    const shell = page.locator('site-shell')
+    await expect(shell.locator('[data-testid="shell-linkedin"]')).toBeVisible()
+    await expect(shell.locator('[data-testid="shell-github"]')).toBeVisible()
+  })
+
+  test('does not scroll horizontally', async ({ page }) => {
+    await page.goto('legal.html')
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(overflow).toBeLessThanOrEqual(1)
+  })
+
+  test('clears the top bar', async ({ page }) => {
+    await page.goto('legal.html')
+    const reserved = await page.evaluate(() => parseFloat(getComputedStyle(document.body).paddingTop))
+    expect(reserved).toBeGreaterThanOrEqual(56)
+  })
+
+  test('loads no third-party resource and logs no error', async ({ page }) => {
+    const problems: string[] = []
+    page.on('console', (message) => { if (message.type() === 'error') problems.push(message.text()) })
+    page.on('pageerror', (error) => problems.push(error.message))
+    page.on('requestfailed', (request) => problems.push(`failed request: ${request.url()}`))
+    page.on('request', (request) => {
+      const url = new URL(request.url())
+      if (url.hostname !== 'localhost' && url.protocol !== 'data:') problems.push(`third-party request: ${request.url()}`)
+    })
+    await page.goto('legal.html')
+    await page.waitForLoadState('networkidle')
+    expect(problems).toEqual([])
+  })
+
+  test('enforces a content security policy that blocks injected script', async ({ page }) => {
+    await page.goto('legal.html')
+    await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveCount(1)
+    expect(await page.evaluate(injectedScriptRuns)).toBe(false)
+  })
+
+  test('shows the email address as text, never as a link', async ({ page }) => {
+    await page.goto('legal.html')
+    await expect(page.locator('a[href^="mailto:"], a[href^="tel:"]')).toHaveCount(0)
+  })
+})
