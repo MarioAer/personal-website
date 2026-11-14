@@ -222,6 +222,8 @@ const sources = [
   'https://eur-lex.europa.eu/eli/reg/2016/679/oj',
   'https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages',
   'https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement',
+  'https://eur-lex.europa.eu/eli/dec_impl/2023/1795/oj',
+  'https://www.dataprivacyframework.gov/list',
   'https://www.ldi.nrw.de/',
 ]
 
@@ -250,8 +252,12 @@ test('every link on the page is an https link', () => {
   }
 })
 
-test('the hosting paragraph does not claim a transfer framework', () => {
-  const html = page()
-  assert.ok(!(sectionText(html, 'privacy') ?? '').includes('Data Privacy Framework'))
-  assert.ok(!textOf(parse(html)).includes('Data Privacy Framework'))
+test('the hosting paragraph names the transfer to the USA and its basis', () => {
+  const privacy = sectionText(page(), 'privacy') ?? ''
+  assert.ok(
+    privacy.includes(
+      'GitHub may process this data in the USA. The European Commission has decided that the USA offers adequate protection for data sent to organisations certified under the EU-U.S. Data Privacy Framework (Implementing Decision (EU) 2023/1795), and GitHub is listed as an active participant. GitHub states that it also relies on the European Commission\'s standard contractual clauses.',
+    ),
+  )
+  assert.ok(!privacy.includes('Data may be processed in the USA.'))
 })
