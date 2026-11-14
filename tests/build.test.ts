@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { build, normaliseBasePath } from '../scripts/build.ts'
 import type { BuildOptions, BuildResult } from '../scripts/build.ts'
-import { isRegistry } from '../scripts/lib/registry.ts'
+import { isRecord } from '../scripts/lib/registry.ts'
 import { HEAD_MARKUP } from '../scripts/lib/policy.ts'
 
 /** Pieces of the fixture repository a single test wants to differ from the valid default. */
@@ -30,6 +30,7 @@ async function fixture(overrides: FixtureOverrides = {}): Promise<string> {
     ],
     contact: { linkedin: 'https://www.linkedin.com/in/marioerazo/', github: 'https://github.com/MarioAer' },
     repository: 'https://github.com/MarioAer/personal-website',
+    legal: { name: 'Ada Example', email: 'ada@example.org', address: ['1 Example Street', '12345 Example City'] },
     ...overrides.registry,
   }
   for (const id of ['alpha', 'beta']) {
@@ -127,9 +128,22 @@ test('the output registry carries the current specification version', async (t) 
   t.after(() => rm(root, { recursive: true, force: true }))
   await run(root)
   const out: unknown = JSON.parse(await readFile(join(root, 'dist', 'variants.json'), 'utf8'))
-  if (!isRegistry(out)) assert.fail('the build must write a valid registry')
+  if (!isRecord(out)) assert.fail('the build must write an object')
   assert.equal(out.specVersion, '2026-10-01')
+  assert.ok(Array.isArray(out.variants))
   assert.equal(out.variants.length, 2)
+})
+
+test('the published registry leaves out the legal block', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await run(root)
+  const text = await readFile(join(root, 'dist', 'variants.json'), 'utf8')
+  const out: unknown = JSON.parse(text)
+  if (!isRecord(out)) assert.fail('the build must write an object')
+  assert.ok(!('legal' in out))
+  assert.ok(!text.includes('ada@example.org'))
+  for (const key of ['default', 'variants', 'contact', 'repository', 'specVersion']) assert.ok(key in out, `${key} must stay in the published registry`)
 })
 
 test('the site icon is served at the output root for the browser\'s /favicon.ico request', async (t) => {

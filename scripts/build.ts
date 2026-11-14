@@ -188,7 +188,9 @@ export async function build({ root, outDir, basePath }: BuildOptions): Promise<B
   // Browsers request /favicon.ico for pages that declare no icon; variants that declare one keep it.
   await cp(join(root, 'shell', 'favicon.ico'), join(outDir, 'favicon.ico'))
 
-  await writeFile(join(outDir, 'variants.json'), `${JSON.stringify({ ...registry, specVersion }, null, 2)}\n`)
+  // The shell does not read `legal`, and the email address must not be published as plain text.
+  const { legal: _legal, ...published } = registry
+  await writeFile(join(outDir, 'variants.json'), `${JSON.stringify({ ...published, specVersion }, null, 2)}\n`)
 
   await writeFile(join(outDir, '.nojekyll'), '')
   await writeFile(join(outDir, '404.html'), withPolicy(`<!doctype html>

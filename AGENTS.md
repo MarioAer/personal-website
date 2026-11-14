@@ -103,7 +103,12 @@ them.
     "linkedin": "https://www.linkedin.com/in/marioaer",
     "github": "https://github.com/MarioAer"
   },
-  "repository": "https://github.com/MarioAer/personal-website"
+  "repository": "https://github.com/MarioAer/personal-website",
+  "legal": {
+    "name": "Ada Example",
+    "email": "ada@example.org",
+    "address": ["1 Example Street", "12345 Example City"]
+  }
 }
 ```
 
@@ -120,6 +125,10 @@ Rules, all checked by the build:
 - `specVersion` names an existing `spec/<specVersion>.md`. The build writes the current version
   into the output registry as a top-level `specVersion`.
 - Order in the array is the order in the selector.
+- `legal` is required: `name` is a non-empty string and `email` an email address (no whitespace,
+  one `@`, a domain with a dot inside it). `address` is optional; when present it is a non-empty
+  list of non-empty lines, and its presence means a legal notice is published. The output registry
+  omits `legal`, so the email address is not published as plain text.
 - `contact` and `repository` are https URLs and the single place they are defined. The fallback
   contact constant in `shell/shell.js` mirrors `contact`; a test holds the two in agreement.
 
@@ -238,7 +247,7 @@ Inputs: the repository and `BASE_PATH` (default `/`).
    stored under `theme` before first paint. Nothing else is rewritten; a page whose `<head>` start
    tag is not written in its source fails the build.
 5. Copy `shell/` and `shell/favicon.ico` to `dist/favicon.ico`, and write `dist/variants.json`
-   with the current `specVersion` added.
+   with the current `specVersion` added and `legal` left out.
 6. Write `dist/.nojekyll` and `dist/404.html` (shell, heading, a sentence pointing to the
    selector), with the same policy and theme script.
 

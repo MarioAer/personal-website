@@ -20,6 +20,7 @@ const registry = (over: Record<string, unknown> = {}): Record<string, unknown> =
   variants: [entry()],
   contact: { linkedin: 'https://www.linkedin.com/in/marioerazo/', github: 'https://github.com/MarioAer' },
   repository: 'https://github.com/MarioAer/personal-website',
+  legal: { name: 'Ada Example', email: 'ada@example.org' },
   ...over,
 })
 
@@ -88,6 +89,23 @@ test('the repository must be an https url', () => {
   for (const repository of [undefined, 'http://github.com/MarioAer/personal-website']) {
     const errors = validateRegistry(registry({ repository }), context())
     assert.ok(errors.some((e: string) => /repository/.test(e)), `${String(repository)} should be rejected`)
+  }
+})
+
+const legalErrors = (legal: unknown): string[] => validateRegistry(registry({ legal }), context())
+
+test('a legal block needs a name and an email address', () => {
+  assert.ok(legalErrors(undefined).some((e) => e.includes('"legal"')))
+  assert.ok(legalErrors({ email: 'ada@example.org' }).some((e) => e.includes('legal.name')))
+  for (const email of ['', 'ada', 'ada@', '@example.org', 'ada@example', 'a da@example.org', 'a@b@example.org']) {
+    assert.ok(legalErrors({ name: 'Ada Example', email }).some((e) => e.includes('legal.email')), `"${email}" should be rejected`)
+  }
+})
+
+test('a legal address is optional, but when present it is a list of non-empty lines', () => {
+  assert.deepEqual(legalErrors({ name: 'Ada Example', email: 'ada@example.org', address: ['1 Example Street', '12345 Example City'] }), [])
+  for (const address of [[], [''], ['1 Example Street', ' '], '1 Example Street', [1]]) {
+    assert.ok(legalErrors({ name: 'Ada Example', email: 'ada@example.org', address }).some((e) => e.includes('legal.address')))
   }
 })
 

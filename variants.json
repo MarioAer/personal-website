@@ -66,5 +66,10 @@
     "linkedin": "https://www.linkedin.com/in/marioaer",
     "github": "https://github.com/MarioAer"
   },
-  "repository": "https://github.com/MarioAer/personal-website"
+  "repository": "https://github.com/MarioAer/personal-website",
+  "legal": {
+    "name": "REPLACE BEFORE MERGE",
+    "email": "replace-before-merge@example.org",
+    "address": ["REPLACE BEFORE MERGE"]
+  }
 }
