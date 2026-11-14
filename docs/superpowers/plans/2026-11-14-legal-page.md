@@ -14,12 +14,13 @@
 
 Mine, each open to correction before implementation:
 
-1. One page, `legal.html`, with two sections: `#legal-notice` (rendered only when `legal.address` is present) and `#privacy` (always).
+1. One page, `legal.html`, with three sections: `#legal-notice` (rendered only when `legal.address` is present), `#privacy` (always) and `#sources` (always).
 2. The owner's data lives in `variants.json` under `legal`: `name` and `email` required, `address` optional. The owner decides whether an Impressum is published by supplying the address or not.
 3. The owner kept the email off the site to avoid bots; the postal address is not a concern, so the Impressum is published. The email is therefore a dedicated alias used only for this page (the owner creates it; it can be filtered or replaced), shown as text with no `mailto:` link and written in the page source as numeric character references, so a visitor reads it normally and a scraper matching address patterns in the source does not. It is not hidden behind an image or a script: a legal notice has to show the address directly.
 4. Bar link text is `Legal`, accessible name `Legal notice and privacy`. `Impressum` is the more recognisable word in Germany; say so if you prefer it.
 5. The page is in English, like the site.
 6. The privacy copy in Task 3 is a draft. It is not legal advice and should be read by the owner, ideally a lawyer, before merge.
+7. The page's wording is my own and the page cites its primary sources. Free template generators were not copied: their texts are German-only in the free version, licensed to the person who generates them, and require the generator's credit line.
 
 The owner's, needed before Task 2 can finish:
 
@@ -149,10 +150,17 @@ test('a legal address is optional, but when present it is a list of non-empty li
 
   **Privacy** (`<section id="privacy">`, `<h2>Privacy</h2>`), one `<h3>` and paragraph each:
   - *Who is responsible*: `<name> is the controller for this website within the meaning of the GDPR. Contact: <email>.`
-  - *Hosting*: `This website is hosted on GitHub Pages, a service of GitHub, Inc., San Francisco, USA. When you open a page, GitHub processes your IP address and technical request data in server logs in order to deliver the site and keep it secure. I have no access to these logs. The legal basis is the legitimate interest in a secure and reliable website (Art. 6(1)(f) GDPR). Data may be processed in the USA; GitHub participates in the EU-U.S. Data Privacy Framework. Details are in the` link `GitHub Privacy Statement` to `https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement`.
+  - *Hosting*: `This website is hosted on GitHub Pages, a service of GitHub, Inc., San Francisco, USA. When you open a page, GitHub logs and stores your IP address for security purposes, whether or not you are signed in to GitHub. I have no access to these logs. The legal basis is the legitimate interest in a secure and reliable website (Art. 6(1)(f) GDPR). Data may be processed in the USA. Details are in the` link `GitHub Privacy Statement` to `https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement`.
   - *Cookies and local storage*: `This website sets no cookies and uses no analytics, advertising or embedded third-party content. If you use the theme button, your choice (light or dark) is saved in your browser's local storage so that it is remembered on your next visit. It never leaves your device, and you can remove it by clearing the site data in your browser.`
   - *Links to other sites*: `The links to LinkedIn and GitHub are plain links.` (hrefs from `contact`) `No data is sent to these services unless you follow a link; their own privacy terms then apply.`
   - *Your rights*: `You have the right to access, rectification, erasure, restriction of processing, data portability and to object to processing (Art. 15 to 21 GDPR). You may also lodge a complaint with a data protection authority; the authority responsible for this website is the Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen.`
+
+  **Sources** (`<section id="sources">`, always): `<h2>Sources</h2>`, the sentence `The wording of this page is my own. It follows these sources:` and a list of five links, each followed by a dash and a note:
+  - `§ 5 DDG, general information obligations` (`https://www.gesetze-im-internet.de/ddg/__5.html`): the contents of the legal notice
+  - `Art. 13 GDPR (Regulation (EU) 2016/679)` (`https://eur-lex.europa.eu/eli/reg/2016/679/oj`): the information in the privacy section
+  - `GitHub Docs, "What is GitHub Pages?", section "Data collection"` (`https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages`): what the host logs
+  - `GitHub General Privacy Statement` (`https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement`): how the host processes data
+  - `Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen` (`https://www.ldi.nrw.de/`): the supervisory authority
 - [ ] **Step 4: Run** `npm run typecheck && npm run lint && npm test`. Expected: all pass.
 - [ ] **Step 5: Commit** `chore: render the legal page from the registry`.
 

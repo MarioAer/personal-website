@@ -118,3 +118,42 @@ test('the page names no variant', () => {
 test('the same input gives the same output', () => {
   assert.equal(legalPage(withAddress, contact, base), legalPage(withAddress, contact, base))
 })
+
+const sources = [
+  'https://www.gesetze-im-internet.de/ddg/__5.html',
+  'https://eur-lex.europa.eu/eli/reg/2016/679/oj',
+  'https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages',
+  'https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement',
+  'https://www.ldi.nrw.de/',
+]
+
+test('the page lists its sources', () => {
+  for (const legal of [withAddress, withoutAddress]) {
+    const html = legalPage(legal, contact, base)
+    assert.equal(parseHtml(html).filter((element) => element.attrs.get('id') === 'sources').length, 1)
+    const section = findById(parse(html), 'sources')
+    assert.ok(section)
+    const links = collectLinks(section)
+    assert.deepEqual(links.map((link) => link.attrs.find((attr) => attr.name === 'href')?.value), sources)
+  }
+})
+
+function collectLinks(node: Node): Element[] {
+  if (!('childNodes' in node)) return []
+  return node.childNodes.flatMap((child) => [...(defaultTreeAdapter.isElementNode(child) && child.tagName === 'a' ? [child] : []), ...collectLinks(child)])
+}
+
+test('every link on the page is an https link', () => {
+  const html = legalPage(withAddress, contact, base)
+  const links = parseHtml(html).filter((element) => element.tag === 'a')
+  assert.ok(links.length > 0)
+  for (const link of links) {
+    assert.ok(link.attrs.get('href')?.startsWith('https://'), `not an https link: ${link.attrs.get('href')}`)
+  }
+})
+
+test('the hosting paragraph does not claim a transfer framework', () => {
+  const html = legalPage(withAddress, contact, base)
+  assert.ok(!(sectionText(html, 'privacy') ?? '').includes('Data Privacy Framework'))
+  assert.ok(!textOf(parse(html)).includes('Data Privacy Framework'))
+})
