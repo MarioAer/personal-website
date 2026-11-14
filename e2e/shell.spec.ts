@@ -225,13 +225,17 @@ test('the legal link opens the legal page from a variant', async ({ page }) => {
   await expect(page.locator('#legal-notice')).toHaveCount(registry.legal.address ? 1 : 0)
 })
 
-test('the legal link lies inside the viewport', async ({ page }) => {
+test('every bar control lies inside the viewport', async ({ page }) => {
   await page.goto('./')
-  const box = await control(page, 'shell-legal').boundingBox()
+  await expect(control(page, 'shell-github')).toBeVisible()
   const width = page.viewportSize()?.width
-  if (!box || !width) throw new Error('the legal link or the viewport has no size')
-  expect(box.x).toBeGreaterThanOrEqual(0)
-  expect(box.x + box.width).toBeLessThanOrEqual(width)
+  if (!width) throw new Error('the viewport has no size')
+  for (const id of ['shell-select', 'shell-theme', 'shell-legal', 'shell-spec', 'shell-linkedin', 'shell-github']) {
+    const box = await control(page, id).boundingBox()
+    if (!box) throw new Error(`${id} has no bounding box`)
+    expect(box.x, `${id} starts left of the viewport`).toBeGreaterThanOrEqual(0)
+    expect(box.x + box.width, `${id} ends right of the viewport`).toBeLessThanOrEqual(width)
+  }
 })
 
 test('the 404 page carries the bar', async ({ page }) => {

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import type { Page } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
 import { isRegistry } from '../scripts/lib/registry.ts'
 
@@ -18,6 +19,50 @@ const injectedScriptRuns = (): boolean => {
   return document.documentElement.dataset.injected === 'ran'
 }
 
+const expectContactLinks = async (page: Page, path: string): Promise<void> => {
+  await page.goto(path)
+  const shell = page.locator('site-shell')
+  await expect(shell.locator('[data-testid="shell-linkedin"]')).toBeVisible()
+  await expect(shell.locator('[data-testid="shell-github"]')).toBeVisible()
+}
+
+const expectNoHorizontalScroll = async (page: Page, path: string): Promise<void> => {
+  await page.goto(path)
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+  expect(overflow).toBeLessThanOrEqual(1)
+}
+
+const expectTopBarCleared = async (page: Page, path: string): Promise<void> => {
+  await page.goto(path)
+  const reserved = await page.evaluate(() => parseFloat(getComputedStyle(document.body).paddingTop))
+  expect(reserved).toBeGreaterThanOrEqual(56)
+}
+
+const expectNoThirdPartyNoError = async (page: Page, path: string): Promise<void> => {
+  const problems: string[] = []
+  page.on('console', (message) => { if (message.type() === 'error') problems.push(message.text()) })
+  page.on('pageerror', (error) => problems.push(error.message))
+  page.on('requestfailed', (request) => problems.push(`failed request: ${request.url()}`))
+  page.on('request', (request) => {
+    const url = new URL(request.url())
+    if (url.hostname !== 'localhost' && url.protocol !== 'data:') problems.push(`third-party request: ${request.url()}`)
+  })
+  await page.goto(path)
+  await page.waitForLoadState('networkidle')
+  expect(problems).toEqual([])
+}
+
+const expectInjectedScriptBlocked = async (page: Page, path: string): Promise<void> => {
+  await page.goto(path)
+  expect(await page.evaluate(injectedScriptRuns)).toBe(false)
+}
+
+const expectPolicyMetaAndScriptBlocked = async (page: Page, path: string): Promise<void> => {
+  await page.goto(path)
+  await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveCount(1)
+  expect(await page.evaluate(injectedScriptRuns)).toBe(false)
+}
+
 for (const path of paths) {
   test.describe(`variant at ${path}`, () => {
     test('has one h1 and the landmarks', async ({ page }) => {
@@ -35,42 +80,23 @@ for (const path of paths) {
     })
 
     test('reaches LinkedIn and GitHub in one click', async ({ page }) => {
-      await page.goto(path)
-      const shell = page.locator('site-shell')
-      await expect(shell.locator('[data-testid="shell-linkedin"]')).toBeVisible()
-      await expect(shell.locator('[data-testid="shell-github"]')).toBeVisible()
+      await expectContactLinks(page, path)
     })
 
     test('does not scroll horizontally', async ({ page }) => {
-      await page.goto(path)
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
-      expect(overflow).toBeLessThanOrEqual(1)
+      await expectNoHorizontalScroll(page, path)
     })
 
     test('clears the top bar', async ({ page }) => {
-      await page.goto(path)
-      const reserved = await page.evaluate(() => parseFloat(getComputedStyle(document.body).paddingTop))
-      expect(reserved).toBeGreaterThanOrEqual(56)
+      await expectTopBarCleared(page, path)
     })
 
     test('loads no third-party resource and logs no error', async ({ page }) => {
-      const problems: string[] = []
-      page.on('console', (message) => { if (message.type() === 'error') problems.push(message.text()) })
-      page.on('pageerror', (error) => problems.push(error.message))
-      page.on('requestfailed', (request) => problems.push(`failed request: ${request.url()}`))
-      page.on('request', (request) => {
-        const url = new URL(request.url())
-        if (url.hostname !== 'localhost' && url.protocol !== 'data:') problems.push(`third-party request: ${request.url()}`)
-      })
-      await page.goto(path)
-      await page.waitForLoadState('networkidle')
-      expect(problems).toEqual([])
+      await expectNoThirdPartyNoError(page, path)
     })
 
     test('enforces a content security policy that blocks injected script', async ({ page }) => {
-      await page.goto(path)
-      await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveCount(1)
-      expect(await page.evaluate(injectedScriptRuns)).toBe(false)
+      await expectPolicyMetaAndScriptBlocked(page, path)
     })
   })
 }
@@ -79,15 +105,11 @@ for (const path of paths) {
 // page, which is not a variant and so is outside the `paths` loop above.
 test.describe('the 404 page', () => {
   test('enforces a content security policy that blocks injected script', async ({ page }) => {
-    await page.goto('no-such-page')
-    expect(await page.evaluate(injectedScriptRuns)).toBe(false)
+    await expectInjectedScriptBlocked(page, 'no-such-page')
   })
 
   test('reaches LinkedIn and GitHub in one click', async ({ page }) => {
-    await page.goto('no-such-page')
-    const shell = page.locator('site-shell')
-    await expect(shell.locator('[data-testid="shell-linkedin"]')).toBeVisible()
-    await expect(shell.locator('[data-testid="shell-github"]')).toBeVisible()
+    await expectContactLinks(page, 'no-such-page')
   })
 })
 
@@ -101,46 +123,28 @@ test.describe('the legal page', () => {
   })
 
   test('reaches LinkedIn and GitHub in one click', async ({ page }) => {
-    await page.goto('legal.html')
-    const shell = page.locator('site-shell')
-    await expect(shell.locator('[data-testid="shell-linkedin"]')).toBeVisible()
-    await expect(shell.locator('[data-testid="shell-github"]')).toBeVisible()
+    await expectContactLinks(page, 'legal.html')
   })
 
   test('does not scroll horizontally', async ({ page }) => {
-    await page.goto('legal.html')
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
-    expect(overflow).toBeLessThanOrEqual(1)
+    await expectNoHorizontalScroll(page, 'legal.html')
   })
 
   test('clears the top bar', async ({ page }) => {
-    await page.goto('legal.html')
-    const reserved = await page.evaluate(() => parseFloat(getComputedStyle(document.body).paddingTop))
-    expect(reserved).toBeGreaterThanOrEqual(56)
+    await expectTopBarCleared(page, 'legal.html')
   })
 
   test('loads no third-party resource and logs no error', async ({ page }) => {
-    const problems: string[] = []
-    page.on('console', (message) => { if (message.type() === 'error') problems.push(message.text()) })
-    page.on('pageerror', (error) => problems.push(error.message))
-    page.on('requestfailed', (request) => problems.push(`failed request: ${request.url()}`))
-    page.on('request', (request) => {
-      const url = new URL(request.url())
-      if (url.hostname !== 'localhost' && url.protocol !== 'data:') problems.push(`third-party request: ${request.url()}`)
-    })
-    await page.goto('legal.html')
-    await page.waitForLoadState('networkidle')
-    expect(problems).toEqual([])
+    await expectNoThirdPartyNoError(page, 'legal.html')
   })
 
   test('enforces a content security policy that blocks injected script', async ({ page }) => {
-    await page.goto('legal.html')
-    await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveCount(1)
-    expect(await page.evaluate(injectedScriptRuns)).toBe(false)
+    await expectPolicyMetaAndScriptBlocked(page, 'legal.html')
   })
 
   test('shows the email address as text, never as a link', async ({ page }) => {
     await page.goto('legal.html')
     await expect(page.locator('a[href^="mailto:"], a[href^="tel:"]')).toHaveCount(0)
+    await expect(page.locator('#privacy')).toContainText(registry.legal.email)
   })
 })

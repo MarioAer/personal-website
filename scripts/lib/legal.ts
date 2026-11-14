@@ -29,7 +29,7 @@ export function legalPage(legal: Legal, contact: Contact, basePath: string): str
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Legal notice and privacy</title>
-<script type="module" src="${basePath}shell/shell.js"></script>
+<script type="module" src="${escapeHtml(basePath)}shell/shell.js"></script>
 <style>
 :root { color-scheme: light dark; --bg: #fbfaf8; --fg: #1b1b1a; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #14140f; --fg: #eceadf; } }

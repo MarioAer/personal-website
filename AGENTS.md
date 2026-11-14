@@ -225,12 +225,14 @@ TypeScript. No framework, no runtime dependency. It:
 2. Derives the site base as `new URL('..', import.meta.url)` and fetches `<base>variants.json`
    with `{ cache: 'no-cache' }`.
 3. Renders the site name linking to `<base>`; a theme toggle that writes `data-theme` on `<html>`
-   and, only when the visitor uses the toggle, stores it in `localStorage` under `theme`; a labelled `<select>` navigating to `<base>` for
-   the default id and `<base><id>/` otherwise; "Legal" linking to `<base>legal.html`, which the
-   bar holds without the registry; "View spec" linking to
-   `<repository>/blob/main/spec/<specVersion>.md` (the variant's version, or the current one on
-   pages that are not a variant); LinkedIn and GitHub links with accessible labels; the colophon
-   (model label, generation date, specification version, and a notice when it is older).
+   and, only when the visitor uses the toggle, stores it in `localStorage` under `theme`; a
+   labelled `<select>` navigating to `<base>` for the default id and `<base><id>/` otherwise;
+   "Legal" linking to `<base>legal.html`, which the bar holds without the registry; "View spec"
+   linking to `<repository>/blob/main/spec/<specVersion>.md` (the variant's version, or the
+   current one on pages that are not a variant); LinkedIn and GitHub links with accessible
+   labels; the colophon (model label, generation date, specification version, and a notice when
+   it is older). Below 480 px the theme button shows a glyph instead of the word and the selector
+   may shrink, so every control stays inside the viewport at 360 px.
 4. Sets `--shell-height: 56px` on `:root`.
 
 When `variants.json` fails to load, the selector and "View spec" are hidden, "Legal" stays, and
@@ -325,8 +327,8 @@ mutation-checked and should stay that way.
 
 | Layer | Covers |
 | --- | --- |
-| Unit (`tests/`) | Registry rules, each contract rule with a passing and a failing fixture, specification versions, and the build on a fixture repository: layout, shell path for `/` and a subpath, `specVersion` injected, determinism. |
-| Browser (`e2e/`, Chromium at 1440×900 and 360×780, against `dist/` built for `/personal-website/`; runs in CI) | Theme toggle persists; selector navigates for default and other ids; the "Legal" link opens the legal page, also without the registry; "View spec" links the right version; bar works without the registry; the legal page: one `<h1>`, `main`, the privacy section, the legal notice only with an address, LinkedIn and GitHub, no `mailto:` link, no third-party request; LinkedIn and GitHub on every variant and the 404 page; no console errors or third-party requests; the security policy blocks injected script; a stored theme applies before the shell loads; one `<h1>` and the landmarks; no horizontal scroll; the bar's 56 px kept clear; no email address, `mailto:` or `tel:` in any variant. Nothing that quotes the specification's wording, so a new version does not break the suite. |
+| Unit (`tests/`) | Registry rules, each contract rule with a passing and a failing fixture, specification versions, and the build on a fixture repository: layout, shell path for `/` and a subpath, `specVersion` injected, determinism; the legal page renderer (structure, escaping, email encoding); the `legal` registry rules; the published registry leaving out `legal`; the placeholder guard (`variants.json` holds the owner's data). |
+| Browser (`e2e/`, Chromium at 1440×900 and 360×780, against `dist/` built for `/personal-website/`; runs in CI) | Theme toggle persists; selector navigates for default and other ids; the "Legal" link opens the legal page and is present without the registry (the no-registry test only checks presence); every bar control lies inside the viewport at both widths; "View spec" links the right version; bar works without the registry; the legal page: one `<h1>`, `main`, the privacy section, the legal notice only with an address, LinkedIn and GitHub, no `mailto:` link, no third-party request; LinkedIn and GitHub on every variant and the 404 page; no console errors or third-party requests; the security policy blocks injected script; a stored theme applies before the shell loads; one `<h1>` and the landmarks; no horizontal scroll; the bar's 56 px kept clear; no email address, `mailto:` or `tel:` in any variant. Nothing that quotes the specification's wording, so a new version does not break the suite. |
 
 Accessibility and performance are checked manually with Lighthouse before a variant is merged.
 Manual review covers everything the specification says: the content inventory, numbers, tone

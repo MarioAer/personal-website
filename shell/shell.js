@@ -69,7 +69,15 @@ button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid
 .colophon { color: var(--bar-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 22rem; }
 .stale { color: #b4441f; }
 @media (max-width: 860px) { .label, .colophon { display: none; } }
-@media (max-width: 480px) { .name { display: none; } }
+.narrow { display: none; }
+@media (max-width: 480px) {
+  .name { display: none; }
+  .bar { gap: 0.4rem; padding: 0 0.5rem; }
+  .registry { flex: 0 1 auto; min-width: 0; }
+  select { min-width: 0; max-width: 100%; text-overflow: ellipsis; }
+  .wide { display: none; }
+  .narrow { display: inline; }
+}
 svg { display: block; width: 18px; height: 18px; fill: currentColor; }
 `.trim()
 
@@ -100,7 +108,7 @@ function mount() {
     <label class="label" for="variant-select">Built with</label>
     <select id="variant-select" data-testid="shell-select"></select>
   </span>
-  <button type="button" data-testid="shell-theme" aria-label="Switch colour theme">Theme</button>
+  <button type="button" data-testid="shell-theme" aria-label="Switch colour theme"><span class="wide">Theme</span><span class="narrow" aria-hidden="true">◐</span></button>
   <a class="link" data-testid="shell-legal" href="${BASE.pathname}legal.html" aria-label="Legal notice and privacy">Legal</a>
   <a class="link" data-testid="shell-spec" hidden>View spec</a>
   <span class="group contact"></span>

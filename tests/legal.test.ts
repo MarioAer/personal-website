@@ -78,6 +78,21 @@ test('values are written as text, not markup', () => {
   assert.ok(sectionText(html, 'privacy')?.includes(`${name} is the controller`))
 })
 
+test('an address line is written as text, not markup', () => {
+  const line = '1 <b>&"x'
+  const html = legalPage({ ...withAddress, address: [line, '12345 Example City'] }, contact, base)
+  assert.equal(count(html, 'b'), 0)
+  assert.ok(sectionText(html, 'legal-notice')?.includes(line))
+})
+
+test('a contact URL is written as an attribute value, not as markup', () => {
+  const linkedin = 'https://example.org/a"b'
+  const html = legalPage(withAddress, { ...contact, linkedin }, base)
+  const links = parseHtml(html).filter((element) => element.tag === 'a' && element.attrs.get('href') === linkedin)
+  assert.equal(links.length, 1)
+  assert.deepEqual([...(links[0]?.attrs.keys() ?? [])], ['href'])
+})
+
 test('the email is not a link', () => {
   const html = legalPage(withAddress, contact, base)
   const mailto = parseHtml(html).filter((element) => element.tag === 'a' && element.attrs.get('href')?.toLowerCase().startsWith('mailto:'))
@@ -88,6 +103,9 @@ test('the email is readable on the page but not literal in the source', () => {
   const html = legalPage(withAddress, contact, base)
   assert.ok(!html.includes('ada@example.org'))
   assert.ok(!html.includes('@example'))
+  assert.ok(!html.includes('ada&#64;'))
+  const encoded = Array.from('ada@example.org', (character) => `&#${character.codePointAt(0)};`).join('')
+  assert.ok(html.includes(encoded))
   assert.ok(sectionText(html, 'privacy')?.includes('ada@example.org'))
   assert.ok(sectionText(html, 'legal-notice')?.includes('ada@example.org'))
 })
