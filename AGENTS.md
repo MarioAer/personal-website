@@ -213,7 +213,7 @@ TypeScript. No framework, no runtime dependency. It:
 2. Derives the site base as `new URL('..', import.meta.url)` and fetches `<base>variants.json`
    with `{ cache: 'no-cache' }`.
 3. Renders the site name linking to `<base>`; a theme toggle that writes `data-theme` on `<html>`
-   and stores it in `localStorage` under `theme`; a labelled `<select>` navigating to `<base>` for
+   and, only when the visitor uses the toggle, stores it in `localStorage` under `theme`; a labelled `<select>` navigating to `<base>` for
    the default id and `<base><id>/` otherwise; "View spec" linking to
    `<repository>/blob/main/spec/<specVersion>.md` (the variant's version, or the current one on
    pages that are not a variant); LinkedIn and GitHub links with accessible labels; the colophon

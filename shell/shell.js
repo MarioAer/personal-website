@@ -45,7 +45,6 @@ function currentTheme() {
 /** @param {string} theme */
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme
-  storage.write(theme)
 }
 
 // Single source of truth for the bar's height: both the stylesheet below and the --shell-height
@@ -114,6 +113,7 @@ function mount() {
   themeButton.addEventListener('click', () => {
     const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'
     applyTheme(next)
+    storage.write(next)
     host.dataset.theme = next
   })
 

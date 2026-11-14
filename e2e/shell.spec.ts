@@ -97,6 +97,15 @@ test('the theme toggle writes and persists the theme', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
 })
 
+test('no theme is stored until the visitor uses the toggle', async ({ page }) => {
+  await page.goto('./')
+  await expect(control(page, 'shell-theme')).toBeVisible()
+  expect(await page.evaluate(() => window.localStorage.getItem('theme'))).toBeNull()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', /^(light|dark)$/)
+  await control(page, 'shell-theme').click()
+  expect(await page.evaluate(() => window.localStorage.getItem('theme'))).toMatch(/^(light|dark)$/)
+})
+
 test('the theme toggle still works when storage throws', async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperty(window, 'localStorage', {
