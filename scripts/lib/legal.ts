@@ -16,7 +16,13 @@ const SOURCES: ReadonlyArray<{ text: string; href: string; note: string }> = [
     href: 'https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages',
     note: 'what the host logs',
   },
-  { text: 'GitHub General Privacy Statement', href: PRIVACY_STATEMENT, note: 'how the host processes data' },
+  { text: 'GitHub General Privacy Statement', href: PRIVACY_STATEMENT, note: 'how the host processes data and what it relies on for transfers' },
+  {
+    text: 'Commission Implementing Decision (EU) 2023/1795, EU-U.S. Data Privacy Framework',
+    href: 'https://eur-lex.europa.eu/eli/dec_impl/2023/1795/oj',
+    note: 'the adequacy decision for the USA',
+  },
+  { text: 'Data Privacy Framework List, U.S. Department of Commerce', href: 'https://www.dataprivacyframework.gov/list', note: "the host's certification, checked on 14 November 2026" },
   { text: 'Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen', href: 'https://www.ldi.nrw.de/', note: 'the supervisory authority' },
 ]
 
@@ -92,7 +98,7 @@ ${notice}<section id="privacy">
 <h3>Who is responsible</h3>
 <p>${name} is the controller for this website within the meaning of the GDPR. Contact: ${obscured}.</p>
 <h3>Hosting</h3>
-<p>This website is hosted on GitHub Pages, a service of GitHub, Inc., San Francisco, USA. When you open a page, GitHub logs and stores your IP address for security purposes, whether or not you are signed in to GitHub. I have no access to these logs. The legal basis is the legitimate interest in a secure and reliable website (Art. 6(1)(f) GDPR). Data may be processed in the USA. Details are in the <a href="${PRIVACY_STATEMENT}">GitHub Privacy Statement</a>.</p>
+<p>This website is hosted on GitHub Pages, a service of GitHub, Inc., San Francisco, USA. When you open a page, GitHub logs and stores your IP address for security purposes, whether or not you are signed in to GitHub. I have no access to these logs. The legal basis is the legitimate interest in a secure and reliable website (Art. 6(1)(f) GDPR). GitHub may process this data in the USA. The European Commission has decided that the USA offers adequate protection for data sent to organisations certified under the EU-U.S. Data Privacy Framework (Implementing Decision (EU) 2023/1795), and GitHub is listed as an active participant. GitHub states that it also relies on the European Commission's standard contractual clauses. Details are in the <a href="${PRIVACY_STATEMENT}">GitHub Privacy Statement</a>.</p>
 <h3>Cookies and local storage</h3>
 <p>This website sets no cookies and uses no analytics, advertising or embedded third-party content. If you use the theme button, your choice (light or dark) is saved in your browser's local storage so that it is remembered on your next visit. It never leaves your device, and you can remove it by clearing the site data in your browser.</p>
 <h3>Links to other sites</h3>
