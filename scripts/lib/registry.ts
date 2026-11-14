@@ -16,10 +16,12 @@ export interface Contact {
   github: string
 }
 
-/** Who answers for the site. `address` present means a legal notice is published. */
+/**
+ * Who answers for the site. `address` present means a legal notice is published. The email address
+ * is not part of the registry: the build reads it from the environment (`LEGAL_EMAIL`).
+ */
 export interface Legal {
   name: string
-  email: string
   address?: string[]
 }
 
@@ -64,7 +66,7 @@ export function isArray(value: unknown): value is unknown[] {
 }
 
 /** An address has no whitespace, exactly one `@`, a local part, and a domain with a dot inside it. */
-function isEmail(value: string): boolean {
+export function isEmail(value: string): boolean {
   if (/\s/.test(value)) return false
   const parts = value.split('@')
   if (parts.length !== 2) return false
@@ -79,7 +81,7 @@ function isAddress(value: unknown): value is string[] {
 function isLegal(value: unknown): value is Legal {
   if (!isRecord(value)) return false
   if (typeof value.name !== 'string' || value.name.trim().length === 0) return false
-  if (typeof value.email !== 'string' || !isEmail(value.email)) return false
+  if ('email' in value) return false
   return value.address === undefined || isAddress(value.address)
 }
 
@@ -181,13 +183,13 @@ export function validateRegistry(registry: unknown, context: RegistryContext = {
 
   const legal = registry.legal
   if (!isRecord(legal)) {
-    errors.push('variants.json: "legal" must be an object with name and email, and optionally address')
+    errors.push('variants.json: "legal" must be an object with name, and optionally address')
   } else {
     if (typeof legal.name !== 'string' || legal.name.trim().length === 0) {
       errors.push('variants.json: legal.name must be a non-empty string')
     }
-    if (typeof legal.email !== 'string' || !isEmail(legal.email)) {
-      errors.push('variants.json: legal.email must be an email address')
+    if ('email' in legal) {
+      errors.push('variants.json: legal.email must not be in the registry; the build reads the address from LEGAL_EMAIL')
     }
     if (legal.address !== undefined && !isAddress(legal.address)) {
       errors.push('variants.json: legal.address must be a non-empty list of non-empty lines')

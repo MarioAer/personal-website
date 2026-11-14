@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import type { Variant } from '../scripts/lib/registry.ts'
-import { validateRegistry, ID_PATTERN, RESERVED_NAMES, RESERVED_VARIANT_ENTRIES } from '../scripts/lib/registry.ts'
+import { validateRegistry, isEmail, ID_PATTERN, RESERVED_NAMES, RESERVED_VARIANT_ENTRIES } from '../scripts/lib/registry.ts'
 
 const entry = (over: Partial<Variant> = {}): Record<string, unknown> => ({
   id: 'claude-opus-5',
@@ -20,7 +20,7 @@ const registry = (over: Record<string, unknown> = {}): Record<string, unknown> =
   variants: [entry()],
   contact: { linkedin: 'https://www.linkedin.com/in/marioerazo/', github: 'https://github.com/MarioAer' },
   repository: 'https://github.com/MarioAer/personal-website',
-  legal: { name: 'Ada Example', email: 'ada@example.org' },
+  legal: { name: 'Ada Example' },
   ...over,
 })
 
@@ -94,18 +94,31 @@ test('the repository must be an https url', () => {
 
 const legalErrors = (legal: unknown): string[] => validateRegistry(registry({ legal }), context())
 
-test('a legal block needs a name and an email address', () => {
+test('a legal block needs a name', () => {
   assert.ok(legalErrors(undefined).some((e) => e.includes('"legal"')))
-  assert.ok(legalErrors({ email: 'ada@example.org' }).some((e) => e.includes('legal.name')))
-  for (const email of ['', 'ada', 'ada@', '@example.org', 'ada@example', 'a da@example.org', 'a@b@example.org']) {
-    assert.ok(legalErrors({ name: 'Ada Example', email }).some((e) => e.includes('legal.email')), `"${email}" should be rejected`)
+  assert.ok(legalErrors({}).some((e) => e.includes('legal.name')))
+  assert.ok(legalErrors({ name: ' ' }).some((e) => e.includes('legal.name')))
+  assert.deepEqual(legalErrors({ name: 'Ada Example' }), [])
+})
+
+test('an email in the legal block is rejected, whatever its value, and the message does not repeat it', () => {
+  for (const email of ['ada@example.org', '', 'ada', 42]) {
+    const errors = legalErrors({ name: 'Ada Example', email })
+    assert.deepEqual(errors, ['variants.json: legal.email must not be in the registry; the build reads the address from LEGAL_EMAIL'])
   }
 })
 
 test('a legal address is optional, but when present it is a list of non-empty lines', () => {
-  assert.deepEqual(legalErrors({ name: 'Ada Example', email: 'ada@example.org', address: ['1 Example Street', '12345 Example City'] }), [])
+  assert.deepEqual(legalErrors({ name: 'Ada Example', address: ['1 Example Street', '12345 Example City'] }), [])
   for (const address of [[], [''], ['1 Example Street', ' '], '1 Example Street', [1]]) {
-    assert.ok(legalErrors({ name: 'Ada Example', email: 'ada@example.org', address }).some((e) => e.includes('legal.address')))
+    assert.ok(legalErrors({ name: 'Ada Example', address }).some((e) => e.includes('legal.address')))
+  }
+})
+
+test('isEmail accepts an address with a dotted domain and nothing else', () => {
+  assert.equal(isEmail('ada@example.org'), true)
+  for (const value of ['', 'ada', 'ada@', '@example.org', 'ada@example', 'a da@example.org', 'a@b@example.org', 'ada@.org', 'ada@example.']) {
+    assert.equal(isEmail(value), false, `"${value}" should be rejected`)
   }
 })
 

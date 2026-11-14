@@ -15,6 +15,10 @@ jobs:
     permissions:
       contents: read
       pages: read # configure-pages reads the site's base path from the Pages settings
+    # Pull requests from Dependabot and forks cannot read the secret and build with a placeholder; a build on main fails without it.
+    env:
+      LEGAL_EMAIL: ${{ secrets.LEGAL_EMAIL }}
+      REQUIRE_LEGAL_EMAIL: ${{ github.ref == 'refs/heads/main' && '1' || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

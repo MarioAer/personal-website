@@ -48,9 +48,9 @@ other.
   current one.
 - The specification holds content only: purpose, audience, positioning, content inventory and
   content rules. It is the owner's; changing what the site says is their decision.
-- The legal page is build output from the registry's `legal` block, outside the specification's
-  content inventory, so the specification's contact-data rule governs the variants and not this
-  page.
+- The legal page is build output from the registry's `legal` block and the `LEGAL_EMAIL`
+  environment variable, outside the specification's content inventory, so the specification's
+  contact-data rule governs the variants and not this page.
 
 ## Architecture
 
@@ -109,7 +109,6 @@ them.
   "repository": "https://github.com/MarioAer/personal-website",
   "legal": {
     "name": "Ada Example",
-    "email": "ada@example.org",
     "address": ["1 Example Street", "12345 Example City"]
   }
 }
@@ -128,10 +127,10 @@ Rules, all checked by the build:
 - `specVersion` names an existing `spec/<specVersion>.md`. The build writes the current version
   into the output registry as a top-level `specVersion`.
 - Order in the array is the order in the selector.
-- `legal` is required: `name` is a non-empty string and `email` an email address (no whitespace,
-  one `@`, a domain with a dot inside it). `address` is optional; when present it is a non-empty
-  list of non-empty lines, and its presence means a legal notice is published. The output registry
-  omits `legal`, so the email address is not published as plain text.
+- `legal` is required and holds `name`, a non-empty string, and an optional `address`; when
+  present it is a non-empty list of non-empty lines, and its presence means a legal notice is
+  published. An `email` key is an error: the address is not in the repository, the build reads it
+  from `LEGAL_EMAIL` (see Build). The output registry omits `legal`.
 - `contact` and `repository` are https URLs and the single place they are defined. The fallback
   contact constant in `shell/shell.js` mirrors `contact`; a test holds the two in agreement.
 
@@ -240,7 +239,9 @@ the contact links fall back to the mirrored constant.
 
 ## Build (`scripts/build.ts`)
 
-Inputs: the repository and `BASE_PATH` (default `/`).
+Inputs: the repository, `BASE_PATH` (default `/`), and two environment variables for the legal
+page: `LEGAL_EMAIL`, the address it shows, and `REQUIRE_LEGAL_EMAIL`, which is `1` on a
+deployment build. The build never prints or logs the address.
 
 1. Read the specification versions from `spec/`; fail when there is none.
 2. Validate `variants.json` (Registry) and every variant (Variant contract); fail on the first
@@ -256,7 +257,13 @@ Inputs: the repository and `BASE_PATH` (default `/`).
    with the current `specVersion` added and `legal` left out.
 6. Write `dist/.nojekyll` and `dist/404.html` (shell, heading, a sentence pointing to the
    selector), with the same policy and theme script. Also write `dist/legal.html` from the
-   registry's `legal` block, with the same policy and theme script.
+   registry's `legal` block and `LEGAL_EMAIL`, with the same policy and theme script. The page is
+   `noindex`. The address is written as character references with a hidden decoy fragment after
+   every character but the last, so a reader, a screen reader and copy-paste get the address while
+   the markup with its tags stripped does not. A `LEGAL_EMAIL` that is set but not an email
+   address fails the build, and the message does not repeat it. When it is empty or unset the
+   page shows a placeholder address (`not-configured@example.invalid`) and the build warns; with
+   `REQUIRE_LEGAL_EMAIL=1` the build fails instead.
 
 Output is deterministic: identical inputs produce byte-identical `dist/`.
 
@@ -266,6 +273,11 @@ GitHub Actions on push to `main`: install, typecheck, lint, unit and browser sui
 `dist/`, deploy to Pages. Pull requests run everything except the deployment. `BASE_PATH` comes
 from `actions/configure-pages`, which reads the Pages settings: `/` with a custom domain,
 `/<repository name>/` without one.
+
+The address on the legal page is the repository secret `LEGAL_EMAIL`, passed to the job's steps
+as an environment variable; on `main` the job also sets `REQUIRE_LEGAL_EMAIL=1`, so a deployment
+without the secret fails. Builds that cannot read secrets (pull requests from Dependabot and forks)
+use the placeholder address.
 
 Every action is pinned to a commit SHA with its version in a comment, and dependencies install
 with `--ignore-scripts`. Dependabot updates the pins and proposes a release only once it is seven
@@ -327,8 +339,8 @@ mutation-checked and should stay that way.
 
 | Layer | Covers |
 | --- | --- |
-| Unit (`tests/`) | Registry rules, each contract rule with a passing and a failing fixture, specification versions, and the build on a fixture repository: layout, shell path for `/` and a subpath, `specVersion` injected, determinism; the legal page renderer (structure, escaping, email encoding); the `legal` registry rules; the published registry leaving out `legal`; the placeholder guard (`variants.json` holds the owner's data). |
-| Browser (`e2e/`, Chromium at 1440×900 and 360×780, against `dist/` built for `/personal-website/`; runs in CI) | Theme toggle persists; selector navigates for default and other ids; the "Legal" link opens the legal page and is present without the registry (the no-registry test only checks presence); every bar control lies inside the viewport at both widths; "View spec" links the right version; bar works without the registry; the legal page: one `<h1>`, `main`, the privacy section, the legal notice only with an address, LinkedIn and GitHub, no `mailto:` link, no third-party request; LinkedIn and GitHub on every variant and the 404 page; no console errors or third-party requests; the security policy blocks injected script; a stored theme applies before the shell loads; one `<h1>` and the landmarks; no horizontal scroll; the bar's 56 px kept clear; no email address, `mailto:` or `tel:` in any variant. Nothing that quotes the specification's wording, so a new version does not break the suite. |
+| Unit (`tests/`) | Registry rules, each contract rule with a passing and a failing fixture, specification versions, and the build on a fixture repository: layout, shell path for `/` and a subpath, `specVersion` injected, determinism; the legal page renderer (structure, escaping, the email's decoy fragments, `noindex`); the `legal` registry rules, including the rejected `email` key; the build's `LEGAL_EMAIL` handling (configured, placeholder with a warning, required on a deployment build, invalid value never echoed); the published registry leaving out `legal`; the placeholder guard (`variants.json` holds the owner's name and address). |
+| Browser (`e2e/`, Chromium at 1440×900 and 360×780, against `dist/` built for `/personal-website/`; runs in CI) | Theme toggle persists; selector navigates for default and other ids; the "Legal" link opens the legal page and is present without the registry (the no-registry test only checks presence); every bar control lies inside the viewport at both widths; "View spec" links the right version; bar works without the registry; the legal page: one `<h1>`, `main`, the privacy section, the legal notice only with an address, LinkedIn and GitHub, the address from `LEGAL_EMAIL` (or the placeholder) as visible text and no `mailto:` link, `noindex`, no third-party request; LinkedIn and GitHub on every variant and the 404 page; no console errors or third-party requests; the security policy blocks injected script; a stored theme applies before the shell loads; one `<h1>` and the landmarks; no horizontal scroll; the bar's 56 px kept clear; no email address, `mailto:` or `tel:` in any variant. Nothing that quotes the specification's wording, so a new version does not break the suite. |
 
 Accessibility and performance are checked manually with Lighthouse before a variant is merged.
 Manual review covers everything the specification says: the content inventory, numbers, tone

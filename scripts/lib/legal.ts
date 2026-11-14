@@ -1,5 +1,11 @@
 import type { Contact, Legal } from './registry.ts'
 
+/** Shown when the build has no `LEGAL_EMAIL`: a reserved domain that cannot receive mail. */
+export const PLACEHOLDER_LEGAL_EMAIL = 'not-configured@example.invalid'
+
+/** Fragments hidden between the characters of the address, taken in order and cycling. */
+const DECOYS: readonly string[] = ['q@', '.z', 'x', '@n.', 'k', '.co']
+
 const PRIVACY_STATEMENT = 'https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement'
 
 const SOURCES: ReadonlyArray<{ text: string; href: string; note: string }> = [
@@ -18,20 +24,33 @@ function escapeHtml(text: string): string {
   return text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
 }
 
-/** Writes every code point as a numeric character reference, so the address reads on the page but not in the source. */
-function encodeEmail(email: string): string {
-  return Array.from(email, (character) => `&#${character.codePointAt(0)};`).join('')
+/** Writes every code point as a numeric character reference. */
+const encode = (text: string): string => Array.from(text, (character) => `&#${character.codePointAt(0)};`).join('')
+
+/**
+ * The address as markup: each character a numeric character reference, and after every character
+ * but the last a hidden decoy fragment. A browser, a screen reader and copy-paste skip hidden
+ * elements and get the address; a scraper that strips the tags gets the fragments mixed in.
+ */
+function obscureEmail(email: string): string {
+  const characters = Array.from(email)
+  return characters
+    .map((character, index) => {
+      const decoy = index < characters.length - 1 ? `<span hidden>${encode(DECOYS[index % DECOYS.length] ?? '')}</span>` : ''
+      return `${encode(character)}${decoy}`
+    })
+    .join('')
 }
 
-/** The legal notice and privacy page as a complete HTML document, without the security policy. */
-export function legalPage(legal: Legal, contact: Contact, basePath: string): string {
+/** The legal notice and privacy page as a complete HTML document, without the security policy. `email` is the address to show. */
+export function legalPage(legal: Legal, email: string, contact: Contact, basePath: string): string {
   const name = escapeHtml(legal.name)
-  const email = encodeEmail(legal.email)
+  const obscured = obscureEmail(email)
   const notice = legal.address
     ? `<section id="legal-notice">
 <h2>Legal notice</h2>
 <p>Information according to § 5 DDG</p>
-<address>${[name, ...legal.address.map(escapeHtml), `Email: ${email}`].join('<br>\n')}</address>
+<address>${[name, ...legal.address.map(escapeHtml), `Email: ${obscured}`].join('<br>\n')}</address>
 </section>
 `
     : ''
@@ -42,6 +61,7 @@ export function legalPage(legal: Legal, contact: Contact, basePath: string): str
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Legal notice and privacy</title>
+<meta name="robots" content="noindex">
 <script type="module" src="${escapeHtml(basePath)}shell/shell.js"></script>
 <style>
 :root { color-scheme: light dark; --bg: #fbfaf8; --fg: #1b1b1a; }
@@ -61,7 +81,7 @@ a:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 ${notice}<section id="privacy">
 <h2>Privacy</h2>
 <h3>Who is responsible</h3>
-<p>${name} is the controller for this website within the meaning of the GDPR. Contact: ${email}.</p>
+<p>${name} is the controller for this website within the meaning of the GDPR. Contact: ${obscured}.</p>
 <h3>Hosting</h3>
 <p>This website is hosted on GitHub Pages, a service of GitHub, Inc., San Francisco, USA. When you open a page, GitHub logs and stores your IP address for security purposes, whether or not you are signed in to GitHub. I have no access to these logs. The legal basis is the legitimate interest in a secure and reliable website (Art. 6(1)(f) GDPR). Data may be processed in the USA. Details are in the <a href="${PRIVACY_STATEMENT}">GitHub Privacy Statement</a>.</p>
 <h3>Cookies and local storage</h3>

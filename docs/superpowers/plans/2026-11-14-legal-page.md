@@ -21,6 +21,7 @@ Mine, each open to correction before implementation:
 5. The page is in English, like the site.
 6. The privacy copy in Task 3 is a draft. It is not legal advice and should be read by the owner, ideally a lawyer, before merge.
 7. The page's wording is my own and the page cites its primary sources. Free template generators were not copied: their texts are German-only in the free version, licensed to the person who generates them, and require the generator's credit line.
+8. The email is not in the repository: the build reads it from the LEGAL_EMAIL environment variable (a repository secret in CI), writes it with hidden decoy fragments, and the page is marked noindex.
 
 The owner's, needed before Task 2 can finish:
 

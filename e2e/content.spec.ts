@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import type { Page } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
 import { isRegistry } from '../scripts/lib/registry.ts'
+import { PLACEHOLDER_LEGAL_EMAIL } from '../scripts/lib/legal.ts'
 
 const registry: unknown = JSON.parse(await readFile(new URL('../variants.json', import.meta.url), 'utf8'))
 if (!isRegistry(registry)) throw new Error('variants.json is not a valid registry')
@@ -142,9 +143,17 @@ test.describe('the legal page', () => {
     await expectPolicyMetaAndScriptBlocked(page, 'legal.html')
   })
 
+  // The build reads the address from LEGAL_EMAIL, and CI gives the tests the same environment as the build.
   test('shows the email address as text, never as a link', async ({ page }) => {
+    const expected = process.env.LEGAL_EMAIL?.trim() || PLACEHOLDER_LEGAL_EMAIL
     await page.goto('legal.html')
     await expect(page.locator('a[href^="mailto:"], a[href^="tel:"]')).toHaveCount(0)
-    await expect(page.locator('#privacy')).toContainText(registry.legal.email)
+    // innerText skips the hidden decoy fragments between the characters, as a reader and copy-paste do.
+    await expect(page.locator('#privacy')).toContainText(expected, { useInnerText: true })
+  })
+
+  test('asks search engines not to index it', async ({ page }) => {
+    await page.goto('legal.html')
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex')
   })
 })

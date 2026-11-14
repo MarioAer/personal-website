@@ -8,6 +8,9 @@ import { build, normaliseBasePath } from '../scripts/build.ts'
 import type { BuildOptions, BuildResult } from '../scripts/build.ts'
 import { isRecord } from '../scripts/lib/registry.ts'
 import { HEAD_MARKUP } from '../scripts/lib/policy.ts'
+import { PLACEHOLDER_LEGAL_EMAIL } from '../scripts/lib/legal.ts'
+import { parse, defaultTreeAdapter } from 'parse5'
+import type { DefaultTreeAdapterMap } from 'parse5'
 
 /** Pieces of the fixture repository a single test wants to differ from the valid default. */
 interface FixtureOverrides {
@@ -30,7 +33,7 @@ async function fixture(overrides: FixtureOverrides = {}): Promise<string> {
     ],
     contact: { linkedin: 'https://www.linkedin.com/in/marioerazo/', github: 'https://github.com/MarioAer' },
     repository: 'https://github.com/MarioAer/personal-website',
-    legal: { name: 'Ada Example', email: 'ada@example.org', address: ['1 Example Street', '12345 Example City'] },
+    legal: { name: 'Ada Example', address: ['1 Example Street', '12345 Example City'] },
     ...overrides.registry,
   }
   for (const id of ['alpha', 'beta']) {
@@ -45,6 +48,17 @@ async function fixture(overrides: FixtureOverrides = {}): Promise<string> {
   await writeFile(join(root, 'variants.json'), overrides.registryText ?? JSON.stringify(registry, null, 2))
   return root
 }
+
+const EMAIL = 'ada@example.org'
+
+/** The text a reader gets from a page: hidden elements are skipped, as a browser, a screen reader and copy-paste do. */
+function visibleText(node: DefaultTreeAdapterMap['node']): string {
+  if (defaultTreeAdapter.isTextNode(node)) return defaultTreeAdapter.getTextNodeContent(node)
+  if (defaultTreeAdapter.isElementNode(node) && node.attrs.some((attr) => attr.name === 'hidden')) return ''
+  return 'childNodes' in node ? node.childNodes.map(visibleText).join('') : ''
+}
+
+const legalText = async (root: string): Promise<string> => visibleText(parse(await readFile(join(root, 'dist', 'legal.html'), 'utf8')))
 
 const run = (root: string, options: Partial<BuildOptions> = {}): Promise<BuildResult> =>
   build({
@@ -137,12 +151,12 @@ test('the output registry carries the current specification version', async (t) 
 test('the published registry leaves out the legal block', async (t) => {
   const root = await fixture()
   t.after(() => rm(root, { recursive: true, force: true }))
-  await run(root)
+  await run(root, { legalEmail: EMAIL })
   const text = await readFile(join(root, 'dist', 'variants.json'), 'utf8')
   const out: unknown = JSON.parse(text)
   if (!isRecord(out)) assert.fail('the build must write an object')
   assert.ok(!('legal' in out))
-  assert.ok(!text.includes('ada@example.org'))
+  assert.ok(!text.includes(EMAIL))
   for (const key of ['default', 'variants', 'contact', 'repository', 'specVersion']) assert.ok(key in out, `${key} must stay in the published registry`)
 })
 
@@ -248,13 +262,77 @@ test('every published page starts its head with the security policy and the them
   }
 })
 
-test("the legal page carries the registry's legal data and the shell for the base path", async (t) => {
+test("the legal page carries the registry's legal data, the configured email and the shell for the base path", async (t) => {
   const root = await fixture()
   t.after(() => rm(root, { recursive: true, force: true }))
-  await run(root, { basePath: '/personal-website/' })
+  const result = await run(root, { basePath: '/personal-website/', legalEmail: EMAIL })
   const page = await readFile(join(root, 'dist', 'legal.html'), 'utf8')
   assert.ok(page.includes('Ada Example'))
   assert.ok(page.includes('src="/personal-website/shell/shell.js"'))
+  assert.ok(page.includes('<meta name="robots" content="noindex">'))
+  assert.ok((await legalText(root)).includes(EMAIL))
+  assert.ok(!result.warnings.some((warning) => warning.includes('LEGAL_EMAIL')))
+})
+
+test('the email is trimmed and appears nowhere in dist except, encoded, in the legal page', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const result = await run(root, { legalEmail: `  ${EMAIL}\n` })
+  assert.ok((await legalText(root)).includes(EMAIL))
+  const dist = join(root, 'dist')
+  for (const entry of await readdir(dist, { recursive: true, withFileTypes: true })) {
+    if (!entry.isFile()) continue
+    const text = await readFile(join(entry.parentPath, entry.name), 'utf8')
+    assert.ok(!text.includes(EMAIL), `${entry.name} holds the address as plain text`)
+    assert.ok(!text.includes('@example'), `${entry.name} holds the address' domain as plain text`)
+  }
+  assert.ok(!JSON.stringify(result).includes(EMAIL))
+})
+
+test('without an email the legal page shows the placeholder and the build warns', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  for (const legalEmail of [undefined, '', '  ']) {
+    const result = await run(root, { legalEmail })
+    assert.ok((await legalText(root)).includes(PLACEHOLDER_LEGAL_EMAIL))
+    assert.ok(!(await legalText(root)).includes(EMAIL))
+    assert.ok(result.warnings.includes('LEGAL_EMAIL is not set; the legal page shows a placeholder address'))
+  }
+})
+
+test('a deployment build without an email fails and writes nothing', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  for (const legalEmail of [undefined, '', '  ']) {
+    await assert.rejects(run(root, { legalEmail, requireLegalEmail: true }), { message: 'LEGAL_EMAIL is required for a deployment build but is not set' })
+  }
+  await assert.rejects(readdir(join(root, 'dist')))
+  await assert.doesNotReject(run(root, { legalEmail: EMAIL, requireLegalEmail: true }))
+})
+
+test('an invalid email fails the build, and the message does not repeat the value', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  for (const options of [{}, { requireLegalEmail: true }]) {
+    await assert.rejects(run(root, { ...options, legalEmail: 'secret-value@nowhere' }), (error: unknown) => {
+      assert.ok(error instanceof Error)
+      assert.equal(error.message, 'LEGAL_EMAIL is not a valid email address')
+      assert.ok(!error.message.includes('secret-value'))
+      return true
+    })
+  }
+  await assert.rejects(readdir(join(root, 'dist')))
+})
+
+test('an email in the registry fails the build, and the message does not repeat it', async (t) => {
+  const root = await fixture({ registry: { legal: { name: 'Ada Example', email: 'registry-secret@example.org' } } })
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await assert.rejects(run(root, { legalEmail: EMAIL }), (error: unknown) => {
+    assert.ok(error instanceof Error)
+    assert.ok(error.message.includes('legal.email must not be in the registry; the build reads the address from LEGAL_EMAIL'))
+    assert.ok(!error.message.includes('registry-secret'))
+    return true
+  })
 })
 
 test('a variant holding a top-level legal.html fails the build', async (t) => {
