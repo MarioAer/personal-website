@@ -97,6 +97,15 @@ test('the theme toggle writes and persists the theme', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
 })
 
+test('no theme is stored until the visitor uses the toggle', async ({ page }) => {
+  await page.goto('./')
+  await expect(control(page, 'shell-theme')).toBeVisible()
+  expect(await page.evaluate(() => window.localStorage.getItem('theme'))).toBeNull()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', /^(light|dark)$/)
+  await control(page, 'shell-theme').click()
+  expect(await page.evaluate(() => window.localStorage.getItem('theme'))).toMatch(/^(light|dark)$/)
+})
+
 test('the theme toggle still works when storage throws', async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperty(window, 'localStorage', {
@@ -166,6 +175,7 @@ test('the bar works when the registry cannot be loaded', async ({ page }) => {
   await page.goto('./')
   await expect(control(page, 'shell-select')).toHaveCount(0)
   await expect(control(page, 'shell-spec')).toHaveCount(0)
+  await expect(control(page, 'shell-legal')).toBeVisible()
   await expect(control(page, 'shell-theme')).toBeVisible()
   await expect(control(page, 'shell-github')).toBeVisible()
   expect(errors).toEqual([])
@@ -202,6 +212,30 @@ test.describe('with a two-entry registry served from the network', () => {
     await expect(control(page, 'shell-colophon')).toContainText('older specification')
     await expect(control(page, 'shell-spec')).toHaveAttribute('href', specUrl('2026-09-01'))
   })
+})
+
+test('the legal link opens the legal page from a variant', async ({ page }) => {
+  test.skip(!otherEntry, 'the registry holds a single variant')
+  if (!otherEntry) return // unreachable: test.skip above has already ended the test
+  await page.goto(`${otherEntry.id}/`)
+  await control(page, 'shell-legal').click()
+  await expect(page).toHaveURL(/\/personal-website\/legal\.html$/)
+  await expect(page.locator('h1')).toHaveText('Legal notice and privacy')
+  await expect(page.locator('#privacy')).toHaveCount(1)
+  await expect(page.locator('#legal-notice')).toHaveCount(registry.legal.address ? 1 : 0)
+})
+
+test('every bar control lies inside the viewport', async ({ page }) => {
+  await page.goto('./')
+  await expect(control(page, 'shell-github')).toBeVisible()
+  const width = page.viewportSize()?.width
+  if (!width) throw new Error('the viewport has no size')
+  for (const id of ['shell-select', 'shell-theme', 'shell-legal', 'shell-spec', 'shell-linkedin', 'shell-github']) {
+    const box = await control(page, id).boundingBox()
+    if (!box) throw new Error(`${id} has no bounding box`)
+    expect(box.x, `${id} starts left of the viewport`).toBeGreaterThanOrEqual(0)
+    expect(box.x + box.width, `${id} ends right of the viewport`).toBeLessThanOrEqual(width)
+  }
 })
 
 test('the 404 page carries the bar', async ({ page }) => {

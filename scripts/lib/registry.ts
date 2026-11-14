@@ -17,6 +17,15 @@ export interface Contact {
 }
 
 /**
+ * Who answers for the site. `address` present means a legal notice is published. The email address
+ * is not part of the registry: the build reads it from the environment (`LEGAL_EMAIL`).
+ */
+export interface Legal {
+  name: string
+  address?: string[]
+}
+
+/**
  * `variants.json`. `repository` is the GitHub repository the shell links each variant's
  * specification in. `specVersion` is absent in the repository and written by the build into the
  * copy it places in the output: the newest file in `spec/`.
@@ -26,6 +35,7 @@ export interface Registry {
   variants: Variant[]
   contact: Contact
   repository: string
+  legal: Legal
   specVersion?: string
 }
 
@@ -38,7 +48,7 @@ export interface RegistryContext {
 }
 
 export const ID_PATTERN = /^[a-z0-9][a-z0-9.-]*$/
-export const RESERVED_NAMES = ['shell', 'index.html', '404.html', 'variants.json', 'cname', '.nojekyll', 'favicon.ico']
+export const RESERVED_NAMES = ['shell', 'index.html', '404.html', 'legal.html', 'variants.json', 'cname', '.nojekyll', 'favicon.ico']
 
 // Entries a variant folder may not contain. index.html is absent: every variant must have one.
 export const RESERVED_VARIANT_ENTRIES = RESERVED_NAMES.filter((name) => name !== 'index.html')
@@ -53,6 +63,30 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 /** `Array.isArray` widens an `unknown` to `any[]`; this keeps the elements `unknown`. */
 export function isArray(value: unknown): value is unknown[] {
   return Array.isArray(value)
+}
+
+/** An address has no whitespace or control character, exactly one `@`, a local part, and a domain with a dot inside it. */
+export function isEmail(value: string): boolean {
+  if (/\s/.test(value)) return false
+  for (const character of value) {
+    const code = character.codePointAt(0) ?? 0
+    if (code < 0x20 || (code >= 0x7f && code <= 0x9f)) return false
+  }
+  const parts = value.split('@')
+  if (parts.length !== 2) return false
+  const [local, domain] = parts
+  return local.length > 0 && domain.includes('.') && !domain.startsWith('.') && !domain.endsWith('.')
+}
+
+function isAddress(value: unknown): value is string[] {
+  return isArray(value) && value.length > 0 && value.every((line) => typeof line === 'string' && line.trim().length > 0)
+}
+
+function isLegal(value: unknown): value is Legal {
+  if (!isRecord(value)) return false
+  if (typeof value.name !== 'string' || value.name.trim().length === 0) return false
+  if ('email' in value) return false
+  return value.address === undefined || isAddress(value.address)
 }
 
 function isVariant(value: unknown): value is Variant {
@@ -77,6 +111,7 @@ export function isRegistry(value: unknown): value is Registry {
   if (!isRecord(contact)) return false
   if (typeof contact.linkedin !== 'string' || typeof contact.github !== 'string') return false
   if (typeof value.repository !== 'string') return false
+  if (!isLegal(value.legal)) return false
   return value.specVersion === undefined || typeof value.specVersion === 'string'
 }
 
@@ -148,6 +183,21 @@ export function validateRegistry(registry: unknown, context: RegistryContext = {
   const repository = registry.repository
   if (typeof repository !== 'string' || !repository.startsWith('https://')) {
     errors.push('variants.json: "repository" must be an https URL')
+  }
+
+  const legal = registry.legal
+  if (!isRecord(legal)) {
+    errors.push('variants.json: "legal" must be an object with name, and optionally address')
+  } else {
+    if (typeof legal.name !== 'string' || legal.name.trim().length === 0) {
+      errors.push('variants.json: legal.name must be a non-empty string')
+    }
+    if ('email' in legal) {
+      errors.push('variants.json: legal.email must not be in the registry; the build reads the address from LEGAL_EMAIL')
+    }
+    if (legal.address !== undefined && !isAddress(legal.address)) {
+      errors.push('variants.json: legal.address must be a non-empty list of non-empty lines')
+    }
   }
 
   return errors

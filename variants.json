@@ -66,5 +66,9 @@
     "linkedin": "https://www.linkedin.com/in/marioaer",
     "github": "https://github.com/MarioAer"
   },
-  "repository": "https://github.com/MarioAer/personal-website"
+  "repository": "https://github.com/MarioAer/personal-website",
+  "legal": {
+    "name": "Mario Erazo",
+    "address": ["50667 Cologne", "Germany"]
+  }
 }

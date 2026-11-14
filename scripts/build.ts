@@ -1,13 +1,14 @@
 import { readFile, writeFile, readdir, mkdir, rm, cp } from 'node:fs/promises'
 import { join, relative, basename, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { isRecord, isRegistry, validateRegistry } from './lib/registry.ts'
+import { isEmail, isRecord, isRegistry, validateRegistry } from './lib/registry.ts'
 import type { Registry } from './lib/registry.ts'
 import { checkVariant } from './lib/contract.ts'
 import { insertAtHeadStart, rewriteScriptSrc } from './lib/html.ts'
 import { HEAD_MARKUP } from './lib/policy.ts'
 import type { VariantFiles } from './lib/contract.ts'
 import { specVersions } from './lib/spec.ts'
+import { legalPage, PLACEHOLDER_LEGAL_EMAIL } from './lib/legal.ts'
 
 /** A file found under a directory, with both its absolute path and its path relative to that root. */
 interface FoundFile {
@@ -23,6 +24,10 @@ export interface BuildOptions {
   outDir: string
   /** Deployment base path, normalised by `normaliseBasePath`. Defaults to `/`. */
   basePath?: string | undefined
+  /** The address the legal page shows, from `LEGAL_EMAIL`. Empty or missing means not configured. */
+  legalEmail?: string | undefined
+  /** A deployment build: fails when no `legalEmail` is configured instead of using a placeholder. */
+  requireLegalEmail?: boolean | undefined
 }
 
 export interface BuildResult {
@@ -126,8 +131,12 @@ async function listSpecVersions(root: string): Promise<string[]> {
   }
 }
 
-export async function build({ root, outDir, basePath }: BuildOptions): Promise<BuildResult> {
+export async function build({ root, outDir, basePath, legalEmail, requireLegalEmail }: BuildOptions): Promise<BuildResult> {
   const base = normaliseBasePath(basePath)
+  const configuredEmail = (legalEmail ?? '').trim()
+  // Neither message may hold the value: build logs are readable by more people than the page's source is.
+  if (configuredEmail !== '' && !isEmail(configuredEmail)) throw new Error('LEGAL_EMAIL is not a valid email address')
+  if (configuredEmail === '' && requireLegalEmail) throw new Error('LEGAL_EMAIL is required for a deployment build but is not set')
   const registryPath = join(root, 'variants.json')
 
   let parsed: unknown
@@ -154,6 +163,7 @@ export async function build({ root, outDir, basePath }: BuildOptions): Promise<B
   const registry: Registry = parsed
 
   const warnings: string[] = []
+  if (configuredEmail === '') warnings.push('LEGAL_EMAIL is not set; the legal page shows a placeholder address')
   for (const variant of registry.variants) {
     const tree = await readVariantTree(join(root, 'variants', variant.id))
     if (tree.unsupported.length > 0) {
@@ -188,7 +198,9 @@ export async function build({ root, outDir, basePath }: BuildOptions): Promise<B
   // Browsers request /favicon.ico for pages that declare no icon; variants that declare one keep it.
   await cp(join(root, 'shell', 'favicon.ico'), join(outDir, 'favicon.ico'))
 
-  await writeFile(join(outDir, 'variants.json'), `${JSON.stringify({ ...registry, specVersion }, null, 2)}\n`)
+  // The shell does not read `legal`, so the published registry leaves it out.
+  const { legal: _legal, ...published } = registry
+  await writeFile(join(outDir, 'variants.json'), `${JSON.stringify({ ...published, specVersion }, null, 2)}\n`)
 
   await writeFile(join(outDir, '.nojekyll'), '')
   await writeFile(join(outDir, '404.html'), withPolicy(`<!doctype html>
@@ -214,6 +226,7 @@ main{max-width:40rem;margin:0 auto;padding:3rem 1rem}
 </body>
 </html>
 `, '404.html'))
+  await writeFile(join(outDir, 'legal.html'), withPolicy(legalPage(registry.legal, configuredEmail === '' ? PLACEHOLDER_LEGAL_EMAIL : configuredEmail, registry.contact, base), 'legal.html'))
 
   return { warnings }
 }
@@ -225,6 +238,8 @@ if (invokedDirectly) {
     root,
     outDir: join(root, 'dist'),
     basePath: process.env.BASE_PATH,
+    legalEmail: process.env.LEGAL_EMAIL,
+    requireLegalEmail: process.env.REQUIRE_LEGAL_EMAIL === '1',
   })
   for (const warning of warnings) console.warn(`warning: ${warning}`)
   console.log(`Built ${relative(root, join(root, 'dist'))} for base path ${normaliseBasePath(process.env.BASE_PATH)}`)
