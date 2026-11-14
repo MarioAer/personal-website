@@ -50,7 +50,7 @@ test('an id that breaks the pattern is rejected', () => {
 })
 
 test('reserved ids are rejected', () => {
-  for (const name of ['shell', '404.html']) {
+  for (const name of ['shell', '404.html', 'legal.html']) {
     const r = registry({ default: name, variants: [entry({ id: name })] })
     const errors = validateRegistry(r, context({ variantFolders: [name] }))
     assert.ok(errors.some((e: string) => /reserved/i.test(e)), `${name} should be reserved`)

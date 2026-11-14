@@ -48,6 +48,9 @@ other.
   current one.
 - The specification holds content only: purpose, audience, positioning, content inventory and
   content rules. It is the owner's; changing what the site says is their decision.
+- The legal page is build output from the registry's `legal` block, outside the specification's
+  content inventory, so the specification's contact-data rule governs the variants and not this
+  page.
 
 ## Architecture
 
@@ -69,7 +72,7 @@ variants/<id>/          one model's implementation: plain HTML, CSS, optional va
 variants.json           registry: default variant, entries, contact links, repository
 shell/shell.js          the shared top bar, injected into every page
 scripts/build.ts        validate, assemble dist/, rewrite the base path
-scripts/lib/            registry validation, variant contract checks, spec versions, security policy, HTML, CSS and JS parsing
+scripts/lib/            registry validation, variant contract checks, spec versions, security policy, legal page, HTML, CSS and JS parsing
 scripts/serve.ts        static server for dist/, used locally and by Playwright
 tests/                  unit suite
 e2e/                    browser suite
@@ -115,9 +118,9 @@ them.
 Rules, all checked by the build:
 
 - `id` matches `^[a-z0-9][a-z0-9.-]*$`, is unique, and equals the folder name under `variants/`.
-- `id` is not a reserved name (`shell`, `index.html`, `404.html`, `variants.json`, `CNAME`,
-  `.nojekyll`, `favicon.ico`) and does not equal a top-level entry of the default variant, whose
-  files are copied to the output root.
+- `id` is not a reserved name (`shell`, `index.html`, `404.html`, `legal.html`, `variants.json`,
+  `CNAME`, `.nojekyll`, `favicon.ico`) and does not equal a top-level entry of the default
+  variant, whose files are copied to the output root.
 - `default` names an existing `id`. The default variant is served at the site root; every
   variant, the default included, is also served at `<base>/<id>/`.
 - `modelId` is the exact model identifier the tool used, `toolVersion` the tool's reported
@@ -249,7 +252,8 @@ Inputs: the repository and `BASE_PATH` (default `/`).
 5. Copy `shell/` and `shell/favicon.ico` to `dist/favicon.ico`, and write `dist/variants.json`
    with the current `specVersion` added and `legal` left out.
 6. Write `dist/.nojekyll` and `dist/404.html` (shell, heading, a sentence pointing to the
-   selector), with the same policy and theme script.
+   selector), with the same policy and theme script. Also write `dist/legal.html` from the
+   registry's `legal` block, with the same policy and theme script.
 
 Output is deterministic: identical inputs produce byte-identical `dist/`.
 

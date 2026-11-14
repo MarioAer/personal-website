@@ -8,6 +8,7 @@ import { insertAtHeadStart, rewriteScriptSrc } from './lib/html.ts'
 import { HEAD_MARKUP } from './lib/policy.ts'
 import type { VariantFiles } from './lib/contract.ts'
 import { specVersions } from './lib/spec.ts'
+import { legalPage } from './lib/legal.ts'
 
 /** A file found under a directory, with both its absolute path and its path relative to that root. */
 interface FoundFile {
@@ -216,6 +217,7 @@ main{max-width:40rem;margin:0 auto;padding:3rem 1rem}
 </body>
 </html>
 `, '404.html'))
+  await writeFile(join(outDir, 'legal.html'), withPolicy(legalPage(registry.legal, registry.contact, base), 'legal.html'))
 
   return { warnings }
 }

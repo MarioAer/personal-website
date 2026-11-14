@@ -78,7 +78,7 @@ test('the build produces the expected layout', async (t) => {
   t.after(() => rm(root, { recursive: true, force: true }))
   await run(root)
   const dist = join(root, 'dist')
-  for (const path of ['index.html', 'alpha/index.html', 'beta/index.html', 'shell/shell.js', 'variants.json', '404.html', '.nojekyll']) {
+  for (const path of ['index.html', 'alpha/index.html', 'beta/index.html', 'shell/shell.js', 'variants.json', '404.html', 'legal.html', '.nojekyll']) {
     await assert.doesNotReject(readFile(join(dist, path)), `${path} should exist`)
   }
   await assert.rejects(readdir(join(dist, 'spec')), 'the specification is linked on GitHub, not published')
@@ -241,11 +241,27 @@ test('every published page starts its head with the security policy and the them
   await mkdir(join(root, 'variants', 'beta', 'more'))
   await writeFile(join(root, 'variants', 'beta', 'more', 'page.html'), '<!doctype html><html><head><title>x</title></head><body></body></html>')
   await run(root)
-  for (const path of ['index.html', 'alpha/index.html', 'beta/index.html', 'beta/more/page.html', '404.html']) {
+  for (const path of ['index.html', 'alpha/index.html', 'beta/index.html', 'beta/more/page.html', '404.html', 'legal.html']) {
     const page = await readFile(join(root, 'dist', path), 'utf8')
     assert.ok(page.includes(`<head>${HEAD_MARKUP}`), `${path} should start its head with the policy`)
     assert.equal(page.split(HEAD_MARKUP).length, 2, `${path} should carry the policy once`)
   }
+})
+
+test("the legal page carries the registry's legal data and the shell for the base path", async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await run(root, { basePath: '/personal-website/' })
+  const page = await readFile(join(root, 'dist', 'legal.html'), 'utf8')
+  assert.ok(page.includes('Ada Example'))
+  assert.ok(page.includes('src="/personal-website/shell/shell.js"'))
+})
+
+test('a variant holding a top-level legal.html fails the build', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await writeFile(join(root, 'variants', 'beta', 'legal.html'), '<!doctype html><html><head></head><body></body></html>')
+  await assert.rejects(run(root), (error: unknown) => error instanceof Error && error.message.includes('legal.html'))
 })
 
 test('a variant page without a written head start tag fails the build naming the file', async (t) => {
