@@ -25,8 +25,12 @@ function arrival(index) {
   // The last section is short and can never reach the top, so it arrives as it fills in.
   const line = isLast ? viewport : viewport * 0.62
   const stretch = isLast ? Math.max(1, Math.min(section.offsetHeight, viewport * 0.6)) : viewport * 0.5
-  return Math.min(1, Math.max(0, (line - top) / stretch))
+  // Nothing has arrived before the page has moved, however tall the viewport is.
+  const travelled = Math.min((line - top) / stretch, window.scrollY / stretch)
+  return Math.min(1, Math.max(0, travelled))
 }
+
+let marked = -1
 
 function placeCarriage() {
   if (!(track instanceof HTMLElement)) return
@@ -34,10 +38,10 @@ function placeCarriage() {
   for (let index = 1; index < sections.length; index += 1) position += arrival(index)
   track.style.setProperty('--strip-pos', position.toFixed(3))
   const current = Math.round(position)
-  stops.forEach((stop, index) => {
-    if (index === current) stop.setAttribute('aria-current', 'true')
-    else stop.removeAttribute('aria-current')
-  })
+  if (current === marked) return
+  stops[marked]?.removeAttribute('aria-current')
+  stops[current]?.setAttribute('aria-current', 'true')
+  marked = current
 }
 
 if (track && stops.length > 1) {

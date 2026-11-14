@@ -88,9 +88,9 @@
 }
 
 /* Each line carries its colour as --l; on the board the brighter board colours apply. */
-.line--1, .pline--1, .net__line--1 { --l: var(--line-1); --l-fg: var(--line-fg); }
-.line--2, .pline--2, .net__line--2 { --l: var(--line-2); --l-fg: var(--line-fg); }
-.line--3, .pline--3, .net__line--3 { --l: var(--line-3); --l-fg: var(--line-fg); }
+.line--1 { --l: var(--line-1); --l-fg: var(--line-fg); }
+.line--2 { --l: var(--line-2); --l-fg: var(--line-fg); }
+.line--3 { --l: var(--line-3); --l-fg: var(--line-fg); }
 .pline--1, .net__line--1 { --l: var(--board-line-1); --l-fg: #0b1220; }
 .pline--2, .net__line--2 { --l: var(--board-line-2); --l-fg: #0b1220; }
 .pline--3, .net__line--3 { --l: var(--board-line-3); --l-fg: #0b1220; }
@@ -514,9 +514,9 @@ main:focus { outline: none; }
 .net__station circle { fill: var(--board-bg); stroke: var(--l); stroke-width: 5; transition: fill 0.2s ease, stroke-width 0.2s ease; }
 .net__station text { font-size: 15px; font-weight: 600; }
 .net__station { animation: net-appear 0.45s ease-out calc(var(--d) + 0.5s) backwards; }
-.net__station:nth-of-type(2) { animation-delay: calc(var(--d) + 0.65s); }
-.net__station:nth-of-type(3) { animation-delay: calc(var(--d) + 0.8s); }
-.net__station:nth-of-type(4) { animation-delay: calc(var(--d) + 0.95s); }
+.net__station + .net__station { animation-delay: calc(var(--d) + 0.65s); }
+.net__station + .net__station + .net__station { animation-delay: calc(var(--d) + 0.8s); }
+.net__station + .net__station + .net__station + .net__station { animation-delay: calc(var(--d) + 0.95s); }
 .net__station:hover circle, .net__station:focus-visible circle { fill: var(--l); stroke-width: 7; }
 .net__station:hover text, .net__station:focus-visible text { fill: var(--l); }
 
